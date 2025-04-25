@@ -1,0 +1,125 @@
+# Default values for sedai-smart-agent.
+# Namespace where the Sedai Smart Agent and its related resources will be deployed.
+namespace: sedai-smart-agent
+
+# Configuration for enabling/disabling Sedai components.
+smartAgentEnroll:
+  enabled: true  # Enables/disables the Smart Agent enrollment job.
+sedaiPrometheus:
+  enabled: true  # Enables/disables the Prometheus instance for monitoring.
+  server:
+    retention: '1d'  # Data retention period for Prometheus metrics.
+sedaiKSM:
+  enabled: true  # Enables/disables Kubernetes State Metrics (KSM) deployment.
+
+# Workload-related configurations, including resource names, replicas, and history limits.
+workload:
+  smartAgentEnroll:
+    name: sedai-smart-agent-enroll-job
+  smartAgent:
+    name: sedai-smart-agent
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    secret: sedai-smart-agent
+  prometheus:
+    name: sedai-prometheus-server
+    replicaCount: 1
+    revisionHistoryLimit: 1
+  ksm:
+    name: sedai-kube-state-metrics
+    replicaCount: 1
+    revisionHistoryLimit: 1
+
+# Enable Debug Logging for Smart Agent
+enableAgentDebugLogs:
+  enabled: false
+  agentLogLevel: "DEBUG"
+  loggingConfig: "classpath:log4j2-onprem.xml"
+
+# Container image configurations, including repository, tag, and pull policy.
+image:
+  smartAgent:
+    name: sedai-agent
+    repository: public.ecr.aws/sedai_io/sedai-smart-agent
+    imageTag: v1.22.33
+    imagePullPolicy: IfNotPresent
+  smartagentEnroll:  
+    name: sedai-enroll
+    repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll 
+    # repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent-enroll
+    imageTag: v2.1.0
+    imagePullPolicy: Always
+  ksm:
+    repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
+    imageTag: v2.15.0
+    imagePullPolicy: IfNotPresent  
+  reload:
+    repository: "quay.io/prometheus-operator/prometheus-config-reloader"
+    imageTag: v0.80.1
+    imagePullPolicy: IfNotPresent   
+  prometheus:
+    repository: "quay.io/prometheus/prometheus"
+    imageTag: v3.2.1
+    imagePullPolicy: IfNotPresent          
+
+
+# Resource requests and limits for different components.
+resources:
+  smartAgent:
+    cpu:
+      requests: "500m"
+      limits: "500m"
+    memory:
+      requests: "1024Mi"
+      limits: "1024Mi"
+  prometheus:
+    cpu:
+      requests: "500m"
+      limits: "500m"
+    memory:
+      requests: "1024Mi"
+      limits: "1024Mi"
+    storage: "60Gi"
+  ksm:
+    cpu:
+      requests: "200m"
+      limits: "200m"
+    memory:
+      requests: "256Mi"
+      limits: "256Mi"
+
+# EGRESS Proxy Settings for Sedai Smart Agent
+proxySettings:
+  enabled: false
+  proxyHost:
+  proxyPort:
+  proxyUsername:
+  proxyPassword:
+
+
+# Kubernetes Integration Settings
+sedaiIntegrationSettings:
+  clusterName: ""
+  clusterProvider: "AWS" # AWS, AZURE, GCP
+  sedaiBaseUrl: ""
+  sedaiApiToken: ""
+
+# Kubernetes Monitoring Provider Settings
+monitoringProvider:
+  sedaiManagedPrometheus:
+    enabled: true
+  prometheus:
+    enabled: false   
+    serverUrl: "http://prometheus-server.prometheus.svc.cluster.local"
+    credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" #BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, FEDERATEDPROMETHEUS_NO_AUTH
+    prometheusUsername:
+    prometheusPassword:
+    prometheusjwtToken:
+  datadog:
+    enabled: false  
+    datadogEndpoint:
+    datadogApiKey:
+    datadogApplicationKey:
+  gcpMonitoring:
+    enabled: false
+    projectID:

@@ -1,0 +1,110 @@
+{{- if .Values.smartAgentEnroll.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-secret"
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  SEDAI_BASE_URL: {{ .Values.sedaiIntegrationSettings.sedaiBaseUrl }}
+  SEDAI_API_TOKEN: {{ .Values.sedaiIntegrationSettings.sedaiApiToken }}
+  CLUSTER_PROVIDER: {{ .Values.sedaiIntegrationSettings.clusterProvider }}
+  CLUSTER_NAME: {{ .Values.sedaiIntegrationSettings.clusterName }}
+  {{- if .Values.monitoringProvider.sedaiManagedPrometheus.enabled }}
+  SEDAI_MANAGED_PROMETHUES_MP: ENABLED
+  SEDAI_PROMETHEUS_ENDPOINT: "http://{{ .Values.workload.prometheus.name }}-service"
+  {{- end }}  
+  {{- if .Values.monitoringProvider.prometheus.enabled }}
+  NON_MANAGED_PROMETHUES_MP: ENABLED  
+  PROMETHEUS_ENDPOINT: "{{ .Values.monitoringProvider.prometheus.serverUrl }}"
+  CREDENTIALS_PROVIDER: "{{ .Values.monitoringProvider.prometheus.credentialsProvider }}"
+  {{- if .Values.monitoringProvider.prometheus.prometheusUsername }}
+  PROMETHEUS_USERNAME: "{{ .Values.monitoringProvider.prometheus.prometheusUsername }}"
+  {{- end }}
+  {{- if .Values.monitoringProvider.prometheus.prometheusPassword }}
+  PROMETHEUS_PASSWORD: "{{ .Values.monitoringProvider.prometheus.prometheusPassword }}"
+  {{- end }}
+  {{- if .Values.monitoringProvider.prometheus.prometheusjwtToken }}
+  PROMETHEUS_BEARER_TOKEN: "{{ .Values.monitoringProvider.prometheus.prometheusjwtToken }}"
+  {{- end }}
+  {{- end }}
+  {{- if .Values.monitoringProvider.datadog.enabled }}
+  DATADOG_MP: ENABLED
+  DATADOG_ENDPOINT: "{{ .Values.monitoringProvider.datadog.datadogEndpoint }}"
+  DATADOG_API_KEY: "{{ .Values.monitoringProvider.datadog.datadogApiKey }}"
+  DATADOG_APPLICATION_KEY: "{{ .Values.monitoringProvider.datadog.datadogApplicationKey }}"
+  {{- end }}
+  {{- if .Values.monitoringProvider.gcpMonitoring.enabled }}
+  GCP_MP: ENABLED
+  GCP_PROJECT_ID: "{{ .Values.monitoringProvider.gcpMonitoring.projectID }}"
+  {{- end }}  
+  {{- if .Values.proxySettings.enabled }}
+  PROXY_HOST: "{{ .Values.proxySettings.proxyHost }}"      
+  PROXY_PORT: "{{ .Values.proxySettings.proxyPort }}"      
+  PROXY_USERNAME: "{{ .Values.proxySettings.proxyUsername }}"      
+  PROXY_PASSWORD: "{{ .Values.proxySettings.proxyPassword }}"    
+  {{- end }}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
+  namespace: {{ .Values.namespace }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-role"
+  namespace: {{ .Values.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "update", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-role-binding"
+  namespace: {{ .Values.namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
+    namespace: {{ .Values.namespace }}
+roleRef:
+  kind: Role
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-role"
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}"
+  namespace: {{ .Values.namespace }}
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.workload.smartAgentEnroll.name }}
+    spec:
+      serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
+      restartPolicy: Never
+      containers:
+        - name: sedai-enroll
+          image: "{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"
+          command: ["/bin/sh", "-c", "python enroll_sedai.py"]
+          imagePullPolicy: "{{ .Values.image.smartagentEnroll.imagePullPolicy }}"          
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+            - secretRef:
+                name: "{{ .Values.workload.smartAgentEnroll.name }}-secret"
+{{- end }}                 

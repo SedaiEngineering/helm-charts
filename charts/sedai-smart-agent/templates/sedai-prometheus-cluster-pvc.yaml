@@ -1,0 +1,20 @@
+
+{{- if .Values.sedaiPrometheus.enabled }}
+
+---
+# Source: sedai-smart-agent-chart/charts/sedai-prometheus/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+  name: "{{ .Values.workload.prometheus.name }}-pvc"
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ .Values.resources.prometheus.storage }}"  
+
+{{- end }}

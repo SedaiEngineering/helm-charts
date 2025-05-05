@@ -1,0 +1,18 @@
+{{- if .Values.smartAgentEnroll.enabled }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-role-binding"
+  namespace: {{ .Values.namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
+    namespace: {{ .Values.namespace }}
+roleRef:
+  kind: Role
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-role"
+  apiGroup: rbac.authorization.k8s.io
+
+{{- end }}                 

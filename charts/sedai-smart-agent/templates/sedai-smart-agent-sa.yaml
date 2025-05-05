@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ .Values.workload.smartAgent.name }}-sa"
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}

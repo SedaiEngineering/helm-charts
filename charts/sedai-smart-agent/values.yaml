@@ -41,7 +41,7 @@ image:
   smartAgent:
     name: sedai-agent
     repository: public.ecr.aws/sedai_io/sedai-smart-agent
-    imageTag: v1.22.33
+    imageTag: v1.22.36
     imagePullPolicy: IfNotPresent
   smartagentEnroll:  
     name: sedai-enroll
@@ -100,14 +100,14 @@ proxySettings:
 # Kubernetes Integration Settings
 sedaiIntegrationSettings:
   clusterName: ""
-  clusterProvider: "AWS" # AWS, AZURE, GCP
+  clusterProvider: "AWS" # AWS, AZURE, GCP, SELF_MANAGED
   sedaiBaseUrl: ""
   sedaiApiToken: ""
 
 # Kubernetes Monitoring Provider Settings
 monitoringProvider:
   sedaiManagedPrometheus:
-    enabled: true
+    enabled: true                   # Keep it enabled if you're using Sedai Managed Prometheus Server
   prometheus:
     enabled: false   
     serverUrl: "http://prometheus-server.prometheus.svc.cluster.local"
@@ -122,4 +122,4 @@ monitoringProvider:
     datadogApplicationKey:
   gcpMonitoring:
     enabled: false
-    projectID:
+    projectID:    

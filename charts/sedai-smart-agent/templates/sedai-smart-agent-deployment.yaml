@@ -1,0 +1,96 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.workload.smartAgent.name }}"
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "sedai-smart-agent.selectorLabels" . | nindent 6 }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        {{- include "sedai-smart-agent.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: "{{ .Values.workload.smartAgent.name }}-sa"
+
+      # Pod-level security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+
+      containers:
+      - name: "{{ .Values.image.smartAgent.name }}"
+        image: "{{ .Values.image.smartAgent.repository }}:{{ .Values.image.smartAgent.imageTag }}"
+        imagePullPolicy: {{ .Values.image.smartAgent.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: "{{ .Values.resources.smartAgent.cpu.requests }}"          
+            memory: "{{ .Values.resources.smartAgent.memory.requests }}"
+          limits:
+            cpu: "{{ .Values.resources.smartAgent.cpu.limits }}"
+            memory: "{{ .Values.resources.smartAgent.memory.limits }}"
+
+        envFrom:
+        - secretRef:
+            name: "{{ .Values.workload.smartAgent.secret }}"
+
+        env:
+        - name: _JAVA_OPTIONS
+          value: "-Xms{{ floor (div (mul (int (.Values.resources.smartAgent.memory.requests | replace "Mi" "")) 25) 100) }}M -Xmx{{ floor (div (mul (int (.Values.resources.smartAgent.memory.limits | replace "Mi" "")) 47) 100) }}M"
+
+        # Optional Proxy Settings
+        {{- if .Values.proxySettings.enabled }}
+        - name: PROXY_HOST
+          value: "{{ .Values.proxySettings.proxyHost }}"      
+        - name: PROXY_PORT
+          value: "{{ .Values.proxySettings.proxyPort }}"      
+        - name: PROXY_USERNAME
+          value: "{{ .Values.proxySettings.proxyUsername }}"      
+        - name: PROXY_PASSWORD
+          value: "{{ .Values.proxySettings.proxyPassword }}"    
+        {{- end }}
+
+        # Optional Debug Logging
+        {{- if .Values.enableAgentDebugLogs.enabled }}
+        - name: AGENT_LOG_LEVEL
+          value: {{ .Values.enableAgentDebugLogs.agentLogLevel }}
+        - name: LOGGING_CONFIG
+          value: {{ .Values.enableAgentDebugLogs.loggingConfig }}   
+        {{- end }}
+
+        livenessProbe:
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 1          
+          failureThreshold: 3
+          httpGet:
+            path: /agent/health
+            port: 8080
+            scheme: HTTP
+
+        startupProbe:
+          httpGet:
+            path: /agent/health
+            port: 8080
+            scheme: HTTP
+          failureThreshold: 3
+          periodSeconds: 30
+          initialDelaySeconds: 120
+
+        # Container-level security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault

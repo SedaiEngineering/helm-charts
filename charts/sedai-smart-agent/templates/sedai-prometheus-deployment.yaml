@@ -1,0 +1,121 @@
+{{- if .Values.sedaiPrometheus.enabled }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+  name: "{{ .Values.workload.prometheus.name }}"
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sedai-prometheus-server
+  replicas: 1
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sedai-prometheus-server
+    spec:
+      enableServiceLinks: true
+      serviceAccountName: "{{ .Values.workload.prometheus.name }}-sa"
+      containers:
+        - name: sedai-prometheus-server-configmap-reload
+          image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
+          imagePullPolicy: "{{ .Values.image.reload.imagePullPolicy }}"
+          args:
+            - --watched-dir=/etc/config
+            - --listen-address=0.0.0.0:8080
+            - --reload-url=http://127.0.0.1:9090/-/reload
+          ports:
+            - containerPort: 8080
+              name: metrics
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+              scheme: HTTP
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+              scheme: HTTP
+            periodSeconds: 10
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault              
+        - name: sedai-prometheus-server
+          image: "{{ .Values.image.prometheus.repository }}:{{ .Values.image.prometheus.imageTag }}"
+          imagePullPolicy: "{{ .Values.image.prometheus.imagePullPolicy }}"
+          args:
+            - --storage.tsdb.retention.time={{ .Values.sedaiPrometheus.server.retention }}
+            - --config.file=/etc/config/prometheus.yml
+            - --storage.tsdb.path=/data
+            - --web.console.libraries=/etc/prometheus/console_libraries
+            - --web.console.templates=/etc/prometheus/consoles
+            - --web.enable-lifecycle
+          ports:
+            - containerPort: 9090
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 4
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: storage-volume
+              mountPath: /data
+              subPath: ""
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault              
+      dnsPolicy: ClusterFirst
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+      terminationGracePeriodSeconds: 300
+      volumes:
+        - name: config-volume
+          configMap:
+            name: "{{ .Values.workload.prometheus.name }}-configmap"
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: "{{ .Values.workload.prometheus.name }}-pvc"
+{{- end }}

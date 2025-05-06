@@ -8,7 +8,7 @@ smartAgentEnroll:
 sedaiPrometheus:
   enabled: true  # Enables/disables the Prometheus instance for monitoring.
   server:
-    retention: '1d'  # Data retention period for Prometheus metrics.
+    retention: '12h'  # Data retention period for Prometheus metrics.
 sedaiKSM:
   enabled: true  # Enables/disables Kubernetes State Metrics (KSM) deployment.
 

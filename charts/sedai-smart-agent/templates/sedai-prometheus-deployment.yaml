@@ -62,13 +62,13 @@ spec:
         - name: sedai-prometheus-server
           image: "{{ .Values.image.prometheus.repository }}:{{ .Values.image.prometheus.imageTag }}"
           imagePullPolicy: "{{ .Values.image.prometheus.imagePullPolicy }}"
-        resources:
-          requests:
-            cpu: "{{ .Values.resources.prometheus.cpu.requests }}"          
-            memory: "{{ .Values.resources.prometheus.memory.requests }}"
-          limits:
-            cpu: "{{ .Values.resources.prometheus.cpu.limits }}"
-            memory: "{{ .Values.resources.prometheus.memory.limits }}"
+          resources:
+            requests:
+              cpu: "{{ .Values.resources.prometheus.cpu.requests }}"          
+              memory: "{{ .Values.resources.prometheus.memory.requests }}"
+            limits:
+              cpu: "{{ .Values.resources.prometheus.cpu.limits }}"
+              memory: "{{ .Values.resources.prometheus.memory.limits }}"
           args:
             - --storage.tsdb.retention.time={{ .Values.sedaiPrometheus.server.retention }}
             - --config.file=/etc/config/prometheus.yml

@@ -74,11 +74,11 @@ resources:
       limits: "1024Mi"
   prometheus:
     cpu:
-      requests: "500m"
-      limits: "500m"
+      requests: "1000m"
+      limits: "1000m"
     memory:
-      requests: "1024Mi"
-      limits: "1024Mi"
+      requests: "4096Mi"
+      limits: "4096Mi"
     storage: "60Gi"
   ksm:
     cpu:

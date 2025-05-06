@@ -6,11 +6,11 @@ namespace: sedai-smart-agent
 smartAgentEnroll:
   enabled: true  # Enables/disables the Smart Agent enrollment job.
 sedaiPrometheus:
-  enabled: true  # Enables/disables the Prometheus instance for monitoring.
+  enabled: false  # Enables/disables the Prometheus instance for monitoring.
   server:
     retention: '12h'  # Data retention period for Prometheus metrics.
 sedaiKSM:
-  enabled: true  # Enables/disables Kubernetes State Metrics (KSM) deployment.
+  enabled: false  # Enables/disables Kubernetes State Metrics (KSM) deployment.
 
 # Workload-related configurations, including resource names, replicas, and history limits.
 workload:

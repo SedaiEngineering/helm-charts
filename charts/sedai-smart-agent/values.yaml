@@ -103,6 +103,8 @@ sedaiIntegrationSettings:
   clusterProvider: "AWS" # AWS, AZURE, GCP, SELF_MANAGED
   sedaiBaseUrl: ""
   sedaiApiToken: ""
+  sedaiApiTokenSecret: ""
+  sedaiApiTokenSecretKey: ""
 
 # Kubernetes Monitoring Provider Settings
 monitoringProvider:

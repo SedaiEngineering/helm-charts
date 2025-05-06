@@ -82,11 +82,11 @@ resources:
     storage: "60Gi"
   ksm:
     cpu:
-      requests: "200m"
-      limits: "200m"
+      requests: "500m"
+      limits: "500m"
     memory:
-      requests: "256Mi"
-      limits: "256Mi"
+      requests: "1024Mi"
+      limits: "1024Mi"
 
 # EGRESS Proxy Settings for Sedai Smart Agent
 proxySettings:

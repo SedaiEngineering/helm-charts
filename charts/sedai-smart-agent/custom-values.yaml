@@ -4,7 +4,7 @@ enableAgentDebugLogs:
   loggingConfig: "classpath:log4j2-onprem.xml"
 
 sedaiIntegrationSettings:
-  clusterName: "sedai-labs-05-us-east-1"
+  clusterName: "labs-01-us-east-1"
   clusterProvider: "AWS"
   sedaiBaseUrl: "https://sedai.sedai.app"
   sedaiApiToken: ""

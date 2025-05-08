@@ -1,4 +1,4 @@
-{{- if .Values.sedaiPrometheus.enabled }}
+{{- if .Values.workload.sedaiPrometheus.enabled }}
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -6,14 +6,14 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
-  name: "{{ .Values.workload.prometheus.name }}-cluster-role-binding"
+  name: "{{ .Values.workload.sedaiPrometheus.name }}-cluster-role-binding"
 subjects:
   - kind: ServiceAccount
-    name: "{{ .Values.workload.prometheus.name }}-sa"
+    name: "{{ .Values.workload.sedaiPrometheus.name }}-sa"
     namespace: {{ .Values.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: "{{ .Values.workload.prometheus.name }}-cluster-role"
+  name: "{{ .Values.workload.sedaiPrometheus.name }}-cluster-role"
 
 {{- end }}

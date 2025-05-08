@@ -1,4 +1,4 @@
-{{- if .Values.sedaiPrometheus.enabled }}
+{{- if .Values.workload.sedaiPrometheus.enabled }}
 
 ---
 apiVersion: apps/v1
@@ -6,7 +6,7 @@ kind: Deployment
 metadata:
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
-  name: "{{ .Values.workload.prometheus.name }}"
+  name: "{{ .Values.workload.sedaiPrometheus.name }}"
   namespace: {{ .Values.namespace }}
 spec:
   selector:
@@ -23,7 +23,7 @@ spec:
         app.kubernetes.io/name: sedai-prometheus-server
     spec:
       enableServiceLinks: true
-      serviceAccountName: "{{ .Values.workload.prometheus.name }}-sa"
+      serviceAccountName: "{{ .Values.workload.sedaiPrometheus.name }}-sa"
       containers:
         - name: sedai-prometheus-server-configmap-reload
           image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
@@ -70,7 +70,7 @@ spec:
               cpu: "{{ .Values.resources.prometheus.cpu.limits }}"
               memory: "{{ .Values.resources.prometheus.memory.limits }}"
           args:
-            - --storage.tsdb.retention.time={{ .Values.sedaiPrometheus.server.retention }}
+            - --storage.tsdb.retention.time={{ .Values.workload.sedaiPrometheus.server.retention }}
             - --config.file=/etc/config/prometheus.yml
             - --storage.tsdb.path=/data
             - --web.console.libraries=/etc/prometheus/console_libraries
@@ -121,8 +121,8 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: "{{ .Values.workload.prometheus.name }}-configmap"
+            name: "{{ .Values.workload.sedaiPrometheus.name }}-configmap"
         - name: storage-volume
           persistentVolumeClaim:
-            claimName: "{{ .Values.workload.prometheus.name }}-pvc"
+            claimName: "{{ .Values.workload.sedaiPrometheus.name }}-pvc"
 {{- end }}

@@ -1,5 +1,4 @@
-
-{{- if .Values.sedaiPrometheus.enabled }}
+{{- if .Values.workload.sedaiPrometheus.enabled }}
 
 ---
 # Source: sedai-smart-agent-chart/charts/sedai-prometheus/templates/pvc.yaml
@@ -8,7 +7,7 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
-  name: "{{ .Values.workload.prometheus.name }}-pvc"
+  name: "{{ .Values.workload.sedaiPrometheus.name }}-pvc"
   namespace: {{ .Values.namespace }}
 spec:
   accessModes:

@@ -1,10 +1,10 @@
-{{- if .Values.sedaiKSM.enabled }}
+{{- if .Values.workload.sedaiKSM.enabled }}
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: "{{ .Values.workload.ksm.name }}-service"
+  name: "{{ .Values.workload.sedaiKSM.name }}-service"
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}

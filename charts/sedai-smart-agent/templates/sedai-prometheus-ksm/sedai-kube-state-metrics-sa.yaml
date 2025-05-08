@@ -1,4 +1,4 @@
-{{- if .Values.sedaiKSM.enabled }}
+{{- if .Values.workload.sedaiKSM.enabled }}
 
 ---
 apiVersion: v1
@@ -6,7 +6,7 @@ kind: ServiceAccount
 metadata:
   labels:    
     {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
-  name: "{{ .Values.workload.ksm.name }}-sa"
+  name: "{{ .Values.workload.sedaiKSM.name }}-sa"
   namespace: {{ .Values.namespace }}
 automountServiceAccountToken: true
 

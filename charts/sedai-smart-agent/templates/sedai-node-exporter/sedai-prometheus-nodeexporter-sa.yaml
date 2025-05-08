@@ -1,0 +1,12 @@
+{{- if .Values.workload.sedaiNodeExporter.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ .Values.workload.sedaiNodeExporter.name }}-sa"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: sedai-prometheus-node-exporter
+automountServiceAccountToken: false
+
+{{- end }}

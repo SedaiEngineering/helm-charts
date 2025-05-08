@@ -1,4 +1,4 @@
-{{- if .Values.sedaiPrometheus.enabled }}
+{{- if .Values.workload.sedaiPrometheus.enabled }}
 
 ---
 apiVersion: v1
@@ -6,7 +6,7 @@ kind: Service
 metadata:
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
-  name: "{{ .Values.workload.prometheus.name }}-service"
+  name: "{{ .Values.workload.sedaiPrometheus.name }}-service"
   namespace: {{ .Values.namespace }}
 spec:
   ports:

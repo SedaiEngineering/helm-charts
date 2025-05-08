@@ -1,4 +1,4 @@
-{{- if .Values.smartAgentEnroll.enabled }}
+{{- if .Values.workload.smartAgentEnroll.enabled }}
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1

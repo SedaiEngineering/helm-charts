@@ -36,15 +36,15 @@ spec:
         args:
         - --port=8080
         - --resources=certificatesigningrequests,configmaps,cronjobs,daemonsets,deployments,endpoints,horizontalpodautoscalers,ingresses,jobs,leases,limitranges,mutatingwebhookconfigurations,namespaces,networkpolicies,nodes,persistentvolumeclaims,persistentvolumes,poddisruptionbudgets,pods,replicasets,replicationcontrollers,resourcequotas,secrets,services,statefulsets,storageclasses,validatingwebhookconfigurations,volumeattachments
-        imagePullPolicy: "{{ .Values.image.ksm.imagePullPolicy }}"
-        image: "{{ .Values.image.ksm.repository }}:{{ .Values.image.ksm.imageTag }}"
+        imagePullPolicy: "{{ .Values.image.sedaiKSM.imagePullPolicy }}"
+        image: "{{ .Values.image.sedaiKSM.repository }}:{{ .Values.image.sedaiKSM.imageTag }}"
         resources:
           requests:
-            cpu: "{{ .Values.resources.ksm.cpu.requests }}"          
-            memory: "{{ .Values.resources.ksm.memory.requests }}"
+            cpu: "{{ .Values.resources.sedaiKSM.cpu.requests }}"          
+            memory: "{{ .Values.resources.sedaiKSM.memory.requests }}"
           limits:
-            cpu: "{{ .Values.resources.ksm.cpu.limits }}"
-            memory: "{{ .Values.resources.ksm.memory.limits }}"
+            cpu: "{{ .Values.resources.sedaiKSM.cpu.limits }}"
+            memory: "{{ .Values.resources.sedaiKSM.memory.limits }}"
         ports:
         - containerPort: 8080
           name: "http"

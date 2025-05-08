@@ -26,8 +26,8 @@ spec:
       serviceAccountName: "{{ .Values.workload.sedaiPrometheus.name }}-sa"
       containers:
         - name: sedai-prometheus-server-configmap-reload
-          image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
-          imagePullPolicy: "{{ .Values.image.reload.imagePullPolicy }}"
+          image: "{{ .Values.image.sedaiPrometheusReload.repository }}:{{ .Values.image.sedaiPrometheusReload.imageTag }}"
+          imagePullPolicy: "{{ .Values.image.sedaiPrometheusReload.imagePullPolicy }}"
           args:
             - --watched-dir=/etc/config
             - --listen-address=0.0.0.0:8080
@@ -60,15 +60,15 @@ spec:
             seccompProfile:
               type: RuntimeDefault              
         - name: sedai-prometheus-server
-          image: "{{ .Values.image.prometheus.repository }}:{{ .Values.image.prometheus.imageTag }}"
-          imagePullPolicy: "{{ .Values.image.prometheus.imagePullPolicy }}"
+          image: "{{ .Values.image.sedaiPrometheus.repository }}:{{ .Values.image.sedaiPrometheus.imageTag }}"
+          imagePullPolicy: "{{ .Values.image.sedaiPrometheus.imagePullPolicy }}"
           resources:
             requests:
-              cpu: "{{ .Values.resources.prometheus.cpu.requests }}"          
-              memory: "{{ .Values.resources.prometheus.memory.requests }}"
+              cpu: "{{ .Values.resources.sedaiPrometheus.cpu.requests }}"          
+              memory: "{{ .Values.resources.sedaiPrometheus.memory.requests }}"
             limits:
-              cpu: "{{ .Values.resources.prometheus.cpu.limits }}"
-              memory: "{{ .Values.resources.prometheus.memory.limits }}"
+              cpu: "{{ .Values.resources.sedaiPrometheus.cpu.limits }}"
+              memory: "{{ .Values.resources.sedaiPrometheus.memory.limits }}"
           args:
             - --storage.tsdb.retention.time={{ .Values.workload.sedaiPrometheus.server.retention }}
             - --config.file=/etc/config/prometheus.yml

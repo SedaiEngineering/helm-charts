@@ -49,15 +49,15 @@ image:
     # repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent-enroll
     imageTag: v2.1.0
     imagePullPolicy: Always
-  ksm:
+  sedaiKSM:
     repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
     imageTag: v2.15.0
     imagePullPolicy: IfNotPresent  
-  reload:
+  sedaiPrometheusReload:
     repository: "quay.io/prometheus-operator/prometheus-config-reloader"
     imageTag: v0.80.1
     imagePullPolicy: IfNotPresent   
-  prometheus:
+  sedaiPrometheus:
     repository: "quay.io/prometheus/prometheus"
     imageTag: v3.2.1
     imagePullPolicy: IfNotPresent          
@@ -72,7 +72,7 @@ resources:
     memory:
       requests: "1024Mi"
       limits: "1024Mi"
-  prometheus:
+  sedaiPrometheus:
     cpu:
       requests: "1000m"
       limits: "1000m"
@@ -80,7 +80,7 @@ resources:
       requests: "4096Mi"
       limits: "4096Mi"
     storage: "60Gi"
-  ksm:
+  sedaiKSM:
     cpu:
       requests: "500m"
       limits: "500m"

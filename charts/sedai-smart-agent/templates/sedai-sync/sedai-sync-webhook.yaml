@@ -1,4 +1,17 @@
 {{- if .Values.sedaiSync.enabled }}
+{{- $ca := genCA "sedai-kube-spec-controller-ca" 3650 }}
+{{- $cert := genSignedCert (printf "sedai-kube-spec-controller-svc.%s" .Values.namespace) (list) (list (printf "sedai-kube-spec-controller-svc.%s.svc" .Values.namespace)) 3650 $ca }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sedai-kube-spec-controller-tls
+  namespace: {{ .Values.namespace }}
+data:
+  ca.crt: {{ $ca.Cert | b64enc }}
+  tls.crt: {{ $cert.Cert | b64enc }}
+  tls.key: {{ $cert.Key | b64enc }}
+type: kubernetes.io/tls
+---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:

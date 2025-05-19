@@ -8,9 +8,14 @@ smartAgentEnroll:
 sedaiPrometheus:
   enabled: false  # Enables/disables the Prometheus instance for monitoring.
   server:
-    retention: '12h'  # Data retention period for Prometheus metrics.
+    retention: '6h'  # Data retention period for Prometheus metrics.
 sedaiKSM:
   enabled: false  # Enables/disables Kubernetes State Metrics (KSM) deployment.
+sedaiSync:
+  enabled: false
+  tlsPath: "/tls"
+  sqlitePath: "/data"
+  logLevel: "error"
 
 # Workload-related configurations, including resource names, replicas, and history limits.
 workload:
@@ -47,7 +52,7 @@ image:
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll 
     # repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent-enroll
-    imageTag: v2.1.0
+    imageTag: v2.1.1
     imagePullPolicy: Always
   ksm:
     repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
@@ -60,8 +65,19 @@ image:
   prometheus:
     repository: "quay.io/prometheus/prometheus"
     imageTag: v3.2.1
-    imagePullPolicy: IfNotPresent          
-
+    imagePullPolicy: IfNotPresent
+  sedaiSync:
+    repository: "public.ecr.aws/sedai_io/sedai-kube-spec-controller"
+    imageTag: 0.0.1
+    imagePullPolicy: IfNotPresent
+  sedaiSyncDB:
+    repository: "public.ecr.aws/sedai_io/postgres"
+    imageTag: 14.6
+    imagePullPolicy: IfNotPresent
+  busyBox:
+    repository: public.ecr.aws/sedai_io/busybox
+    imageTag: stable
+    imagePullPolicy: IfNotPresent
 
 # Resource requests and limits for different components.
 resources:
@@ -87,6 +103,20 @@ resources:
     memory:
       requests: "1024Mi"
       limits: "1024Mi"
+  sedaiSyncDB:
+    cpu:
+      requests: "256m"
+      limits: "256m"
+    memory:
+      requests: "512Mi"
+      limits: "512Mi"
+  sedaiSync:
+    cpu:
+      requests: "500m"
+      limits: "500m"
+    memory:
+      requests: "1024Mi"
+      limits: "1024Mi"
 
 # EGRESS Proxy Settings for Sedai Smart Agent
 proxySettings:
@@ -105,6 +135,7 @@ sedaiIntegrationSettings:
   sedaiApiToken: ""
   sedaiApiTokenSecret: ""
   sedaiApiTokenSecretKey: ""
+  forceCreate: false
 
 # Kubernetes Monitoring Provider Settings
 monitoringProvider:

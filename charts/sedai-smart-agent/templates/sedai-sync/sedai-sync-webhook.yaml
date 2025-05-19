@@ -1,0 +1,29 @@
+{{- if .Values.sedaiSync.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: sedai-kube-spec-controller-mutation-webhook
+webhooks:
+  - name: sedai-kube-spec-controller-svc.{{ .Values.namespace }}.svc
+    clientConfig:
+      service:
+        name: sedai-kube-spec-controller-svc
+        namespace: {{ .Values.namespace }}
+        path: "/mutate"
+        port: 8443
+      caBundle: {{ $ca.Cert | b64enc }}
+    rules:
+      - apiGroups: ["apps", ""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE", "DELETE"]
+        resources: ["deployments", "statefulsets", "daemonsets", "pods"]
+    failurePolicy: 'Ignore'
+    namespaceSelector:
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"  # Use the `metadata.name` of the namespace
+          operator: NotIn
+          values: ["{{ .Values.namespace }}"]
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    timeoutSeconds: 10
+{{- end }}

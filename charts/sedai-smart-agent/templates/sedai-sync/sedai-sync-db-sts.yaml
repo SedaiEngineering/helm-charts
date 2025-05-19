@@ -1,0 +1,66 @@
+{{- if .Values.sedaiSync.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "sedai-kube-spec-controller-db"
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    app: "sedai-kube-spec-controller-db"
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: "sedai-kube-spec-controller-db"
+  serviceName: "sedai-kube-spec-controller-db-service"
+  replicas: 1
+  template:
+    metadata:   
+      labels:
+        {{- include "sedai-smart-agent.labels" . | nindent 8 }}
+        app: "sedai-kube-spec-controller-db"
+    spec:
+      # Service Account
+      serviceAccount: {{ .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+      containers:
+      - image: "{{ .Values.image.sedaiSyncDB.repository }}:{{ .Values.image.sedaiSyncDB.imageTag }}"
+        name: sedai-db
+        args: ["-c", "max_connections=500"]
+        securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+        env:
+        - name: "POSTGRES_DB"
+          valueFrom:
+            secretKeyRef:
+                name: "sedai-kube-spec-controller-secrets"
+                key: "dbName"
+        - name: "PGDATA"
+          value: "/var/lib/postgresql/data/db-files"
+        - name: "POSTGRES_USER"
+          valueFrom:
+            secretKeyRef:
+                name: "sedai-kube-spec-controller-secrets"
+                key: "dbUsername"
+        - name: "POSTGRES_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+                name: "sedai-kube-spec-controller-secrets"
+                key: "dbPassword"
+        resources:
+            requests:
+                memory: "{{ .Values.resources.sedaiSyncDB.memory.requests }}"
+                cpu: "{{ .Values.resources.sedaiSyncDB.cpu.requests }}"
+            limits:
+                memory: "{{ .Values.resources.sedaiSyncDB.memory.limits }}"
+                cpu: "{{ .Values.resources.sedaiSyncDB.cpu.limits }}"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: sedai-db-volume
+      volumes:
+      - name: sedai-db-volume
+        persistentVolumeClaim:
+          claimName: "sedai-kube-spec-controller-dbclaim"
+{{- end }}

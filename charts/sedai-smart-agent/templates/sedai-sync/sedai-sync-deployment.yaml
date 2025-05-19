@@ -1,0 +1,81 @@
+{{- if .Values.sedaiSync.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sedai-kube-spec-controller
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    app: "sedai-kube-spec-controller"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "sedai-kube-spec-controller"
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: "sedai-kube-spec-controller"
+    spec:
+      serviceAccount: {{ .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+      initContainers:
+      - name: wait-for-db
+        image: "{{ .Values.image.busyBox.repository }}:{{ .Values.image.busyBox.imageTag }}"
+        # Just spin & wait forever
+        command: ["sh", "-c", "until nc -w1 sedai-kube-spec-controller-db-service.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) 5432 > /dev/null; do echo Waiting for db.; sleep 2; done;"]
+      containers:
+      - name: sedai-kube-spec-controller
+        image: "{{ .Values.image.sedaiSync.repository }}:{{ .Values.image.sedaiSync.imageTag }}"
+        imagePullPolicy: {{ .Values.image.sedaiSync.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: "{{ .Values.resources.sedaiSync.cpu.requests }}"          
+            memory: "{{ .Values.resources.sedaiSync.memory.requests }}"
+          limits:
+            cpu: "{{ .Values.resources.sedaiSync.cpu.limits }}"
+            memory: "{{ .Values.resources.sedaiSync.memory.limits }}"
+        ports:
+        - containerPort: 8443
+        env:
+        - name: LOG_LEVEL
+          value: "{{ .Values.sedaiSync.logLevel }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
+          value: "{{ .Values.sedaiSync.tlsPath }}/ca.crt"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CERT_PATH
+          value: "{{ .Values.sedaiSync.tlsPath }}/tls.crt"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_KEY_PATH
+          value: "{{ .Values.sedaiSync.tlsPath }}/tls.key"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PORT
+          value: "8443"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_HOST
+          value: sedai-kube-spec-controller-db-service
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PORT
+          value: "5432"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_USER
+          valueFrom:
+            secretKeyRef:
+                name: "sedai-kube-spec-controller-secrets"
+                key: "dbUsername"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+                name: "sedai-kube-spec-controller-secrets"
+                key: "dbPassword"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_DB_NAME
+          valueFrom:
+            secretKeyRef:
+                name: "sedai-kube-spec-controller-secrets"
+                key: "dbName"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME
+          value: "pgx"
+        volumeMounts:
+          - name: certs
+            mountPath: "{{ .Values.sedaiSync.tlsPath }}"
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: sedai-kube-spec-controller-tls
+{{- end }}

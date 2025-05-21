@@ -65,6 +65,19 @@ spec:
           value: {{ .Values.enableAgentDebugLogs.loggingConfig }}   
         {{- end }}
 
+        {{-  if .Values.sedaiSync.enabled }}
+        - name: KUBESPECCONTROLLER_BASEURL
+          value: "https://sedai-kube-spec-controller-svc.{{ .Values.namespace }}.svc:8443"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
+          value: "{{ .Values.sedaiSync.enabled }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
+          value: "{{ .Values.sedaiSync.tlsPath }}/ca.crt"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CERT_PATH
+          value: "{{ .Values.sedaiSync.tlsPath }}/tls.crt"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_KEY_PATH
+          value: "{{ .Values.sedaiSync.tlsPath }}/tls.key"
+        {{- end }}
+
         livenessProbe:
           initialDelaySeconds: 120
           periodSeconds: 30

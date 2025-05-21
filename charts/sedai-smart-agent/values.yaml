@@ -68,7 +68,7 @@ image:
     imagePullPolicy: IfNotPresent
   sedaiSync:
     repository: "public.ecr.aws/sedai_io/sedai-kube-spec-controller"
-    imageTag: 0.0.1
+    imageTag: 0.0.2
     imagePullPolicy: IfNotPresent
   sedaiSyncDB:
     repository: "public.ecr.aws/sedai_io/postgres"

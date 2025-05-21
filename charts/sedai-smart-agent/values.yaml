@@ -76,7 +76,7 @@ image:
     imagePullPolicy: IfNotPresent
   busyBox:
     repository: public.ecr.aws/sedai_io/busybox
-    imageTag: stable
+    imageTag: 1.37
     imagePullPolicy: IfNotPresent
 
 # Resource requests and limits for different components.

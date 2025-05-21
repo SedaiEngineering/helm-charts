@@ -77,6 +77,12 @@ spec:
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_KEY_PATH
           value: "{{ .Values.sedaiSync.tlsPath }}/tls.key"
         {{- end }}
+        {{-  if .Values.sedaiSync.enabled }}
+        volumeMounts:
+          - name: certs
+            mountPath: "{{ .Values.sedaiSync.tlsPath }}"
+            readOnly: true
+        {{- end }}
 
         livenessProbe:
           initialDelaySeconds: 120
@@ -107,3 +113,9 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
+      {{-  if .Values.sedaiSync.enabled }}
+      volumes:
+        - name: certs
+          secret:
+            secretName: sedai-kube-spec-controller-tls
+      {{- end }}

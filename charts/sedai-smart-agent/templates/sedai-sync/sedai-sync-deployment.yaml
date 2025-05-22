@@ -25,6 +25,15 @@ spec:
         image: "{{ .Values.image.busyBox.repository }}:{{ .Values.image.busyBox.imageTag }}"
         # Just spin & wait forever
         command: ["sh", "-c", "until nc -w1 sedai-kube-spec-controller-db-service.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) 5432 > /dev/null; do echo Waiting for db.; sleep 2; done;"]
+        # Container-level security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
       containers:
       - name: sedai-kube-spec-controller
         image: "{{ .Values.image.sedaiSync.repository }}:{{ .Values.image.sedaiSync.imageTag }}"
@@ -74,6 +83,15 @@ spec:
           - name: certs
             mountPath: "{{ .Values.sedaiSync.tlsPath }}"
             readOnly: true
+        # Container-level security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
       volumes:
         - name: certs
           secret:

@@ -29,6 +29,12 @@ spec:
         securityContext:
             allowPrivilegeEscalation: false
             privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+      {{-  if .Values.sedaiSync.enabled }}
         env:
         - name: "POSTGRES_DB"
           valueFrom:

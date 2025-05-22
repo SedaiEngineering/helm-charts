@@ -27,6 +27,9 @@ spec:
         name: sedai-db
         args: ["-c", "max_connections=500"]
         securityContext:
+          runAsUser: 999
+          runAsGroup: 999
+          fsGroup: 999
           allowPrivilegeEscalation: false
           privileged: false
           capabilities:

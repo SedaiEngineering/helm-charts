@@ -22,6 +22,8 @@ spec:
       # Service Account
       serviceAccount: {{ .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
+      securityContext:
+        fsGroup: 999
       containers:
       - image: "{{ .Values.image.sedaiSyncDB.repository }}:{{ .Values.image.sedaiSyncDB.imageTag }}"
         name: sedai-db
@@ -29,6 +31,7 @@ spec:
         securityContext:
           runAsUser: 999
           runAsGroup: 999
+          fsGroup: 999
           allowPrivilegeEscalation: false
           privileged: false
           capabilities:

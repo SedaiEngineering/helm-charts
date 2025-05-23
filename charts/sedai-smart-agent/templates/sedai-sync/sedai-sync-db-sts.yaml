@@ -20,8 +20,8 @@ spec:
         app: "sedai-kube-spec-controller-db"
     spec:
       # Service Account
-      serviceAccount: {{ .Values.serviceAccount }}
-      serviceAccountName: {{ .Values.serviceAccount }}
+      serviceAccount: sedai-kube-spec-controller-db-sa
+      serviceAccountName: sedai-kube-spec-controller-db-sa
       securityContext:
         fsGroup: 999
       containers:

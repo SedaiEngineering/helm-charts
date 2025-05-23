@@ -1,0 +1,10 @@
+{{- if .Values.sedaiSync.enabled }}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "sedai-kube-spec-controller-db-sa"
+  namespace: {{ .Values.namespace }}
+
+{{- end }}                 

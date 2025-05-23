@@ -18,8 +18,8 @@ spec:
       labels:
         app: "sedai-kube-spec-controller"
     spec:
-      serviceAccount: {{ .Values.serviceAccount }}
-      serviceAccountName: {{ .Values.serviceAccount }}
+      serviceAccount: sedai-kube-spec-controller-sa
+      serviceAccountName: sedai-kube-spec-controller-sa
       initContainers:
       - name: wait-for-db
         image: "{{ .Values.image.busyBox.repository }}:{{ .Values.image.busyBox.imageTag }}"

@@ -1,31 +1,41 @@
-# Default values for sedai-smart-agent.
-# Namespace where the Sedai Smart Agent and its related resources will be deployed.
+# -------------------------------------------------------------------
+# Sedai Smart Agent Helm Chart Default Configuration
+# -------------------------------------------------------------------
+
+# Namespace where all Sedai components will be deployed
 namespace: sedai-smart-agent
 
-# Configuration for enabling/disabling Sedai components.
+# -------------------------------------------------------------------
+# Sedai Component Toggles
+# -------------------------------------------------------------------
 smartAgentEnroll:
-  enabled: true  # Enables/disables the Smart Agent enrollment job.
-sedaiPrometheus:
-  enabled: false  # Enables/disables the Prometheus instance for monitoring.
-  server:
-    retention: '6h'  # Data retention period for Prometheus metrics.
-sedaiKSM:
-  enabled: false  # Enables/disables Kubernetes State Metrics (KSM) deployment.
-sedaiSync:
-  enabled: false
-  tlsPath: "/tls"
-  sqlitePath: "/data"
-  logLevel: "error"
+  enabled: true                     # Enables the Smart Agent enrollment job (one-time job per cluster)
 
-# Workload-related configurations, including resource names, replicas, and history limits.
+sedaiPrometheus:
+  enabled: false                    # Enables Sedai-managed Prometheus for metric collection
+  server:
+    retention: '6h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
+
+sedaiKSM:
+  enabled: false                    # Enables deployment of Kube State Metrics (KSM) for cluster object metrics
+
+sedaiSync:
+  enabled: false                    # Enables Sedai sync controller for workload auto-optimization
+  tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
+  sqlitePath: "/data"               # SQLite DB path (for local storage)
+  logLevel: "error"                 # Logging level: trace, debug, info, warn, error
+
+# -------------------------------------------------------------------
+# Workload Metadata and Replicas
+# -------------------------------------------------------------------
 workload:
   smartAgentEnroll:
-    name: sedai-smart-agent-enroll-job
+    name: sedai-smart-agent-enroll-job      # Name of the enrollment job resource
   smartAgent:
-    name: sedai-smart-agent
-    replicaCount: 1
-    revisionHistoryLimit: 1
-    secret: sedai-smart-agent
+    name: sedai-smart-agent                 # Name of the Smart Agent deployment
+    replicaCount: 1                         # Number of replicas
+    revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
+    secret: sedai-smart-agent               # Kubernetes Secret used by the agent
   prometheus:
     name: sedai-prometheus-server
     replicaCount: 1
@@ -35,51 +45,63 @@ workload:
     replicaCount: 1
     revisionHistoryLimit: 1
 
-# Enable Debug Logging for Smart Agent
+# -------------------------------------------------------------------
+# Debug Logging
+# -------------------------------------------------------------------
 enableAgentDebugLogs:
-  enabled: false
-  agentLogLevel: "DEBUG"
-  loggingConfig: "classpath:log4j2-onprem.xml"
+  enabled: false                                # Enables DEBUG logging on the agent
+  agentLogLevel: "DEBUG"                        # Logging level (only used if enabled is true)
+  loggingConfig: "classpath:log4j2-onprem.xml"  # Log4j2 config location (typically internal path)
 
-# Container image configurations, including repository, tag, and pull policy.
+# -------------------------------------------------------------------
+# Container Image Configuration
+# -------------------------------------------------------------------
 image:
   smartAgent:
     name: sedai-agent
     repository: public.ecr.aws/sedai_io/sedai-smart-agent
     imageTag: v1.24.13
     imagePullPolicy: IfNotPresent
+
   smartagentEnroll:  
     name: sedai-enroll
-    repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll 
-    # repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent-enroll
+    repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
     imageTag: v2.1.1
     imagePullPolicy: Always
+
   ksm:
     repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
     imageTag: v2.15.0
-    imagePullPolicy: IfNotPresent  
+    imagePullPolicy: IfNotPresent
+
   reload:
-    repository: "quay.io/prometheus-operator/prometheus-config-reloader"
+    repository: quay.io/prometheus-operator/prometheus-config-reloader
     imageTag: v0.80.1
-    imagePullPolicy: IfNotPresent   
+    imagePullPolicy: IfNotPresent
+
   prometheus:
-    repository: "quay.io/prometheus/prometheus"
+    repository: quay.io/prometheus/prometheus
     imageTag: v3.2.1
     imagePullPolicy: IfNotPresent
+
   sedaiSync:
-    repository: "public.ecr.aws/sedai_io/sedai-kube-spec-controller"
+    repository: public.ecr.aws/sedai_io/sedai-kube-spec-controller
     imageTag: 0.0.2
     imagePullPolicy: IfNotPresent
+
   sedaiSyncDB:
-    repository: "public.ecr.aws/sedai_io/postgres"
+    repository: public.ecr.aws/sedai_io/postgres
     imageTag: 14.6
     imagePullPolicy: IfNotPresent
+
   busyBox:
     repository: public.ecr.aws/sedai_io/busybox
     imageTag: 1.37
     imagePullPolicy: IfNotPresent
 
-# Resource requests and limits for different components.
+# -------------------------------------------------------------------
+# Resource Requests and Limits (per container)
+# -------------------------------------------------------------------
 resources:
   smartAgent:
     cpu:
@@ -88,6 +110,7 @@ resources:
     memory:
       requests: "1024Mi"
       limits: "1024Mi"
+
   prometheus:
     cpu:
       requests: "1000m"
@@ -95,7 +118,8 @@ resources:
     memory:
       requests: "4096Mi"
       limits: "4096Mi"
-    storage: "60Gi"
+    storage: "60Gi"                        # Persistent volume storage for Prometheus
+
   ksm:
     cpu:
       requests: "500m"
@@ -103,6 +127,7 @@ resources:
     memory:
       requests: "1024Mi"
       limits: "1024Mi"
+
   sedaiSyncDB:
     cpu:
       requests: "256m"
@@ -110,6 +135,7 @@ resources:
     memory:
       requests: "512Mi"
       limits: "512Mi"
+
   sedaiSync:
     cpu:
       requests: "500m"
@@ -118,41 +144,50 @@ resources:
       requests: "1024Mi"
       limits: "1024Mi"
 
-# EGRESS Proxy Settings for Sedai Smart Agent
+# -------------------------------------------------------------------
+# Proxy Configuration (for egress access)
+# -------------------------------------------------------------------
 proxySettings:
-  enabled: false
-  proxyHost:
-  proxyPort:
-  proxyUsername:
-  proxyPassword:
+  enabled: false                    # Set to true if your cluster requires a proxy for outbound internet access
+  proxyHost:                        # Proxy server hostname (e.g., proxy.example.com)
+  proxyPort:                        # Proxy server port (e.g., 3128)
+  proxyUsername:                    # Optional proxy username
+  proxyPassword:                    # Optional proxy password
 
-
-# Kubernetes Integration Settings
+# -------------------------------------------------------------------
+# Sedai Integration Settings
+# -------------------------------------------------------------------
 sedaiIntegrationSettings:
-  clusterName: ""
-  clusterProvider: "AWS" # AWS, AZURE, GCP, SELF_MANAGED
-  sedaiBaseUrl: ""
-  sedaiApiToken: ""
-  sedaiApiTokenSecret: ""
-  sedaiApiTokenSecretKey: ""
-  forceCreate: false
+  clusterName: ""                  # Unique name for your Kubernetes cluster
+  clusterProvider: "AWS"          # Cloud provider: AWS, AZURE, GCP, SELF_MANAGED
+  sedaiBaseUrl: ""                # Base URL of the Sedai platform (e.g., https://app.sedai.io)
+  sedaiApiToken: ""               # API token (use this OR provide a Kubernetes Secret)
+  sedaiApiTokenSecret: ""         # Name of the Kubernetes Secret that stores the token
+  sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
+  forceCreate: false              # Force creation of Sedai config even if API token is invalid
 
-# Kubernetes Monitoring Provider Settings
+# -------------------------------------------------------------------
+# External Monitoring Provider Configuration
+# -------------------------------------------------------------------
 monitoringProvider:
+
   sedaiManagedPrometheus:
-    enabled: true                   # Keep it enabled if you're using Sedai Managed Prometheus Server
+    enabled: true                 # Use Sedai-managed Prometheus (preferred default)
+
   prometheus:
-    enabled: false   
-    serverUrl: "http://prometheus-server.prometheus.svc.cluster.local"
-    credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" #BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, FEDERATEDPROMETHEUS_NO_AUTH
-    prometheusUsername:
-    prometheusPassword:
-    prometheusjwtToken:
+    enabled: false                # Use self-hosted Prometheus instead
+    serverUrl: "http://prometheus-server.prometheus.svc.cluster.local"  # URL of your Prometheus server
+    credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
+    prometheusUsername:          # Username if using BASIC_AUTH
+    prometheusPassword:          # Password if using BASIC_AUTH
+    prometheusjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT
+
   datadog:
-    enabled: false  
-    datadogEndpoint:
-    datadogApiKey:
-    datadogApplicationKey:
+    enabled: false                # Enable if using Datadog instead of Prometheus
+    datadogEndpoint:             # Datadog API endpoint
+    datadogApiKey:               # Datadog API key
+    datadogApplicationKey:       # Datadog App key
+
   gcpMonitoring:
-    enabled: false
-    projectID:
+    enabled: false               # Enable if using Google Cloud Monitoring
+    projectID:                   # GCP project ID where metrics will be sent

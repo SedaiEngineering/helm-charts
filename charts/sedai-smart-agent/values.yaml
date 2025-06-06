@@ -66,7 +66,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v2.1.1
+    imageTag: v2.3.1
     imagePullPolicy: Always
 
   ksm:
@@ -91,7 +91,7 @@ image:
 
   sedaiSyncDB:
     repository: public.ecr.aws/sedai_io/postgres
-    imageTag: 14.6
+    imageTag: 17.5-alpine
     imagePullPolicy: IfNotPresent
 
   busyBox:

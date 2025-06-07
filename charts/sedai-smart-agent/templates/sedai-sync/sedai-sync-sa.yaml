@@ -6,5 +6,8 @@ kind: ServiceAccount
 metadata:
   name: "sedai-kube-spec-controller-sa"
   namespace: {{ .Values.namespace }}
-
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
 {{- end }}                 

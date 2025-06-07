@@ -10,5 +10,9 @@ metadata:
   namespace: {{ .Values.namespace }}
   annotations:
     {}
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
 
 {{- end }}

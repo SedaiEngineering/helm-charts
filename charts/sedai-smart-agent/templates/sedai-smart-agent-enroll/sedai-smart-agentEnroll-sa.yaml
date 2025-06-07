@@ -6,5 +6,9 @@ kind: ServiceAccount
 metadata:
   name: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
   namespace: {{ .Values.namespace }}
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
 
-{{- end }}                 
+{{- end }}

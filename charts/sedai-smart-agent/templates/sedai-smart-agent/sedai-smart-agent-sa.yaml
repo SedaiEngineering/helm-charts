@@ -6,3 +6,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}

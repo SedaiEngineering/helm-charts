@@ -44,6 +44,8 @@ spec:
         env:
         - name: _JAVA_OPTIONS
           value: "-Xms{{ floor (div (mul (int (.Values.resources.smartAgent.memory.requests | replace "Mi" "")) 25) 100) }}M -Xmx{{ floor (div (mul (int (.Values.resources.smartAgent.memory.limits | replace "Mi" "")) 47) 100) }}M"
+        - name: FLAGS_AUTOUPDATE_DISABLED
+          value: "false"
 
         # Optional Proxy Settings
         {{- if .Values.proxySettings.enabled }}

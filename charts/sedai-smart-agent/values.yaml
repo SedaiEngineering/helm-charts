@@ -179,7 +179,7 @@ sedaiIntegrationSettings:
 monitoringProvider:
 
   sedaiManagedPrometheus:
-    enabled: true                 # Use Sedai-managed Prometheus (preferred default)
+    enabled: false                 # Use Sedai-managed Prometheus (preferred default)
 
   prometheus:
     enabled: false                # Use self-hosted Prometheus instead

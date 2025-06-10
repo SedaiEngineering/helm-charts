@@ -190,11 +190,17 @@ monitoringProvider:
     prometheusjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT
 
   datadog:
-    enabled: false                # Enable if using Datadog instead of Prometheus
-    datadogEndpoint:             # Datadog API endpoint
-    datadogApiKey:               # Datadog API key
-    datadogApplicationKey:       # Datadog App key
+    enabled: false                    # Enable if using Datadog instead of Prometheus
+    datadogEndpoint:                  # Datadog API endpoint
+    datadogApiKey:                    # Datadog API key
+    datadogApplicationKey:            # Datadog App key
+
+  newrelic:
+    enabled: false                    # Enable if using Datadog instead of Prometheus
+    newrelicApiKey:                   # NewRelic API Key
+    newrelicAccountId:                # NewRelic Account ID
+    newrelicApiServer:                # NewRelic API Server URL
 
   gcpMonitoring:
-    enabled: false               # Enable if using Google Cloud Monitoring
-    projectID:                   # GCP project ID where metrics will be sent
+    enabled: false                    # Enable if using Google Cloud Monitoring
+    projectID:                        # GCP project ID where metrics will be sent

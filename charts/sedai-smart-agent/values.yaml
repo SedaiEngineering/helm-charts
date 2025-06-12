@@ -66,7 +66,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v2.3.1
+    imageTag: v2.4.7
     imagePullPolicy: Always
 
   ksm:
@@ -189,18 +189,26 @@ monitoringProvider:
     prometheusPassword:          # Password if using BASIC_AUTH
     prometheusjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT
 
+  mimir:
+    enabled: false                # Use self-hosted Prometheus instead
+    serverUrl: "http://mimir-nginx.mimir.svc.cluster.local/prometheus/"  # URL of your Mimir server
+    credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
+    mimirUsername:          # Username if using BASIC_AUTH
+    mimirPassword:          # Password if using BASIC_AUTH
+    mimirjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT    
+
   datadog:
-    enabled: false                    # Enable if using Datadog instead of Prometheus
+    enabled: false                    # Enable if using Datadog 
     datadogEndpoint:                  # Datadog API endpoint
     datadogApiKey:                    # Datadog API key
     datadogApplicationKey:            # Datadog App key
 
   newrelic:
-    enabled: false                    # Enable if using Datadog instead of Prometheus
+    enabled: false                    # Enable if using NewRelic
     newrelicApiKey:                   # NewRelic API Key
     newrelicAccountId:                # NewRelic Account ID
     newrelicApiServer:                # NewRelic API Server URL
 
   gcpMonitoring:
-    enabled: false                    # Enable if using Google Cloud Monitoring
+    enabled: false                    # Enable if using Google Cloud Monitoring, Require additional Settings in GCP Console
     projectID:                        # GCP project ID where metrics will be sent

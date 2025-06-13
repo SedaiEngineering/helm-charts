@@ -172,7 +172,7 @@ sedaiIntegrationSettings:
   sedaiApiTokenSecret: ""         # Name of the Kubernetes Secret that stores the token
   sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
   forceCreate: false              # Force creation of Sedai config even if API token is invalid
-  rbacReadOnly: true
+  rbacReadOnly: false
 
 # -------------------------------------------------------------------
 # External Monitoring Provider Configuration

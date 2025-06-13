@@ -172,6 +172,7 @@ sedaiIntegrationSettings:
   sedaiApiTokenSecret: ""         # Name of the Kubernetes Secret that stores the token
   sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
   forceCreate: false              # Force creation of Sedai config even if API token is invalid
+  rbacReadOnly: true
 
 # -------------------------------------------------------------------
 # External Monitoring Provider Configuration
@@ -179,23 +180,23 @@ sedaiIntegrationSettings:
 monitoringProvider:
 
   sedaiManagedPrometheus:
-    enabled: false                 # Use Sedai-managed Prometheus (preferred default)
+    enabled: false                    # Use Sedai-managed Prometheus (preferred default)
 
   prometheus:
-    enabled: false                # Use self-hosted Prometheus instead
+    enabled: false                    # Use self-hosted Prometheus instead
     serverUrl: "http://prometheus-server.prometheus.svc.cluster.local"  # URL of your Prometheus server
     credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
-    prometheusUsername:          # Username if using BASIC_AUTH
-    prometheusPassword:          # Password if using BASIC_AUTH
-    prometheusjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT
+    prometheusUsername:               # Username if using BASIC_AUTH
+    prometheusPassword:               # Password if using BASIC_AUTH
+    prometheusjwtToken:               # JWT token if using FEDERATEDPROMETHEUS_JWT
 
   mimir:
-    enabled: false                # Use self-hosted Prometheus instead
+    enabled: false                    # Use self-hosted Prometheus instead
     serverUrl: "http://mimir-nginx.mimir.svc.cluster.local/prometheus/"  # URL of your Mimir server
     credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
-    mimirUsername:          # Username if using BASIC_AUTH
-    mimirPassword:          # Password if using BASIC_AUTH
-    mimirjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT    
+    mimirUsername:                    # Username if using BASIC_AUTH
+    mimirPassword:                    # Password if using BASIC_AUTH
+    mimirjwtToken:                    # JWT token if using FEDERATEDPROMETHEUS_JWT    
 
   datadog:
     enabled: false                    # Enable if using Datadog 

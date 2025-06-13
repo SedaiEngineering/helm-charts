@@ -168,11 +168,12 @@ sedaiIntegrationSettings:
   clusterName: ""                  # Unique name for your Kubernetes cluster
   clusterProvider: "AWS"          # Cloud provider: AWS, AZURE, GCP, SELF_MANAGED
   sedaiBaseUrl: ""                # Base URL of the Sedai platform (e.g., https://app.sedai.io)
+  rbacReadOnly: false             # Set true for enabling Datapilot Mode only.
   sedaiApiToken: ""               # API token (use this OR provide a Kubernetes Secret)
   sedaiApiTokenSecret: ""         # Name of the Kubernetes Secret that stores the token
   sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
   forceCreate: false              # Force creation of Sedai config even if API token is invalid
-  rbacReadOnly: false
+
 
 # -------------------------------------------------------------------
 # External Monitoring Provider Configuration

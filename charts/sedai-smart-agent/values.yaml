@@ -25,6 +25,11 @@ sedaiSync:
   sqlitePath: "/data"               # SQLite DB path (for local storage)
   logLevel: "error"                 # Logging level: trace, debug, info, warn, error
 
+sedaiNodeExporter:
+  enabled: false
+sedaiBeyla:
+  enabled: false
+
 # -------------------------------------------------------------------
 # Workload Metadata and Replicas
 # -------------------------------------------------------------------
@@ -98,6 +103,16 @@ image:
     repository: public.ecr.aws/sedai_io/busybox
     imageTag: 1.37
     imagePullPolicy: IfNotPresent
+  
+  nodeExporter:
+    repository: public.ecr.aws/sedai_io/prometheus/node-exporter
+    imageTag: v1.9.1
+    imagePullPolicy: IfNotPresent
+  
+  beyla:
+    repository: public.ecr.aws/sedai_io/grafana/beyla
+    imageTag: 2.0.3
+    imagePullPolicy: IfNotPresent
 
 # -------------------------------------------------------------------
 # Docker Image Pull Secret
@@ -144,6 +159,14 @@ resources:
       limits: "512Mi"
 
   sedaiSync:
+    cpu:
+      requests: "500m"
+      limits: "500m"
+    memory:
+      requests: "1024Mi"
+      limits: "1024Mi"
+  
+  sedaiBeyla:
     cpu:
       requests: "500m"
       limits: "500m"

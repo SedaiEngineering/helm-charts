@@ -1,0 +1,58 @@
+{{- if .Values.sedaiBeyla.enabled }}
+---
+# Source: beyla/templates/daemon-set.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sedai-beyla
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: sedai-beyla
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sedai-beyla
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/name: sedai-beyla
+    spec:
+      serviceAccountName: sedai-beyla
+      hostPID: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: beyla
+          image: "{{ .Values.image.beyla.repository }}:{{ .Values.image.beyla.imageTag }}"
+          imagePullPolicy: "{{ .Values.image.beyla.imagePullPolicy }}"
+          securityContext:
+            privileged: true
+          ports:
+          - name: metrics
+            containerPort: 8080
+            protocol: TCP
+          resources:
+            requests:
+              cpu: "{{ .Values.resources.sedaiBeyla.cpu.requests }}"          
+              memory: "{{ .Values.resources.sedaiBeyla.memory.requests }}"
+            limits:
+              cpu: "{{ .Values.resources.sedaiBeyla.cpu.limits }}"
+              memory: "{{ .Values.resources.sedaiBeyla.memory.limits }}"
+          env:
+            - name: BEYLA_CONFIG_PATH
+              value: "/etc/beyla/config/beyla-config.yml"
+          volumeMounts:
+            - mountPath: /etc/beyla/config
+              name: beyla-config
+      volumes:
+        - name: beyla-config
+          configMap:
+            name: sedai-beyla
+{{- end }}

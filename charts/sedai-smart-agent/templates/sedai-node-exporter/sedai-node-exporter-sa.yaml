@@ -1,0 +1,13 @@
+{{- if .Values.sedaiNodeExporter.enabled }}
+---
+# Source: prometheus-node-exporter/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sedai-prometheus-node-exporter
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: prometheus-node-exporter
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+automountServiceAccountToken: false
+{{- end }}

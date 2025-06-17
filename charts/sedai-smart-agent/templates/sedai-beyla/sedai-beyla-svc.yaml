@@ -1,0 +1,21 @@
+{{- if .Values.sedaiBeyla.enabled }}
+---
+# Source: beyla/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sedai-beyla
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: sedai-beyla
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: sedai-beyla
+{{- end }}

@@ -25,6 +25,16 @@ spec:
         runAsNonRoot: true
         runAsUser: 1001
 
+      {{- with .Values.workload.smartAgent.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.workload.smartAgent.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       containers:
       - name: "{{ .Values.image.smartAgent.name }}"
         image: "{{ .Values.image.smartAgent.repository }}:{{ .Values.image.smartAgent.imageTag }}"

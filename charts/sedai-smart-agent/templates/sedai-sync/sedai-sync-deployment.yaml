@@ -20,6 +20,17 @@ spec:
     spec:
       serviceAccount: sedai-kube-spec-controller-sa
       serviceAccountName: sedai-kube-spec-controller-sa
+
+      {{- with .Values.sedaiSync.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.sedaiSync.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       initContainers:
       - name: wait-for-db
         image: "{{ .Values.image.busyBox.repository }}:{{ .Values.image.busyBox.imageTag }}"

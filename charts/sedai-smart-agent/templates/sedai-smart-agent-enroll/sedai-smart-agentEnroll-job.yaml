@@ -19,6 +19,17 @@ spec:
         runAsUser: 1001
         runAsGroup: 1001
         fsGroup: 1001
+
+      {{- with .Values.smartAgentEnroll.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.smartAgentEnroll.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       containers:
         - name: sedai-enroll
           image: "{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"

@@ -24,6 +24,17 @@ spec:
       automountServiceAccountToken: true
       hostNetwork: false
       serviceAccountName: "{{ .Values.workload.ksm.name }}-sa"
+
+      {{- with .Values.sedaiKSM.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.sedaiKSM.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       securityContext:
         fsGroup: 65534
         runAsGroup: 65534

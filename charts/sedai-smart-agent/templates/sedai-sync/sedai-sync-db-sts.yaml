@@ -22,6 +22,17 @@ spec:
       # Service Account
       serviceAccount: sedai-kube-spec-controller-db-sa
       serviceAccountName: sedai-kube-spec-controller-db-sa
+
+      {{- with .Values.sedaiSync.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.sedaiSync.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       securityContext:
         fsGroup: 999
       containers:

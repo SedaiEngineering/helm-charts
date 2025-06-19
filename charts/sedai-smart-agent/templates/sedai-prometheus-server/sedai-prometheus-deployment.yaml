@@ -24,6 +24,17 @@ spec:
     spec:
       enableServiceLinks: true
       serviceAccountName: "{{ .Values.workload.prometheus.name }}-sa"
+
+      {{- with .Values.sedaiPrometheus.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.sedaiPrometheus.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       containers:
         - name: sedai-prometheus-server-configmap-reload
           image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"

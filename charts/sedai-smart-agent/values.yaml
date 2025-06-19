@@ -227,6 +227,9 @@ monitoringProvider:
     datadogEndpoint:                  # Datadog API endpoint
     datadogApiKey:                    # Datadog API key
     datadogApplicationKey:            # Datadog App key
+    datadogSecret:                    # Name of the Kubernetes Secret that stores the Datadog secret
+    datadogApplicationKeySecretKey:   # Key for the Datadog App key in the secret
+    datadogApiKeySecretKey:           # Key for the Datadog API key in the secret
 
   newrelic:
     enabled: false                    # Enable if using NewRelic

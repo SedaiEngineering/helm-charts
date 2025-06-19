@@ -35,6 +35,18 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecret }}
                   key: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecretKey }}
+            {{- end }}
+            {{- if and .Values.monitoringProvider.datadog.datadogSecret .Values.monitoringProvider.datadog.datadogApiKeySecretKey .Values.monitoringProvider.datadog.datadogApplicationKeySecretKey }}
+            - name: DATADOG_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.monitoringProvider.datadog.datadogSecret }}
+                  key: {{ .Values.monitoringProvider.datadog.datadogApiKeySecretKey }}
+            - name: DATADOG_APPLICATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.monitoringProvider.datadog.datadogSecret }}
+                  key: {{ .Values.monitoringProvider.datadog.datadogApplicationKeySecretKey }}
             {{- end }}                  
           envFrom:
             - secretRef:

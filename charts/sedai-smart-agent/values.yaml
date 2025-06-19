@@ -126,7 +126,7 @@ image:
   
   beyla:
     repository: public.ecr.aws/sedai_io/grafana/beyla
-    imageTag: 2.0.3
+    imageTag: 2.2.4
     imagePullPolicy: IfNotPresent
 
 # -------------------------------------------------------------------

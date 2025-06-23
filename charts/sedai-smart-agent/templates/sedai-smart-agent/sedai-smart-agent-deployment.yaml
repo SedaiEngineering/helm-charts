@@ -79,6 +79,10 @@ spec:
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_KEY_PATH
           value: "{{ .Values.sedaiSync.tlsPath }}/tls.key"
         {{- end }}
+        
+        - name: KUBERNETES_MASTER
+          value: "{{ .Values.kubernetes_master }}"
+
         {{-  if .Values.sedaiSync.enabled }}
         volumeMounts:
           - name: certs

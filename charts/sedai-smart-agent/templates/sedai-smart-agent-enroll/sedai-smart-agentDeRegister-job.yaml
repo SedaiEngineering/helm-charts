@@ -1,0 +1,52 @@
+{{- if .Values.smartAgentEnroll.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister"
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.workload.smartAgentEnroll.name }}
+    spec:
+      serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+        - name: sedai-deregister
+          image: "{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"
+          command: ["/bin/sh", "-c", "python deregister_sedai_api.py"]
+          imagePullPolicy: "{{ .Values.image.smartagentEnroll.imagePullPolicy }}"
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- if and .Values.sedaiIntegrationSettings.sedaiApiTokenSecret .Values.sedaiIntegrationSettings.sedaiApiTokenSecretKey }}
+            - name: SEDAI_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecret }}
+                  key: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecretKey }}
+            {{- end }}                  
+          envFrom:
+            - secretRef:
+                name: "{{ .Values.workload.smartAgentEnroll.name }}-secret"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+{{- end }}

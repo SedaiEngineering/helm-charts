@@ -86,11 +86,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-<<<<<<< HEAD
     imageTag: v3.0.0
-=======
-    imageTag: v2.5.2
->>>>>>> b7298c843c294d91a93487a9ec7346f3cae13449
     imagePullPolicy: Always
 
   ksm:

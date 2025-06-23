@@ -10,25 +10,38 @@ namespace: sedai-smart-agent
 # -------------------------------------------------------------------
 smartAgentEnroll:
   enabled: true                     # Enables the Smart Agent enrollment job (one-time job per cluster)
+  nodeSelector: {}                  # Node selector for Smart Agent enrollment job
+  tolerations: []                   # Tolerations for Smart Agent enrollment job
 
 sedaiPrometheus:
   enabled: false                    # Enables Sedai-managed Prometheus for metric collection
   server:
     retention: '6h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
+  nodeSelector: {}                  # Node selector for Prometheus deployment
+  tolerations: []                   # Tolerations for Prometheus deployment
 
 sedaiKSM:
   enabled: false                    # Enables deployment of Kube State Metrics (KSM) for cluster object metrics
+  nodeSelector: {}                  # Node selector for KSM deployment
+  tolerations: []                   # Tolerations for KSM deployment
 
 sedaiSync:
   enabled: false                    # Enables Sedai sync controller for workload auto-optimization
   tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
   sqlitePath: "/data"               # SQLite DB path (for local storage)
   logLevel: "error"                 # Logging level: trace, debug, info, warn, error
+  nodeSelector: {}                  # Node selector for both Sedai Sync and DB deployments
+  tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
 
 sedaiNodeExporter:
   enabled: false
+  nodeSelector: {}                  # Node selector for Node Exporter daemonset
+  tolerations: []                   # Tolerations for Node Exporter daemonset
+
 sedaiBeyla:
   enabled: false
+  nodeSelector: {}                  # Node selector for Beyla daemonset
+  tolerations: []                   # Tolerations for Beyla daemonset
 
 # -------------------------------------------------------------------
 # Workload Metadata and Replicas
@@ -41,6 +54,8 @@ workload:
     replicaCount: 1                         # Number of replicas
     revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
+    nodeSelector: {}                        # Node selector for Smart Agent deployment
+    tolerations: []                         # Tolerations for Smart Agent deployment
   prometheus:
     name: sedai-prometheus-server
     replicaCount: 1
@@ -71,7 +86,11 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
+<<<<<<< HEAD
     imageTag: v3.0.0
+=======
+    imageTag: v2.5.2
+>>>>>>> b7298c843c294d91a93487a9ec7346f3cae13449
     imagePullPolicy: Always
 
   ksm:
@@ -111,7 +130,7 @@ image:
   
   beyla:
     repository: public.ecr.aws/sedai_io/grafana/beyla
-    imageTag: 2.0.3
+    imageTag: 2.2.4
     imagePullPolicy: IfNotPresent
 
 # -------------------------------------------------------------------
@@ -232,6 +251,9 @@ monitoringProvider:
     datadogEndpoint:                  # Datadog API endpoint
     datadogApiKey:                    # Datadog API key
     datadogApplicationKey:            # Datadog App key
+    datadogSecret:                    # Name of the Kubernetes Secret that stores the Datadog secret
+    datadogApplicationKeySecretKey:   # Key for the Datadog App key in the secret
+    datadogApiKeySecretKey:           # Key for the Datadog API key in the secret
 
   newrelic:
     enabled: false                    # Enable if using NewRelic
@@ -242,3 +264,7 @@ monitoringProvider:
   gcpMonitoring:
     enabled: false                    # Enable if using Google Cloud Monitoring, Require additional Settings in GCP Console
     projectID:                        # GCP project ID where metrics will be sent
+
+# -------------------------------------------------------------------
+# GCP Monitoring Configuration
+# -------------------------------------------------------------------

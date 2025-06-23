@@ -35,8 +35,8 @@ data:
           - k8s_src_owner_type
           - k8s_dst_owner_type
           - k8s_cluster_name
-          - src.zone
-          - dst.zone
+          - src_zone
+          - dst_zone
     filter:
       network:
         k8s_dst_owner_name:
@@ -45,9 +45,9 @@ data:
           not_match: '{kube*,*jaeger-agent*,*prometheus*,*promtail*,*grafana-agent*}'
     network:
       enable: true
+      type: ebpf
     prometheus_export:
       features:
-      - application
       - network
       path: /metrics
       port: 8080

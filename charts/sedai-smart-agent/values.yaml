@@ -71,7 +71,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v2.5.1
+    imageTag: v3.0.0
     imagePullPolicy: Always
 
   ksm:
@@ -173,6 +173,11 @@ resources:
     memory:
       requests: "1024Mi"
       limits: "1024Mi"
+
+# -------------------------------------------------------------------
+# Smart Agent Configurations
+# -------------------------------------------------------------------
+kubernetes_master: "https://kubernetes.default.svc.cluster.local"
 
 # -------------------------------------------------------------------
 # Proxy Configuration (for egress access)

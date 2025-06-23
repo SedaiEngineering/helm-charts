@@ -32,6 +32,36 @@ spec:
         runAsNonRoot: true
         runAsUser: 65534
       serviceAccountName: sedai-prometheus-node-exporter
+      hostNetwork: true
+      hostPID: true
+      hostIPC: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks.amazonaws.com/compute-type
+                operator: NotIn
+                values:
+                - fargate
+              - key: type
+                operator: NotIn
+                values:
+                - virtual-kubelet
+
+      nodeSelector:
+        kubernetes.io/os: linux
+        {{- with .Values.sedaiNodeExporter.nodeSelector }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+        {{- with .Values.sedaiNodeExporter.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
       containers:
         - name: node-exporter
           image: "{{ .Values.image.nodeExporter.repository }}:{{ .Values.image.nodeExporter.imageTag }}"
@@ -84,27 +114,6 @@ spec:
               mountPath: /host/root
               mountPropagation: HostToContainer
               readOnly: true
-      hostNetwork: true
-      hostPID: true
-      hostIPC: false
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: eks.amazonaws.com/compute-type
-                operator: NotIn
-                values:
-                - fargate
-              - key: type
-                operator: NotIn
-                values:
-                - virtual-kubelet
-      nodeSelector:
-        kubernetes.io/os: linux
-      tolerations:
-        - effect: NoSchedule
-          operator: Exists
       volumes:
         - name: proc
           hostPath:

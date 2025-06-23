@@ -28,6 +28,17 @@ spec:
       hostPID: true
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+
+      {{- with .Values.sedaiBeyla.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.sedaiBeyla.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       containers:
         - name: beyla
           image: "{{ .Values.image.beyla.repository }}:{{ .Values.image.beyla.imageTag }}"

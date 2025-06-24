@@ -1,4 +1,3 @@
-
 {{- if .Values.sedaiPrometheus.enabled }}
 
 ---
@@ -6,7 +5,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   name: "{{ .Values.workload.prometheus.name }}-cluster-role"
 rules:
   - apiGroups:

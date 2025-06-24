@@ -6,6 +6,10 @@ kind: Secret
 metadata:
   name: sedai-kube-spec-controller-tls
   namespace: {{ .Values.namespace }}
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 data:
   ca.crt: {{ $ca.Cert | b64enc }}
   tls.crt: {{ $cert.Cert | b64enc }}
@@ -16,6 +20,10 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: sedai-kube-spec-controller-mutation-webhook
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 webhooks:
   - name: sedai-kube-spec-controller-svc.{{ .Values.namespace }}.svc
     clientConfig:

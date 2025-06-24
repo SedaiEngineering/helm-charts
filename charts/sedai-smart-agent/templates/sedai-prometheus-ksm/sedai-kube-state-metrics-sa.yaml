@@ -6,6 +6,9 @@ kind: ServiceAccount
 metadata:
   labels:    
     {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   name: "{{ .Values.workload.ksm.name }}-sa"
   namespace: {{ .Values.namespace }}
 automountServiceAccountToken: true

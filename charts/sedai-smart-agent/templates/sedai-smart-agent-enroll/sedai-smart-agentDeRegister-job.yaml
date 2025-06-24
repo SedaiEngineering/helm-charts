@@ -6,6 +6,10 @@ kind: Job
 metadata:
   name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister"
   namespace: {{ .Values.namespace }}
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   annotations:
     "helm.sh/hook": pre-delete
     "helm.sh/hook-delete-policy": hook-succeeded
@@ -15,6 +19,9 @@ spec:
     metadata:
       labels:
         app: {{ .Values.workload.smartAgentEnroll.name }}
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
       restartPolicy: Never

@@ -8,7 +8,10 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: prometheus-node-exporter
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   selector:
     matchLabels:
@@ -24,6 +27,9 @@ spec:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app.kubernetes.io/name: prometheus-node-exporter
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       automountServiceAccountToken: false
       securityContext:

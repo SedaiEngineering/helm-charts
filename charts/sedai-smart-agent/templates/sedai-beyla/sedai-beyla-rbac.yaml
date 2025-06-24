@@ -7,7 +7,10 @@ metadata:
   name: sedai-beyla
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 automountServiceAccountToken: true
 ---
 # Source: beyla/templates/cluster-role.yaml
@@ -16,7 +19,10 @@ kind: ClusterRole
 metadata:
   name: sedai-beyla
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 rules:
   - apiGroups: [ "apps" ]
     resources: [ "replicasets" ]
@@ -31,7 +37,10 @@ kind: ClusterRoleBinding
 metadata:
   name: sedai-beyla
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 subjects:
   - kind: ServiceAccount
     name: sedai-beyla

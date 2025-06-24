@@ -6,6 +6,10 @@ kind: RoleBinding
 metadata:
   name: "{{ .Values.workload.smartAgentEnroll.name }}-role-binding"
   namespace: {{ .Values.namespace }}
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 subjects:
   - kind: ServiceAccount
     name: "{{ .Values.workload.smartAgentEnroll.name }}-sa"

@@ -6,6 +6,15 @@
 namespace: sedai-smart-agent
 
 # -------------------------------------------------------------------
+# Glabal Labels
+# -------------------------------------------------------------------
+
+# globalLabels allows you to specify labels that will be added to all resources created by this chart
+# globalLabels:
+#   environment: sedai-smart-agent
+
+
+# -------------------------------------------------------------------
 # Sedai Component Toggles
 # -------------------------------------------------------------------
 smartAgentEnroll:
@@ -262,6 +271,3 @@ monitoringProvider:
     enabled: false                    # Enable if using Google Cloud Monitoring, Require additional Settings in GCP Console
     projectID:                        # GCP project ID where metrics will be sent
 
-# -------------------------------------------------------------------
-# GCP Monitoring Configuration
-# -------------------------------------------------------------------

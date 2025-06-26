@@ -95,7 +95,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.0.0
+    imageTag: v3.0.3
     imagePullPolicy: Always
 
   ksm:
@@ -271,3 +271,8 @@ monitoringProvider:
     enabled: false                    # Enable if using Google Cloud Monitoring, Require additional Settings in GCP Console
     projectID:                        # GCP project ID where metrics will be sent
 
+  amp:
+    enabled: false                    # Enable this if you're using Amazon Managed Prometheus (AMP)
+    amp_query_endpoint:               # AMP query endpoint
+    amp_iam_role:                     # IAM role to access AMP
+    amp_iam_role_external_id:         # (Optional) External ID for the IAM role; leave blank if not used

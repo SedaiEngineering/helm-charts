@@ -7,7 +7,10 @@ metadata:
   name: sedai-beyla
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }} 
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 data:
   beyla-config.yml: |
     discovery:

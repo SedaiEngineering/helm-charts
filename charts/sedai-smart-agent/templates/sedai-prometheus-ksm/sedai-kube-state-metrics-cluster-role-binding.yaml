@@ -7,6 +7,9 @@ metadata:
   name: "{{ .Values.workload.ksm.name }}-cluster-role-binding"
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

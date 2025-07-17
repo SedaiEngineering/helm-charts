@@ -86,7 +86,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v2.5.2
+    imageTag: v3.0.4
     imagePullPolicy: Always
 
   ksm:
@@ -203,7 +203,8 @@ proxySettings:
 # Sedai Integration Settings
 # -------------------------------------------------------------------
 sedaiIntegrationSettings:
-  clusterName: ""                  # Unique name for your Kubernetes cluster
+  nickName: ""                    # Nickname for the cluster (used in Sedai UI)
+  clusterName: ""                 # Unique name for your Kubernetes cluster
   clusterProvider: "AWS"          # Cloud provider: AWS, AZURE, GCP, SELF_MANAGED
   sedaiBaseUrl: ""                # Base URL of the Sedai platform (e.g., https://app.sedai.io)
   rbacReadOnly: false             # Set true for enabling Datapilot Mode only.

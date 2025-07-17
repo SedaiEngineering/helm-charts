@@ -6,6 +6,9 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
     app: "sedai-kube-spec-controller"
 spec:
   replicas: 1
@@ -17,6 +20,9 @@ spec:
     metadata:
       labels:
         app: "sedai-kube-spec-controller"
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccount: sedai-kube-spec-controller-sa
       serviceAccountName: sedai-kube-spec-controller-sa

@@ -6,6 +6,15 @@
 namespace: sedai-smart-agent
 
 # -------------------------------------------------------------------
+# Glabal Labels
+# -------------------------------------------------------------------
+
+# globalLabels allows you to specify labels that will be added to all resources created by this chart
+# globalLabels:
+#   environment: sedai-smart-agent
+
+
+# -------------------------------------------------------------------
 # Sedai Component Toggles
 # -------------------------------------------------------------------
 smartAgentEnroll:
@@ -80,7 +89,7 @@ image:
   smartAgent:
     name: sedai-agent
     repository: public.ecr.aws/sedai_io/sedai-smart-agent
-    imageTag: v1.24.22
+    imageTag: v1.24.28
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
@@ -190,6 +199,11 @@ resources:
       limits: "1024Mi"
 
 # -------------------------------------------------------------------
+# Smart Agent Configurations
+# -------------------------------------------------------------------
+kubernetes_master: "https://kubernetes.default.svc.cluster.local"
+
+# -------------------------------------------------------------------
 # Proxy Configuration (for egress access)
 # -------------------------------------------------------------------
 proxySettings:
@@ -212,6 +226,7 @@ sedaiIntegrationSettings:
   sedaiApiTokenSecret: ""         # Name of the Kubernetes Secret that stores the token
   sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
   forceCreate: false              # Force creation of Sedai config even if API token is invalid
+  enableDeRegisterJob: false      # Enable Sedai de-registration helm pre-delete hook
 
 
 # -------------------------------------------------------------------
@@ -257,6 +272,8 @@ monitoringProvider:
     enabled: false                    # Enable if using Google Cloud Monitoring, Require additional Settings in GCP Console
     projectID:                        # GCP project ID where metrics will be sent
 
-# -------------------------------------------------------------------
-# GCP Monitoring Configuration
-# -------------------------------------------------------------------
+  amp:
+    enabled: false                    # Enable this if you're using Amazon Managed Prometheus (AMP)
+    amp_query_endpoint:               # AMP query endpoint
+    amp_iam_role:                     # IAM role to access AMP
+    amp_iam_role_external_id:         # (Optional) External ID for the IAM role; leave blank if not used

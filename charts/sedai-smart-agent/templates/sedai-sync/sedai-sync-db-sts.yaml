@@ -5,6 +5,9 @@ metadata:
   name: "sedai-kube-spec-controller-db"
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
     app: "sedai-kube-spec-controller-db"
   namespace: {{ .Values.namespace }}
 spec:
@@ -18,6 +21,9 @@ spec:
       labels:
         {{- include "sedai-smart-agent.labels" . | nindent 8 }}
         app: "sedai-kube-spec-controller-db"
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       # Service Account
       serviceAccount: sedai-kube-spec-controller-db-sa

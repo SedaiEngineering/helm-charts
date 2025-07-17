@@ -95,7 +95,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.0.4
+    imageTag: v3.0.5
     imagePullPolicy: Always
 
   ksm:
@@ -256,6 +256,7 @@ monitoringProvider:
   datadog:
     enabled: false                    # Enable if using Datadog 
     datadogEndpoint:                  # Datadog API endpoint
+    datadogEnvDimensions:             # Datadog environment dimensions (e.g., "env,production")
     datadogApiKey:                    # Datadog API key
     datadogApplicationKey:            # Datadog App key
     datadogSecret:                    # Name of the Kubernetes Secret that stores the Datadog secret

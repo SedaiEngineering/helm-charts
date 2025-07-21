@@ -40,7 +40,7 @@ rules:
   - autoscaling.k8s.io 
   resources:
   - horizontalpodautoscalers
-  - VerticalPodAutoscaler
+  - verticalpodautoscalers
   verbs:
   - get 
   - list

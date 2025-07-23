@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "sedai-kube-spec-controller-dbclaim"
+  name: "sedai-kube-spec-controller-pvc"
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
-    app: "sedai-kube-spec-controller-db"
+    app: "sedai-kube-spec-controller"
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -15,5 +15,5 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: {{ .Values.resources.sedaiSync.storage | default "1Gi" }}
 {{- end }}

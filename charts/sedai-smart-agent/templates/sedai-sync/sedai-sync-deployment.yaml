@@ -38,11 +38,12 @@ spec:
       {{- end }}
 
       initContainers:
-      - name: wait-for-db
+      - name: init-sqlite-db
         image: "{{ .Values.image.busyBox.repository }}:{{ .Values.image.busyBox.imageTag }}"
-        # Just spin & wait forever
-        command: ["sh", "-c", "until nc -w1 sedai-kube-spec-controller-db-service.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) 5432 > /dev/null; do echo Waiting for db.; sleep 2; done;"]
-        # Container-level security context
+        command: ["sh", "-c", "chmod 777 {{ .Values.sedaiSync.sqlitePath }} && touch {{ .Values.sedaiSync.sqlitePath }}/sqlite.db && chmod 666 {{ .Values.sedaiSync.sqlitePath }}/sqlite.db"]
+        volumeMounts:
+          - name: sqlite-data
+            mountPath: "{{ .Values.sedaiSync.sqlitePath }}"
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
@@ -51,6 +52,7 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
+
       containers:
       - name: sedai-kube-spec-controller
         image: "{{ .Values.image.sedaiSync.repository }}:{{ .Values.image.sedaiSync.imageTag }}"
@@ -75,32 +77,16 @@ spec:
           value: "{{ .Values.sedaiSync.tlsPath }}/tls.key"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_PORT
           value: "8443"
-        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_HOST
-          value: sedai-kube-spec-controller-db-service
-        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PORT
-          value: "5432"
-        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_USER
-          valueFrom:
-            secretKeyRef:
-                name: "sedai-kube-spec-controller-secrets"
-                key: "dbUsername"
-        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-                name: "sedai-kube-spec-controller-secrets"
-                key: "dbPassword"
-        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_DB_NAME
-          valueFrom:
-            secretKeyRef:
-                name: "sedai-kube-spec-controller-secrets"
-                key: "dbName"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SQLITE_DB_PATH
+          value: "{{ .Values.sedaiSync.sqlitePath }}/sqlite.db"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME
-          value: "pgx"
+          value: "sqlite3"
         volumeMounts:
           - name: certs
             mountPath: "{{ .Values.sedaiSync.tlsPath }}"
             readOnly: true
-        # Container-level security context
+          - name: sqlite-data
+            mountPath: "{{ .Values.sedaiSync.sqlitePath }}"
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
@@ -113,4 +99,7 @@ spec:
         - name: certs
           secret:
             secretName: sedai-kube-spec-controller-tls
+        - name: sqlite-data
+          persistentVolumeClaim:
+            claimName: sedai-kube-spec-controller-pvc
 {{- end }}

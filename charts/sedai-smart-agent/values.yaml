@@ -118,11 +118,6 @@ image:
     imageTag: 0.0.3
     imagePullPolicy: IfNotPresent
 
-  sedaiSyncDB:
-    repository: public.ecr.aws/sedai_io/postgres
-    imageTag: 17.5-alpine
-    imagePullPolicy: IfNotPresent
-
   busyBox:
     repository: public.ecr.aws/sedai_io/busybox
     imageTag: 1.37
@@ -174,14 +169,6 @@ resources:
       requests: "1024Mi"
       limits: "1024Mi"
 
-  sedaiSyncDB:
-    cpu:
-      requests: "256m"
-      limits: "256m"
-    memory:
-      requests: "512Mi"
-      limits: "512Mi"
-
   sedaiSync:
     cpu:
       requests: "500m"
@@ -189,6 +176,7 @@ resources:
     memory:
       requests: "1024Mi"
       limits: "1024Mi"
+    storage: "2Gi"                      # Persistent volume storage for SQLite database
   
   sedaiBeyla:
     cpu:

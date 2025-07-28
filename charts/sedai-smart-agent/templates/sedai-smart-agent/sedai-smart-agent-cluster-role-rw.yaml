@@ -18,6 +18,7 @@ rules:
   - services
   - pods
   - nodes
+  - pods/resize
   verbs:
   - get 
   - list

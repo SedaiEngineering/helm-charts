@@ -1,0 +1,95 @@
+{{- if .Values.sedaiGrafanaAlloy.enabled }}
+---
+# Source: victoria-metrics-single/templates/server.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sedai-victoria-metrics-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: sedai-victoria-metrics
+    app: server
+spec:
+  podManagementPolicy: OrderedReady
+  updateStrategy: {}
+  replicas: 1
+  serviceName: sedai-victoria-metrics-server
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sedai-victoria-metrics
+      app: server
+  template:
+    metadata:
+      labels:
+        {{- include "sedai-smart-agent.labels" . | nindent 8 }}
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/name: sedai-victoria-metrics
+        app: server
+    spec:
+      serviceAccountName: sedai-victoria-metrics-server
+      automountServiceAccountToken: true
+
+      {{- with .Values.sedaiGrafanaAlloy.sedaiVictoriaMetrics.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.sedaiGrafanaAlloy.sedaiVictoriaMetrics.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      securityContext: {}
+      containers:
+        - name: vmsingle
+          securityContext: {}
+          image: "{{ .Values.image.victoriaMetrics.repository }}:{{ .Values.image.victoriaMetrics.imageTag }}"
+          imagePullPolicy: {{ .Values.image.victoriaMetrics.imagePullPolicy }}
+          args:
+            - --envflag.enable
+            - --envflag.prefix=VM_
+            - --httpListenAddr=:8428
+            - --loggerFormat=json
+            - --retentionPeriod={{ .Values.sedaiGrafanaAlloy.sedaiVictoriaMetrics.retentionPeriod }}
+            - --storageDataPath=/storage
+          ports:
+            - name: http
+              containerPort: 8428
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            failureThreshold: 10
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            tcpSocket:
+              port: http
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: "{{ .Values.resources.victoriaMetrics.cpu.requests }}"
+              memory: "{{ .Values.resources.victoriaMetrics.memory.requests }}"
+            limits:
+              cpu: "{{ .Values.resources.victoriaMetrics.cpu.limits }}"
+              memory: "{{ .Values.resources.victoriaMetrics.memory.limits }}"
+          volumeMounts:
+            - name: server-volume
+              mountPath: /storage
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: server-volume
+          persistentVolumeClaim:
+            claimName: server-volume
+{{- end }}

@@ -57,7 +57,7 @@ sedaiGrafanaAlloy:
   nodeSelector: {}                  # Node selector for Grafana Alloy daemonset
   tolerations: []                   # Tolerations for Grafana Alloy daemonset
   sedaiVictoriaMetrics:
-    retentionPeriod: "1"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
+    retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
     nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
     tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
 
@@ -207,8 +207,8 @@ resources:
 
   grafanaAlloy:
     cpu:
-      requests: "500m"
-      limits: "500m"
+      requests: "200m"
+      limits: "200m"
     memory:
       requests: "1024Mi"
       limits: "1024Mi"

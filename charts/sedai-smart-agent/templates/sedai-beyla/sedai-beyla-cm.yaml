@@ -52,6 +52,7 @@ data:
     prometheus_export:
       features:
       - network
+      - application
       path: /metrics
       port: 8080
 {{- end }}

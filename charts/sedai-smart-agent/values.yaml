@@ -210,8 +210,8 @@ resources:
       requests: "500m"
       limits: "500m"
     memory:
-      requests: "2048Mi"
-      limits: "2048Mi"
+      requests: "1024Mi"
+      limits: "1024Mi"
 
   victoriaMetrics:
     cpu:

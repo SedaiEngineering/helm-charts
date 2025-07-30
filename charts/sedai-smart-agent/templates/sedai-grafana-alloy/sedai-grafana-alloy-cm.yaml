@@ -20,6 +20,74 @@ data:
       format = "logfmt"
     }
     
+    beyla.ebpf "networkflow" {
+      discovery {
+        services {
+          kubernetes {
+          namespace = "."
+          }
+        }
+        exclude_services {
+          exe_path = ".*alloy.*|.*otelcol.*|.*beyla.*"
+        }
+      }
+      attributes {
+        kubernetes {
+          enable = "true"
+        }
+        select {
+          attr  = "beyla_network_flow_bytes_total"
+          exclude = []
+          include = [
+            "transport",
+            "src_address",
+            "dst_address",
+            "src_name",
+            "dst_name",
+            "k8s_src_name",
+            "k8s_dst_name",
+            "k8s_src_namespace",
+            "k8s_dst_namespace",
+            "k8s_src_owner_name",
+            "k8s_dst_owner_name",
+            "k8s_src_owner_type",
+            "k8s_dst_owner_type",
+            "k8s_cluster_name",
+            "src_zone",
+            "dst_zone",
+          ]
+        }
+      }
+      filters {
+        network {
+          attr = "k8s.dst.owner.name"
+          not_match = "{kube*,*jaeger-agent*,*prometheus*,*promtail*,*grafana-agent*}"
+        }
+        network {
+          attr = "k8s.src.owner.name"
+          not_match = "{kube*,*jaeger-agent*,*prometheus*,*promtail*,*grafana-agent*}"
+        }
+      }
+      metrics {
+        features = ["network", "application"]
+      }
+    }
+    
+    prometheus.scrape "beyla_network_flow" {
+      targets      = beyla.ebpf.networkflow.targets
+      honor_labels = true
+      forward_to   = [prometheus.relabel.beyla_network_flow.receiver]
+      }
+
+    prometheus.relabel "beyla_network_flow" {
+      rule {
+        source_labels = ["__name__"]
+        regex         = "beyla_network_flow_bytes_total"
+        action        = "keep"
+      }
+      forward_to   = [prometheus.remote_write.victoriametrics.receiver]
+    }
+    
     discovery.kubernetes "kubernetes_apiservers" {
       role = "endpoints"
     }

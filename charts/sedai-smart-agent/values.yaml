@@ -104,7 +104,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.0.5
+    imageTag: v3.1.0
     imagePullPolicy: Always
 
   ksm:
@@ -210,8 +210,8 @@ resources:
       requests: "200m"
       limits: "200m"
     memory:
-      requests: "1024Mi"
-      limits: "1024Mi"
+      requests: "2048Mi"
+      limits: "2048Mi"
 
   victoriaMetrics:
     cpu:
@@ -275,8 +275,15 @@ monitoringProvider:
     credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
     mimirUsername:                    # Username if using BASIC_AUTH
     mimirPassword:                    # Password if using BASIC_AUTH
-    mimirjwtToken:                    # JWT token if using FEDERATEDPROMETHEUS_JWT    
+    mimirjwtToken:                    # JWT token if using FEDERATEDPROMETHEUS_JWT
 
+  victoriaMetrics:
+    enabled: false                    # Use self-hosted Victoria Metrics instead
+    serverUrl: "http://victoria-metrics-server.victoria-metrics.svc.cluster.local:8428"  # URL of your Victoria Metrics server
+    credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
+    victoriaMetricsUsername:          # Username if using BASIC_AUTH
+    victoriaMetricsPassword:          # Password if using BASIC_AUTH
+    victoriaMetricsjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT
   datadog:
     enabled: false                    # Enable if using Datadog 
     datadogEndpoint:                  # Datadog API endpoint

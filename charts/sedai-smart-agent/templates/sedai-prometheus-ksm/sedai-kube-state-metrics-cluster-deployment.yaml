@@ -86,10 +86,15 @@ spec:
           successThreshold: 1
           timeoutSeconds: 5
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: true
+          runAsGroup: 65534
+          runAsNonRoot: true
+          runAsUser: 65534
+          seccompProfile:
+            type: RuntimeDefault
+           allowPrivilegeEscalation: false
+           capabilities:
+             drop:
+             - ALL
+           readOnlyRootFilesystem: true
   
 {{- end }}  

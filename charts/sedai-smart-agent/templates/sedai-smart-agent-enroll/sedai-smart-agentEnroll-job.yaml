@@ -66,6 +66,9 @@ spec:
             - secretRef:
                 name: "{{ .Values.workload.smartAgentEnroll.name }}-secret"
           securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
             allowPrivilegeEscalation: false
             capabilities:
               drop:

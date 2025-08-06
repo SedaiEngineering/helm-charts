@@ -70,6 +70,9 @@ spec:
               mountPath: /etc/config
               readOnly: true
           securityContext:
+            runAsGroup: 65534
+            runAsNonRoot: true
+            runAsUser: 65534
             allowPrivilegeEscalation: false
             capabilities:
               drop:
@@ -122,6 +125,9 @@ spec:
               mountPath: /data
               subPath: ""
           securityContext:
+            runAsGroup: 65534
+            runAsNonRoot: true
+            runAsUser: 65534
             allowPrivilegeEscalation: false
             capabilities:
               drop:

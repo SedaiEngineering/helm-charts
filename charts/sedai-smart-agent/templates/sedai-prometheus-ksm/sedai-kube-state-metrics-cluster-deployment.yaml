@@ -91,10 +91,10 @@ spec:
           runAsUser: 65534
           seccompProfile:
             type: RuntimeDefault
-           allowPrivilegeEscalation: false
-           capabilities:
-             drop:
-             - ALL
-           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
   
 {{- end }}  

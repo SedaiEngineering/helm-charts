@@ -98,7 +98,7 @@ image:
   smartAgent:
     name: sedai-agent
     repository: public.ecr.aws/sedai_io/sedai-smart-agent
-    imageTag: v1.24.28
+    imageTag: v1.24.44
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  

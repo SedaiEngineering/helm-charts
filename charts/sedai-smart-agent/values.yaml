@@ -56,10 +56,12 @@ sedaiGrafanaAlloy:
   enabled: false
   nodeSelector: {}                  # Node selector for Grafana Alloy daemonset
   tolerations: []                   # Tolerations for Grafana Alloy daemonset
-  sedaiVictoriaMetrics:
-    retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
-    nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
-    tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
+
+sedaiVictoriaMetrics:
+  retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
+  nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
+  tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
+  enabled: false                    # Use Sedai-managed Victoria Metrics
 
 # -------------------------------------------------------------------
 # Workload Metadata and Replicas
@@ -257,7 +259,6 @@ sedaiIntegrationSettings:
 # External Monitoring Provider Configuration
 # -------------------------------------------------------------------
 monitoringProvider:
-
   sedaiManagedPrometheus:
     enabled: false                    # Use Sedai-managed Prometheus (preferred default)
 

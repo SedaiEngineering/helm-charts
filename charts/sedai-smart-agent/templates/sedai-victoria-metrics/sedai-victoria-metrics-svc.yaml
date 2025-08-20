@@ -1,4 +1,4 @@
-{{- if .Values.sedaiGrafanaAlloy.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled }}
 ---
 # Source: victoria-metrics-single/templates/service.yaml
 apiVersion: v1

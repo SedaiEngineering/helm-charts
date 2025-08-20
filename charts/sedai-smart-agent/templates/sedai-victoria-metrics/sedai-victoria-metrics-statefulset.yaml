@@ -1,4 +1,4 @@
-{{- if .Values.sedaiGrafanaAlloy.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled }}
 ---
 # Source: victoria-metrics-single/templates/server.yaml
 apiVersion: apps/v1
@@ -35,12 +35,12 @@ spec:
       serviceAccountName: sedai-victoria-metrics-server
       automountServiceAccountToken: true
 
-      {{- with .Values.sedaiGrafanaAlloy.sedaiVictoriaMetrics.nodeSelector }}
+      {{- with .Values.sedaiVictoriaMetrics.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-      {{- with .Values.sedaiGrafanaAlloy.sedaiVictoriaMetrics.tolerations }}
+      {{- with .Values.sedaiVictoriaMetrics.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -56,8 +56,12 @@ spec:
             - --envflag.prefix=VM_
             - --httpListenAddr=:8428
             - --loggerFormat=json
-            - --retentionPeriod={{ .Values.sedaiGrafanaAlloy.sedaiVictoriaMetrics.retentionPeriod }}
+            - --retentionPeriod={{ .Values.sedaiVictoriaMetrics.retentionPeriod }}
             - --storageDataPath=/storage
+            - --maxLabelsPerTimeseries=100
+            {{- if .Values.sedaiVictoriaMetrics.enabled }}
+            - --promscrape.config=/data/prometheus.yml
+            {{- end }}
           ports:
             - name: http
               containerPort: 8428
@@ -87,9 +91,19 @@ spec:
           volumeMounts:
             - name: server-volume
               mountPath: /storage
+            {{- if .Values.sedaiVictoriaMetrics.enabled }}
+            - name: scrape-config
+              mountPath: /data
+              readOnly: true
+            {{- end }}
       terminationGracePeriodSeconds: 60
       volumes:
         - name: server-volume
           persistentVolumeClaim:
             claimName: server-volume
+        {{- if .Values.sedaiVictoriaMetrics.enabled }}
+        - name: scrape-config
+          configMap:
+            name: sedai-victoria-metrics-server-configmap
+        {{- end }}
 {{- end }}

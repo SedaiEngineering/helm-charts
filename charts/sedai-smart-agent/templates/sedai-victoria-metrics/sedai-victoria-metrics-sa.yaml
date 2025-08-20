@@ -1,6 +1,6 @@
-{{- if .Values.sedaiGrafanaAlloy.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled }}
 ---
-# Source: victoria-metrics-single/templates/serviceaccount.yaml
+# Source: victoria-metrics-single/templates/serviceaccount.yaml 
 apiVersion: v1
 kind: ServiceAccount
 metadata:

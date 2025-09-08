@@ -1,4 +1,4 @@
-{{- if .Values.sedaiKSM.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiKSM.enabled }}
 
 ---
 apiVersion: apps/v1

@@ -18,7 +18,7 @@ spec:
     - name: metrics
       port: 80
       protocol: TCP
-      targetPort: 8080
+      targetPort: 8999
   selector:
     app.kubernetes.io/name: sedai-beyla
 {{- end }}

@@ -22,7 +22,7 @@ spec:
     metadata:
       annotations:
         prometheus.io/path: /metrics
-        prometheus.io/port: "8080"
+        prometheus.io/port: "8999"
         prometheus.io/scrape: "true"
       labels:
         app.kubernetes.io/name: sedai-beyla
@@ -53,7 +53,7 @@ spec:
             privileged: true
           ports:
           - name: metrics
-            containerPort: 8080
+            containerPort: 8999
             protocol: TCP
           resources:
             requests:

@@ -52,6 +52,17 @@ sedaiBeyla:
   nodeSelector: {}                  # Node selector for Beyla daemonset
   tolerations: []                   # Tolerations for Beyla daemonset
 
+sedaiGrafanaAlloy:
+  enabled: false
+  nodeSelector: {}                  # Node selector for Grafana Alloy daemonset
+  tolerations: []                   # Tolerations for Grafana Alloy daemonset
+
+sedaiVictoriaMetrics:
+  retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
+  nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
+  tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
+  enabled: false                    # Use Sedai-managed Victoria Metrics
+
 # -------------------------------------------------------------------
 # Workload Metadata and Replicas
 # -------------------------------------------------------------------
@@ -95,7 +106,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.0.5
+    imageTag: v3.1.0
     imagePullPolicy: Always
 
   ksm:
@@ -104,12 +115,12 @@ image:
     imagePullPolicy: IfNotPresent
 
   reload:
-    repository: quay.io/prometheus-operator/prometheus-config-reloader
+    repository: public.ecr.aws/sedai_io/prometheus/prometheus-config-reloader
     imageTag: v0.80.1
     imagePullPolicy: IfNotPresent
 
   prometheus:
-    repository: quay.io/prometheus/prometheus
+    repository: public.ecr.aws/sedai_io/prometheus/prometheus
     imageTag: v3.2.1
     imagePullPolicy: IfNotPresent
 
@@ -131,6 +142,16 @@ image:
   beyla:
     repository: public.ecr.aws/sedai_io/grafana/beyla
     imageTag: 2.2.4
+    imagePullPolicy: IfNotPresent
+
+  grafanaAlloy:
+    repository: public.ecr.aws/sedai_io/grafana/alloy
+    imageTag: v1.10.0
+    imagePullPolicy: IfNotPresent
+
+  victoriaMetrics:
+    repository: public.ecr.aws/sedai_io/victoriametrics/victoria-metrics
+    imageTag: v1.122.0
     imagePullPolicy: IfNotPresent
 
 # -------------------------------------------------------------------
@@ -186,6 +207,23 @@ resources:
       requests: "1024Mi"
       limits: "1024Mi"
 
+  grafanaAlloy:
+    cpu:
+      requests: "200m"
+      limits: "200m"
+    memory:
+      requests: "2048Mi"
+      limits: "2048Mi"
+
+  victoriaMetrics:
+    cpu:
+      requests: "500m"
+      limits: "500m"
+    memory:
+      requests: "1024Mi"
+      limits: "1024Mi"
+    storage: "30Gi"                    # Persistent volume storage for Victoria Metrics
+
 # -------------------------------------------------------------------
 # Smart Agent Configurations
 # -------------------------------------------------------------------
@@ -221,7 +259,6 @@ sedaiIntegrationSettings:
 # External Monitoring Provider Configuration
 # -------------------------------------------------------------------
 monitoringProvider:
-
   sedaiManagedPrometheus:
     enabled: false                    # Use Sedai-managed Prometheus (preferred default)
 
@@ -239,8 +276,15 @@ monitoringProvider:
     credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
     mimirUsername:                    # Username if using BASIC_AUTH
     mimirPassword:                    # Password if using BASIC_AUTH
-    mimirjwtToken:                    # JWT token if using FEDERATEDPROMETHEUS_JWT    
+    mimirjwtToken:                    # JWT token if using FEDERATEDPROMETHEUS_JWT
 
+  victoriaMetrics:
+    enabled: false                    # Use self-hosted Victoria Metrics instead
+    serverUrl: "http://victoria-metrics-server.victoria-metrics.svc.cluster.local:8428"  # URL of your Victoria Metrics server
+    credentialsProvider: "FEDERATEDPROMETHEUS_NO_AUTH" # Authentication type (BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, or NO_AUTH)
+    victoriaMetricsUsername:          # Username if using BASIC_AUTH
+    victoriaMetricsPassword:          # Password if using BASIC_AUTH
+    victoriaMetricsjwtToken:          # JWT token if using FEDERATEDPROMETHEUS_JWT
   datadog:
     enabled: false                    # Enable if using Datadog 
     datadogEndpoint:                  # Datadog API endpoint

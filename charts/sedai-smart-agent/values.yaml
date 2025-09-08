@@ -30,7 +30,7 @@ sedaiPrometheus:
   tolerations: []                   # Tolerations for Prometheus deployment
 
 sedaiKSM:
-  enabled: false                    # Enables deployment of Kube State Metrics (KSM) for cluster object metrics
+  enabled: false                    # Enables deployment of Kube State Metrics (KSM) for cluster object metrics - required for Sedai-managed Prometheus, Alloy
   nodeSelector: {}                  # Node selector for KSM deployment
   tolerations: []                   # Tolerations for KSM deployment
 

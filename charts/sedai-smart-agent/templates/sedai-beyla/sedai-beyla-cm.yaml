@@ -54,5 +54,5 @@ data:
       - network
       - application
       path: /metrics
-      port: 8080
+      port: 8999
 {{- end }}

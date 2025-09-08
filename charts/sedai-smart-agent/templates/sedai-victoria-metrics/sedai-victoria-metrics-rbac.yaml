@@ -1,0 +1,71 @@
+{{- if .Values.sedaiVictoriaMetrics.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: sedai-victoria-metrics
+    app.kubernetes.io/component: rbac
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  name: "sedai-victoria-metrics-server-cluster-role"
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+      - nodes/proxy
+      - nodes/metrics
+      - services
+      - endpoints
+      - pods
+      - ingresses
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "extensions"
+      - "networking.k8s.io"
+    resources:
+      - ingresses/status
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "discovery.k8s.io"
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch
+  - nonResourceURLs:
+      - "/metrics"
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: sedai-victoria-metrics
+    app.kubernetes.io/component: rbac
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  name: "sedai-victoria-metrics-server-cluster-role-binding"
+subjects:
+  - kind: ServiceAccount
+    name: "sedai-victoria-metrics-server"
+    namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: "sedai-victoria-metrics-server-cluster-role"
+{{- end }}

@@ -1,0 +1,20 @@
+{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: server-volume
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: sedai-victoria-metrics
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ .Values.resources.victoriaMetrics.storage }}"
+{{- end }}

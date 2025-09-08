@@ -1,0 +1,26 @@
+{{- if .Values.sedaiGrafanaAlloy.enabled }}
+---
+# Source: alloy/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sedai-grafana-alloy
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: sedai-grafana-alloy
+    app.kubernetes.io/component: networking
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sedai-grafana-alloy
+  internalTrafficPolicy: Cluster
+  ports:
+    - name: http-metrics
+      port: 12345
+      targetPort: 12345
+      protocol: "TCP"
+{{- end }}

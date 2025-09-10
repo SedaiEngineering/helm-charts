@@ -151,4 +151,12 @@ rules:
   - get
   nonResourceURLs:
   - /metrics
+- apiGroups:
+  - argoproj.io
+  resources:
+  - rollouts
+  verbs:
+  - get
+  - patch
+  - update
 {{- end }}

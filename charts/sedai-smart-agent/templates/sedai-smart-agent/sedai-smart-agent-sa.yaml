@@ -9,6 +9,10 @@ metadata:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
 imagePullSecrets:
   - name: "{{ .Values.imagePullSecret.secretName }}"

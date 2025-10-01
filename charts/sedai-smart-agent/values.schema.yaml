@@ -1,0 +1,65 @@
+# JSON Schema for values.yaml validation
+# This file helps with IDE autocompletion and validation
+
+type: object
+properties:
+  namespace:
+    type: string
+    description: "Namespace where all Sedai components will be deployed"
+    default: "sedai-smart-agent"
+  
+  globalLabels:
+    type: object
+    description: "Labels that will be added to all resources created by this chart"
+    additionalProperties:
+      type: string
+  
+  globalAnnotations:
+    type: object
+    description: "Annotations that will be added to all resources created by this chart"
+    additionalProperties:
+      type: string
+  
+  sedaiIntegrationSettings:
+    type: object
+    required: ["clusterName"]
+    properties:
+      clusterName:
+        type: string
+        description: "Unique name for your Kubernetes cluster"
+      sedaiApiToken:
+        type: string
+        description: "API token (use this OR provide a Kubernetes Secret)"
+      sedaiBaseUrl:
+        type: string
+        description: "Base URL of the Sedai platform"
+        default: "https://app.sedai.io"
+      clusterProvider:
+        type: string
+        enum: ["AWS", "AZURE", "GCP", "SELF_MANAGED"]
+        description: "Cloud provider"
+        default: "AWS"
+  
+  sedaiPrometheus:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        description: "Enables Sedai-managed Prometheus for metric collection"
+        default: false
+  
+  sedaiKSM:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        description: "Enables deployment of Kube State Metrics"
+        default: false
+  
+  sedaiSync:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        description: "Enables Sedai sync controller for workload auto-optimization"
+        default: false

@@ -1,0 +1,69 @@
+# Datadog Integration Example
+# Use this when integrating with Datadog monitoring
+
+# Global metadata
+globalLabels:
+  environment: production
+  monitoring: datadog
+
+globalAnnotations:
+  company.io/owner: platform-team
+  monitoring.io/provider: datadog
+
+# Sedai integration
+sedaiIntegrationSettings:
+  clusterName: "prod-cluster-datadog"
+  sedaiApiToken: "your-api-token-here"
+  sedaiBaseUrl: "https://app.sedai.io"
+  clusterProvider: "AWS"
+
+# Disable Sedai-managed monitoring components
+sedaiPrometheus:
+  enabled: false
+
+sedaiKSM:
+  enabled: false
+
+sedaiNodeExporter:
+  enabled: false
+
+# Configure Datadog integration
+monitoringProvider:
+  datadog:
+    enabled: true
+    datadogEndpoint: "https://api.datadoghq.com"
+    datadogEnvDimensions: "env:production,cluster:prod-cluster-datadog"
+    # Option 1: Direct API keys (not recommended for production)
+    datadogApiKey: "your-datadog-api-key"
+    datadogApplicationKey: "your-datadog-app-key"
+    # Option 2: Use Kubernetes secrets (recommended)
+    # datadogSecret: "datadog-secrets"
+    # datadogApiKeySecretKey: "api-key"
+    # datadogApplicationKeySecretKey: "app-key"
+
+# Enable optimization
+sedaiSync:
+  enabled: true
+
+# Minimal resource allocation since monitoring is external
+resources:
+  smartAgent:
+    cpu:
+      requests: "500m"
+      limits: "1000m"
+    memory:
+      requests: "1024Mi"
+      limits: "2048Mi"
+  
+  sedaiSync:
+    cpu:
+      requests: "300m"
+      limits: "600m"
+    memory:
+      requests: "512Mi"
+      limits: "1024Mi"
+
+# Create the Datadog secret with:
+# kubectl create secret generic datadog-secrets \
+#   --from-literal=api-key="your-datadog-api-key" \
+#   --from-literal=app-key="your-datadog-app-key"

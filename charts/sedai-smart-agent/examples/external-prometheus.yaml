@@ -1,0 +1,59 @@
+# External Prometheus Integration Example
+# Use this when you have an existing Prometheus setup
+
+# Global metadata
+globalLabels:
+  environment: production
+  monitoring: external-prometheus
+
+globalAnnotations:
+  company.io/owner: platform-team
+
+# Sedai integration
+sedaiIntegrationSettings:
+  clusterName: "prod-cluster-with-prometheus"
+  sedaiApiToken: "your-api-token-here"
+  sedaiBaseUrl: "https://app.sedai.io"
+  clusterProvider: "AWS"
+
+# Disable Sedai-managed Prometheus
+sedaiPrometheus:
+  enabled: false
+
+# Configure external Prometheus connection
+monitoringProvider:
+  prometheus:
+    enabled: true
+    serverUrl: "http://prometheus-server.monitoring.svc.cluster.local"
+    credentialsProvider: "BASIC_AUTH"  # Options: BASIC_AUTH, FEDERATEDPROMETHEUS_JWT, NO_AUTH
+    prometheusUsername: "admin"
+    prometheusPassword: "your-prometheus-password"
+    # For JWT authentication:
+    # credentialsProvider: "FEDERATEDPROMETHEUS_JWT"
+    # prometheusjwtToken: "your-jwt-token"
+
+# Still enable KSM if your Prometheus doesn't have it
+sedaiKSM:
+  enabled: true
+
+# Enable other components as needed
+sedaiSync:
+  enabled: true
+
+# Reduced resource allocation since we're not running Prometheus
+resources:
+  smartAgent:
+    cpu:
+      requests: "500m"
+      limits: "1000m"
+    memory:
+      requests: "1024Mi"
+      limits: "2048Mi"
+  
+  ksm:
+    cpu:
+      requests: "200m"
+      limits: "500m"
+    memory:
+      requests: "512Mi"
+      limits: "1024Mi"

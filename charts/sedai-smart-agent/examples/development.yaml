@@ -1,0 +1,87 @@
+# Development Environment Configuration
+# Optimized for development and testing environments
+
+# Global metadata
+globalLabels:
+  environment: development
+  team: engineering
+
+globalAnnotations:
+  company.io/owner: dev-team
+  cost-optimization: "enabled"
+
+# Sedai integration
+sedaiIntegrationSettings:
+  nickName: "Development Cluster"
+  clusterName: "dev-cluster"
+  sedaiApiToken: "dev-api-token"
+  sedaiBaseUrl: "https://app.sedai.io"
+  clusterProvider: "AWS"
+  rbacReadOnly: false
+
+# Enable basic monitoring with reduced retention
+sedaiPrometheus:
+  enabled: true
+  server:
+    retention: '6h'  # Short retention for dev
+
+sedaiKSM:
+  enabled: true
+
+# Enable optimization for testing
+sedaiSync:
+  enabled: true
+  logLevel: "debug"  # More verbose logging for development
+
+# Minimal resource allocation for cost savings
+resources:
+  smartAgent:
+    cpu:
+      requests: "200m"
+      limits: "500m"
+    memory:
+      requests: "512Mi"
+      limits: "1024Mi"
+  
+  prometheus:
+    cpu:
+      requests: "500m"
+      limits: "1000m"
+    memory:
+      requests: "2048Mi"
+      limits: "4096Mi"
+    storage: "20Gi"  # Smaller storage for dev
+  
+  ksm:
+    cpu:
+      requests: "100m"
+      limits: "200m"
+    memory:
+      requests: "256Mi"
+      limits: "512Mi"
+  
+  sedaiSync:
+    cpu:
+      requests: "200m"
+      limits: "500m"
+    memory:
+      requests: "512Mi"
+      limits: "1024Mi"
+    storage: "2Gi"
+
+# Enable debug logging for troubleshooting
+enableAgentDebugLogs:
+  enabled: true
+  agentLogLevel: "DEBUG"
+
+# Single replica for cost optimization
+workload:
+  smartAgent:
+    replicaCount: 1
+    revisionHistoryLimit: 1  # Keep fewer old versions
+  prometheus:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+  ksm:
+    replicaCount: 1
+    revisionHistoryLimit: 1

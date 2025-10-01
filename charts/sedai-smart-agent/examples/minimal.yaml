@@ -1,0 +1,17 @@
+# Minimal Configuration Example
+# Use this for getting started or testing the Sedai Smart Agent
+
+# Required: Basic Sedai integration settings
+sedaiIntegrationSettings:
+  clusterName: "my-test-cluster"
+  sedaiApiToken: "your-api-token-here"
+  sedaiBaseUrl: "https://app.sedai.io"
+  clusterProvider: "AWS"  # Change to your provider: AWS, AZURE, GCP, SELF_MANAGED
+
+# Optional: Add basic labels for resource identification
+globalLabels:
+  environment: test
+  managed-by: sedai
+
+# The Smart Agent is enabled by default
+# All other components are disabled by default for minimal footprint

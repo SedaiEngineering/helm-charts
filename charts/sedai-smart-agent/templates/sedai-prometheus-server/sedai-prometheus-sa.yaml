@@ -11,8 +11,10 @@ metadata:
     {{- end }}
   name: "{{ .Values.workload.prometheus.name }}-sa"
   namespace: {{ .Values.namespace }}
+  {{- with .Values.globalAnnotations }}
   annotations:
-    {}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
 imagePullSecrets:
   - name: "{{ .Values.imagePullSecret.secretName }}"

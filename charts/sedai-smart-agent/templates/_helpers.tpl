@@ -60,3 +60,12 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Global annotations
+*/}}
+{{- define "sedai-smart-agent.globalAnnotations" -}}
+{{- with .Values.globalAnnotations }}
+{{- toYaml . }}
+{{- end }}
+{{- end }}

@@ -9,6 +9,10 @@ metadata:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: "sedai-victoria-metrics-server-cluster-role"
 rules:
   - apiGroups:
@@ -59,6 +63,10 @@ metadata:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: "sedai-victoria-metrics-server-cluster-role-binding"
 subjects:
   - kind: ServiceAccount

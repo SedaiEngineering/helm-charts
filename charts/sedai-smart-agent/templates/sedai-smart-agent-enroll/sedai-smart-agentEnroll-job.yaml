@@ -23,12 +23,12 @@ spec:
         {{- with .Values.globalLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- if or .Values.globalAnnotations .Values.smartAgentEnroll.jobAnnotations }}
+      {{- if or .Values.globalAnnotations .Values.smartAgentEnroll.podAnnotations }}
       annotations:
         {{- with .Values.globalAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- range $key, $value := .Values.smartAgentEnroll.jobAnnotations }}
+        {{- range $key, $value := .Values.smartAgentEnroll.podAnnotations }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
       {{- end }}

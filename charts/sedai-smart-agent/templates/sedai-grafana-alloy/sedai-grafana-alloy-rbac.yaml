@@ -12,6 +12,10 @@ metadata:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
     app.kubernetes.io/name: sedai-grafana-alloy
     app.kubernetes.io/component: rbac
 ---
@@ -25,6 +29,10 @@ metadata:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
     app.kubernetes.io/name: sedai-grafana-alloy
     app.kubernetes.io/component: rbac
 rules:
@@ -124,6 +132,10 @@ metadata:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
     app.kubernetes.io/name: sedai-grafana-alloy
     app.kubernetes.io/component: rbac
 roleRef:

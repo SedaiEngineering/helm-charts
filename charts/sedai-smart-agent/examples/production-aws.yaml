@@ -1,0 +1,135 @@
+# Production AWS EKS Configuration
+# Comprehensive setup for production AWS environments
+
+# Global metadata for all resources
+globalLabels:
+  environment: production
+  cluster: eks-prod-us-west-2
+  team: platform
+  cost-center: engineering
+
+globalAnnotations:
+  company.io/owner: platform-team
+  company.io/project: sedai-monitoring
+  compliance.io/required: "true"
+  backup.io/enabled: "true"
+
+# Sedai platform integration
+sedaiIntegrationSettings:
+  nickName: "Production EKS Cluster - US West 2"
+  clusterName: "eks-prod-us-west-2"
+  clusterProvider: "AWS"
+  sedaiBaseUrl: "https://app.sedai.io"
+  # Use Kubernetes secret for API token (recommended for production)
+  sedaiApiTokenSecret: "sedai-api-secret"
+  sedaiApiTokenSecretKey: "api-token"
+  rbacReadOnly: false  # Enable full optimization capabilities
+
+# Enable comprehensive monitoring stack
+sedaiPrometheus:
+  enabled: true
+  server:
+    retention: '24h'  # 24-hour retention for production
+  nodeSelector:
+    node-type: monitoring
+  tolerations:
+  - key: "monitoring"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+sedaiKSM:
+  enabled: true
+  nodeSelector:
+    node-type: monitoring
+
+sedaiNodeExporter:
+  enabled: true
+  # Node Exporter runs on all nodes
+  tolerations:
+  - operator: "Exists"
+
+# Enable auto-optimization
+sedaiSync:
+  enabled: true
+  logLevel: "info"
+  nodeSelector:
+    node-type: monitoring
+
+# Enable application performance monitoring
+sedaiBeyla:
+  enabled: true
+  tolerations:
+  - operator: "Exists"
+
+sedaiGrafanaAlloy:
+  enabled: true
+  tolerations:
+  - operator: "Exists"
+
+# Production resource allocation
+resources:
+  smartAgent:
+    cpu:
+      requests: "1000m"
+      limits: "2000m"
+    memory:
+      requests: "2048Mi"
+      limits: "4096Mi"
+  
+  prometheus:
+    cpu:
+      requests: "2000m"
+      limits: "4000m"
+    memory:
+      requests: "8192Mi"
+      limits: "16384Mi"
+    storage: "200Gi"
+  
+  ksm:
+    cpu:
+      requests: "500m"
+      limits: "1000m"
+    memory:
+      requests: "1024Mi"
+      limits: "2048Mi"
+  
+  sedaiSync:
+    cpu:
+      requests: "500m"
+      limits: "1000m"
+    memory:
+      requests: "1024Mi"
+      limits: "2048Mi"
+    storage: "10Gi"
+
+# Workload configuration
+workload:
+  smartAgent:
+    replicaCount: 1
+    revisionHistoryLimit: 3
+    nodeSelector:
+      node-type: monitoring
+    tolerations:
+    - key: "monitoring"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+# Enable debug logging if needed (disable in production)
+enableAgentDebugLogs:
+  enabled: false
+  agentLogLevel: "INFO"
+
+# Image pull configuration (if using private registry)
+imagePullSecret:
+  enabled: false
+  secretName: ""
+
+# Network configuration (if behind corporate proxy)
+proxySettings:
+  enabled: false
+  # proxyHost: "proxy.company.com"
+  # proxyPort: 3128
+  # proxyUsername: "proxy-user"
+  # proxyPassword: "proxy-password"

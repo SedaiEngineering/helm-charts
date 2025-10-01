@@ -13,6 +13,11 @@ namespace: sedai-smart-agent
 # globalLabels:
 #   environment: sedai-smart-agent
 
+# globalAnnotations allows you to specify annotations that will be added to all resources created by this chart
+# globalAnnotations:
+#   company.io/owner: platform-team
+#   company.io/project: sedai-smart-agent
+
 
 # -------------------------------------------------------------------
 # Sedai Component Toggles

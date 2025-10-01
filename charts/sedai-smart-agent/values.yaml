@@ -26,6 +26,8 @@ smartAgentEnroll:
   enabled: true                     # Enables the Smart Agent enrollment job (one-time job per cluster)
   nodeSelector: {}                  # Node selector for Smart Agent enrollment job
   tolerations: []                   # Tolerations for Smart Agent enrollment job
+  jobAnnotations: {}                # Annotations for Smart Agent enrollment job
+  podAnnotations: {}                # Annotations for Smart Agent enrollment job
 
 sedaiPrometheus:
   enabled: false                    # Enables Sedai-managed Prometheus for metric collection

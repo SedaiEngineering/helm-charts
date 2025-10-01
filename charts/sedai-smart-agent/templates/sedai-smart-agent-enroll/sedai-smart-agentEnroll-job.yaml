@@ -5,6 +5,15 @@ kind: Job
 metadata:
   name: "{{ .Values.workload.smartAgentEnroll.name }}"
   namespace: {{ .Values.namespace }}
+  {{- if or .Values.globalAnnotations .Values.smartAgentEnroll.jobAnnotations }}
+  annotations:
+    {{- with .Values.globalAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- range $key, $value := .Values.smartAgentEnroll.jobAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   backoffLimit: 1
   template:
@@ -14,9 +23,14 @@ spec:
         {{- with .Values.globalLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.globalAnnotations }}
+      {{- if or .Values.globalAnnotations .Values.smartAgentEnroll.jobAnnotations }}
       annotations:
+        {{- with .Values.globalAnnotations }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- range $key, $value := .Values.smartAgentEnroll.jobAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
       {{- end }}
     spec:
       serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-sa"

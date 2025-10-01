@@ -469,8 +469,3 @@ helm template . -f values.yaml --debug
 
 - Documentation: [https://docs.sedai.io](https://docs.sedai.io)
 - Support: [support@sedai.io](mailto:support@sedai.io)
-- Community: [Sedai Community Forum](https://community.sedai.io)
-
-## License
-
-This chart is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.

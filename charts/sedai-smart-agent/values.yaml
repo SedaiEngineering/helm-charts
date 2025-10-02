@@ -35,15 +35,11 @@ sedaiPrometheus:
     retention: '6h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
   nodeSelector: {}                  # Node selector for Prometheus deployment
   tolerations: []                   # Tolerations for Prometheus deployment
-  deploymentAnnotations: {}         # Additional annotations for the Prometheus deployment resource
-  podAnnotations: {}                # Additional annotations for the Prometheus pod template
 
 sedaiKSM:
   enabled: false                    # Enables deployment of Kube State Metrics (KSM) for cluster object metrics - required for Sedai-managed Prometheus, Alloy
   nodeSelector: {}                  # Node selector for KSM deployment
   tolerations: []                   # Tolerations for KSM deployment
-  deploymentAnnotations: {}         # Additional annotations for the KSM deployment resource
-  podAnnotations: {}                # Additional annotations for the KSM pod template
 
 sedaiSync:
   enabled: false                    # Enables Sedai sync controller for workload auto-optimization
@@ -52,37 +48,27 @@ sedaiSync:
   logLevel: "error"                 # Logging level: trace, debug, info, warn, error
   nodeSelector: {}                  # Node selector for both Sedai Sync and DB deployments
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
-  deploymentAnnotations: {}         # Additional annotations for the Sedai Sync deployment resource
-  podAnnotations: {}                # Additional annotations for the Sedai Sync pod template
 
 sedaiNodeExporter:
   enabled: false
   nodeSelector: {}                  # Node selector for Node Exporter daemonset
   tolerations: []                   # Tolerations for Node Exporter daemonset
-  daemonsetAnnotations: {}          # Additional annotations for the Node Exporter daemonset resource
-  podAnnotations: {}                # Additional annotations for the Node Exporter pod template
 
 sedaiBeyla:
   enabled: false
   nodeSelector: {}                  # Node selector for Beyla daemonset
   tolerations: []                   # Tolerations for Beyla daemonset
-  daemonsetAnnotations: {}          # Additional annotations for the Beyla daemonset resource
-  podAnnotations: {}                # Additional annotations for the Beyla pod template
 
 sedaiGrafanaAlloy:
   enabled: false
   nodeSelector: {}                  # Node selector for Grafana Alloy daemonset
   tolerations: []                   # Tolerations for Grafana Alloy daemonset
-  daemonsetAnnotations: {}          # Additional annotations for the Grafana Alloy daemonset resource
-  podAnnotations: {}                # Additional annotations for the Grafana Alloy pod template
 
 sedaiVictoriaMetrics:
   retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   enabled: false                    # Use Sedai-managed Victoria Metrics
-  statefulsetAnnotations: {}        # Additional annotations for the Victoria Metrics statefulset resource
-  podAnnotations: {}                # Additional annotations for the Victoria Metrics pod template
 
 # -------------------------------------------------------------------
 # Workload Metadata and Replicas
@@ -97,8 +83,6 @@ workload:
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
     nodeSelector: {}                        # Node selector for Smart Agent deployment
     tolerations: []                         # Tolerations for Smart Agent deployment
-    deploymentAnnotations: {}               # Additional annotations for the Smart Agent deployment resource
-    podAnnotations: {}                      # Additional annotations for the Smart Agent pod template
   prometheus:
     name: sedai-prometheus-server
     replicaCount: 1

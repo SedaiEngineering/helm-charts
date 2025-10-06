@@ -1,0 +1,32 @@
+name: Release Charts to OCI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'charts/sedai-smart-agent/Chart.yaml'
+jobs:
+  build:
+    name: Sedai Chart Release to OCI
+    runs-on: self-hosted
+    steps:
+      - name: Configure AWS Credentials for public ECR
+        uses: aws-actions/configure-aws-credentials@v5.0.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+      - uses: azure/setup-helm@v4.3.0
+        id: install
+      - name: Get helm version
+        run: echo "CHART_VERSION=$(helm show chart . | grep -E "^version:" | awk '{print $2}')" >> $GITHUB_ENV
+      - name: Package helm chart and push to ECR Public
+        run: |
+          helm package ./charts/sedai
+          helm push sedai-smart-agent-${{ env.CHART_VERSION }}.tgz oci://${{ secrets.ECR_PUBLIC_REPOSITORY }}

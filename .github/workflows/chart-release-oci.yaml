@@ -29,7 +29,7 @@ jobs:
       - uses: azure/setup-helm@v4.3.0
         id: install
       - name: Get helm version
-        run: echo "CHART_VERSION=$(helm show chart . | grep -E "^version:" | awk '{print $2}')" >> $GITHUB_ENV
+        run: echo "CHART_VERSION=$(helm show chart charts/sedai-smart-agent | grep -E "^version:" | awk '{print $2}')" >> $GITHUB_ENV
       - name: Package helm chart and push to ECR Public
         run: |
           helm package ./charts/sedai-smart-agent

@@ -54,9 +54,13 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- with .Values.sedaiPrometheus.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       containers:
         - name: sedai-prometheus-server-configmap-reload
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
+          image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
           imagePullPolicy: "{{ .Values.image.reload.imagePullPolicy }}"
           args:
             - --watched-dir=/etc/config
@@ -93,7 +97,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault              
         - name: sedai-prometheus-server
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.prometheus.repository }}:{{ .Values.image.prometheus.imageTag }}"
+          image: "{{ .Values.image.prometheus.repository }}:{{ .Values.image.prometheus.imageTag }}"
           imagePullPolicy: "{{ .Values.image.prometheus.imagePullPolicy }}"
           resources:
             requests:

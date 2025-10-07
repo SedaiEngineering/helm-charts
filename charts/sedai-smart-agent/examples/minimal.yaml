@@ -13,5 +13,32 @@ globalLabels:
   environment: test
   managed-by: sedai
 
+# Optional: Global tolerations for ARM nodes (useful for cost optimization)
+globalTolerations:
+  # Allow scheduling on ARM-based nodes
+  - key: "kubernetes.io/arch"
+    operator: "Equal"
+    value: "arm64"
+    effect: "NoSchedule"
+
+# Optional: Priority class for minimal setup
+# Create with: kubectl apply -f - <<EOF
+# apiVersion: scheduling.k8s.io/v1
+# kind: PriorityClass
+# metadata:
+#   name: sedai-minimal
+# value: 200
+# description: "Basic priority for minimal Sedai setup"
+# EOF
+
+# Configure priority class for Smart Agent
+smartAgentEnroll:
+  enabled: true
+  priorityClassName: ""  # Use default or "sedai-minimal"
+
+workload:
+  smartAgent:
+    priorityClassName: ""  # Use default or "sedai-minimal"
+
 # The Smart Agent is enabled by default
 # All other components are disabled by default for minimal footprint

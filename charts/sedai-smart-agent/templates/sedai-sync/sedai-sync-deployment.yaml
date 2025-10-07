@@ -50,9 +50,13 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- with .Values.sedaiSync.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       initContainers:
       - name: init-sqlite-db
-        image: "{{ .Values.globalRegistry }}/{{ .Values.image.busyBox.repository }}:{{ .Values.image.busyBox.imageTag }}"
+        image: "{{ .Values.image.busyBox.repository }}:{{ .Values.image.busyBox.imageTag }}"
         command: ["sh", "-c", "chmod 777 {{ .Values.sedaiSync.sqlitePath }} && touch {{ .Values.sedaiSync.sqlitePath }}/sqlite.db && chmod 666 {{ .Values.sedaiSync.sqlitePath }}/sqlite.db"]
         volumeMounts:
           - name: sqlite-data
@@ -68,7 +72,7 @@ spec:
 
       containers:
       - name: sedai-kube-spec-controller
-        image: "{{ .Values.globalRegistry }}/{{ .Values.image.sedaiSync.repository }}:{{ .Values.image.sedaiSync.imageTag }}"
+        image: "{{ .Values.image.sedaiSync.repository }}:{{ .Values.image.sedaiSync.imageTag }}"
         imagePullPolicy: {{ .Values.image.sedaiSync.imagePullPolicy }}
         resources:
           requests:

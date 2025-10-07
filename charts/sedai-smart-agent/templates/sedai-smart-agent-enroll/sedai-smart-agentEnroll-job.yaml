@@ -56,9 +56,13 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- with .Values.smartAgentEnroll.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       containers:
         - name: sedai-enroll
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"
+          image: "{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"
           command: ["/bin/sh", "-c", "python enroll_sedai.py"]
           imagePullPolicy: "{{ .Values.image.smartagentEnroll.imagePullPolicy }}"
           env:

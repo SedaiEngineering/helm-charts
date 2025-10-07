@@ -58,9 +58,13 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- with .Values.sedaiBeyla.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       containers:
         - name: beyla
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.beyla.repository }}:{{ .Values.image.beyla.imageTag }}"
+          image: "{{ .Values.image.beyla.repository }}:{{ .Values.image.beyla.imageTag }}"
           imagePullPolicy: "{{ .Values.image.beyla.imagePullPolicy }}"
           securityContext:
             privileged: true

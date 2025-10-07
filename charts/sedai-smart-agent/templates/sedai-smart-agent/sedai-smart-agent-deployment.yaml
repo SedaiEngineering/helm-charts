@@ -54,9 +54,13 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- with .Values.workload.smartAgent.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       containers:
       - name: "{{ .Values.image.smartAgent.name }}"
-        image: "{{ .Values.globalRegistry }}/{{ .Values.image.smartAgent.repository }}:{{ .Values.image.smartAgent.imageTag }}"
+        image: "{{ .Values.image.smartAgent.repository }}:{{ .Values.image.smartAgent.imageTag }}"
         imagePullPolicy: {{ .Values.image.smartAgent.imagePullPolicy }}
         resources:
           requests:

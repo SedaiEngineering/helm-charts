@@ -79,9 +79,13 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
 
+      {{- with .Values.sedaiNodeExporter.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       containers:
         - name: node-exporter
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.nodeExporter.repository }}:{{ .Values.image.nodeExporter.imageTag }}"
+          image: "{{ .Values.image.nodeExporter.repository }}:{{ .Values.image.nodeExporter.imageTag }}"
           imagePullPolicy: "{{ .Values.image.nodeExporter.imagePullPolicy }}"
           args:
             - --path.procfs=/host/proc

@@ -10,7 +10,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   name: "{{ .Values.workload.prometheus.name }}"
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   {{- with .Values.globalAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -44,14 +44,19 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-      {{- with .Values.sedaiPrometheus.tolerations }}
+      {{- if or .Values.globalTolerations .Values.sedaiPrometheus.tolerations }}
       tolerations:
+        {{- with .Values.globalTolerations }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.sedaiPrometheus.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- end }}
 
       containers:
         - name: sedai-prometheus-server-configmap-reload
-          image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
+          image: "{{ .Values.globalRegistry }}/{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
           imagePullPolicy: "{{ .Values.image.reload.imagePullPolicy }}"
           args:
             - --watched-dir=/etc/config
@@ -88,7 +93,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault              
         - name: sedai-prometheus-server
-          image: "{{ .Values.image.prometheus.repository }}:{{ .Values.image.prometheus.imageTag }}"
+          image: "{{ .Values.globalRegistry }}/{{ .Values.image.prometheus.repository }}:{{ .Values.image.prometheus.imageTag }}"
           imagePullPolicy: "{{ .Values.image.prometheus.imagePullPolicy }}"
           resources:
             requests:

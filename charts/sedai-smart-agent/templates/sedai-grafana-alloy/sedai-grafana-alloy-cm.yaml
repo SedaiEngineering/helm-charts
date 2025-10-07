@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: sedai-grafana-alloy
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
@@ -388,7 +388,7 @@ data:
     
     prometheus.remote_write "victoriametrics" {
       endpoint {
-        url = "http://sedai-victoria-metrics-server.{{ .Values.namespace }}:8428/api/v1/write"
+        url = "http://sedai-victoria-metrics-server.{{ .Release.Namespace }}:8428/api/v1/write"
       }
     }
 {{- end }}

@@ -2,9 +2,6 @@
 # Sedai Smart Agent Helm Chart Default Configuration
 # -------------------------------------------------------------------
 
-# Namespace where all Sedai components will be deployed
-namespace: sedai-smart-agent
-
 # -------------------------------------------------------------------
 # Glabal Labels
 # -------------------------------------------------------------------
@@ -17,6 +14,12 @@ namespace: sedai-smart-agent
 # globalAnnotations:
 #   company.io/owner: platform-team
 #   company.io/project: sedai-smart-agent
+
+# globalTolerations allows you to specify tolerations that will be added to all pod templates created by this chart
+# globalTolerations:
+#   - key: "node-role.kubernetes.io/master"
+#     operator: "Exists"
+#     effect: "NoSchedule"
 
 
 # -------------------------------------------------------------------
@@ -103,61 +106,65 @@ enableAgentDebugLogs:
 # -------------------------------------------------------------------
 # Container Image Configuration
 # -------------------------------------------------------------------
+
+# Global registry for all images - change this to use a different registry for all images
+globalRegistry: "public.ecr.aws"
+
 image:
   smartAgent:
     name: sedai-agent
-    repository: public.ecr.aws/sedai_io/sedai-smart-agent
+    repository: sedai_io/sedai-smart-agent
     imageTag: v1.25.5
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
     name: sedai-enroll
-    repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
+    repository: sedai_io/sedai-smart-agent-enroll
     imageTag: v3.1.0
     imagePullPolicy: Always
 
   ksm:
-    repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
+    repository: sedai_io/prometheus/kube-state-metrics
     imageTag: v2.15.0
     imagePullPolicy: IfNotPresent
 
   reload:
-    repository: public.ecr.aws/sedai_io/prometheus/prometheus-config-reloader
+    repository: sedai_io/prometheus/prometheus-config-reloader
     imageTag: v0.80.1
     imagePullPolicy: IfNotPresent
 
   prometheus:
-    repository: public.ecr.aws/sedai_io/prometheus/prometheus
+    repository: sedai_io/prometheus/prometheus
     imageTag: v3.2.1
     imagePullPolicy: IfNotPresent
 
   sedaiSync:
-    repository: public.ecr.aws/sedai_io/sedai-kube-spec-controller
+    repository: sedai_io/sedai-kube-spec-controller
     imageTag: 0.0.4
     imagePullPolicy: IfNotPresent
 
   busyBox:
-    repository: public.ecr.aws/sedai_io/busybox
+    repository: sedai_io/busybox
     imageTag: 1.37
     imagePullPolicy: IfNotPresent
   
   nodeExporter:
-    repository: public.ecr.aws/sedai_io/prometheus/node-exporter
+    repository: sedai_io/prometheus/node-exporter
     imageTag: v1.9.1
     imagePullPolicy: IfNotPresent
   
   beyla:
-    repository: public.ecr.aws/sedai_io/grafana/beyla
+    repository: sedai_io/grafana/beyla
     imageTag: 2.2.4
     imagePullPolicy: IfNotPresent
 
   grafanaAlloy:
-    repository: public.ecr.aws/sedai_io/grafana/alloy
+    repository: sedai_io/grafana/alloy
     imageTag: v1.10.0
     imagePullPolicy: IfNotPresent
 
   victoriaMetrics:
-    repository: public.ecr.aws/sedai_io/victoriametrics/victoria-metrics
+    repository: sedai_io/victoriametrics/victoria-metrics
     imageTag: v1.122.0
     imagePullPolicy: IfNotPresent
 

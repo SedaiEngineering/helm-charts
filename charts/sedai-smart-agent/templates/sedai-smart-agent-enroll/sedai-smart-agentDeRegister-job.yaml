@@ -40,7 +40,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: sedai-deregister
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"
+          image: "{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"
           command: ["/bin/sh", "-c", "python deregister_sedai_api.py"]
           imagePullPolicy: "{{ .Values.image.smartagentEnroll.imagePullPolicy }}"
           env:

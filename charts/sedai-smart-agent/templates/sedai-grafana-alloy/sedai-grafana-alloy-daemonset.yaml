@@ -53,9 +53,13 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- with .Values.sedaiGrafanaAlloy.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       containers:
         - name: alloy
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.grafanaAlloy.repository }}:{{ .Values.image.grafanaAlloy.imageTag }}"
+          image: "{{ .Values.image.grafanaAlloy.repository }}:{{ .Values.image.grafanaAlloy.imageTag }}"
           imagePullPolicy: {{ .Values.image.grafanaAlloy.imagePullPolicy }}
           args:
             - run
@@ -94,7 +98,7 @@ spec:
             - name: config
               mountPath: /etc/alloy
         - name: config-reloader
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
+          image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
           args:
             - --watched-dir=/etc/alloy
             - --reload-url=http://localhost:12345/-/reload

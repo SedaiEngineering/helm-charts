@@ -10,6 +10,14 @@ globalAnnotations:
   company.io/owner: dev-team
   cost-optimization: "enabled"
 
+# Global tolerations for ARM nodes (cost-effective for development)
+globalTolerations:
+  # Allow scheduling on ARM-based nodes (Graviton instances on AWS)
+  - key: "kubernetes.io/arch"
+    operator: "Equal"
+    value: "arm64"
+    effect: "NoSchedule"
+
 # Sedai integration
 sedaiIntegrationSettings:
   nickName: "Development Cluster"
@@ -79,9 +87,23 @@ workload:
   smartAgent:
     replicaCount: 1
     revisionHistoryLimit: 1  # Keep fewer old versions
+    priorityClassName: ""  # Use default priority for development
   prometheus:
     replicaCount: 1
     revisionHistoryLimit: 1
   ksm:
     replicaCount: 1
     revisionHistoryLimit: 1
+
+smartAgentEnroll:
+  enabled: true
+  priorityClassName: ""  # Use default or "dev-low-priority"
+
+sedaiPrometheus:
+  priorityClassName: ""  # Use default or "dev-low-priority"
+
+sedaiKSM:
+  priorityClassName: ""  # Use default or "dev-low-priority"
+
+sedaiSync:
+  priorityClassName: ""  # Use default or "dev-low-priority"

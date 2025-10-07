@@ -29,6 +29,7 @@ smartAgentEnroll:
   enabled: true                     # Enables the Smart Agent enrollment job (one-time job per cluster)
   nodeSelector: {}                  # Node selector for Smart Agent enrollment job
   tolerations: []                   # Tolerations for Smart Agent enrollment job
+  priorityClassName: ""             # Priority class name for Smart Agent enrollment job
   jobAnnotations: {}                # Additional annotations for the enrollment job resource
   podAnnotations: {}                # Additional annotations for the enrollment job pod template
 
@@ -38,11 +39,13 @@ sedaiPrometheus:
     retention: '6h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
   nodeSelector: {}                  # Node selector for Prometheus deployment
   tolerations: []                   # Tolerations for Prometheus deployment
+  priorityClassName: ""             # Priority class name for Prometheus deployment
 
 sedaiKSM:
   enabled: false                    # Enables deployment of Kube State Metrics (KSM) for cluster object metrics - required for Sedai-managed Prometheus, Alloy
   nodeSelector: {}                  # Node selector for KSM deployment
   tolerations: []                   # Tolerations for KSM deployment
+  priorityClassName: ""             # Priority class name for KSM deployment
 
 sedaiSync:
   enabled: false                    # Enables Sedai sync controller for workload auto-optimization
@@ -51,26 +54,31 @@ sedaiSync:
   logLevel: "error"                 # Logging level: trace, debug, info, warn, error
   nodeSelector: {}                  # Node selector for both Sedai Sync and DB deployments
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
+  priorityClassName: ""             # Priority class name for Sedai Sync deployment
 
 sedaiNodeExporter:
   enabled: false
   nodeSelector: {}                  # Node selector for Node Exporter daemonset
   tolerations: []                   # Tolerations for Node Exporter daemonset
+  priorityClassName: ""             # Priority class name for Node Exporter daemonset
 
 sedaiBeyla:
   enabled: false
   nodeSelector: {}                  # Node selector for Beyla daemonset
   tolerations: []                   # Tolerations for Beyla daemonset
+  priorityClassName: ""             # Priority class name for Beyla daemonset
 
 sedaiGrafanaAlloy:
   enabled: false
   nodeSelector: {}                  # Node selector for Grafana Alloy daemonset
   tolerations: []                   # Tolerations for Grafana Alloy daemonset
+  priorityClassName: ""             # Priority class name for Grafana Alloy daemonset
 
 sedaiVictoriaMetrics:
   retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
+  priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
   enabled: false                    # Use Sedai-managed Victoria Metrics
 
 # -------------------------------------------------------------------
@@ -86,6 +94,7 @@ workload:
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
     nodeSelector: {}                        # Node selector for Smart Agent deployment
     tolerations: []                         # Tolerations for Smart Agent deployment
+    priorityClassName: ""                   # Priority class name for Smart Agent deployment
   prometheus:
     name: sedai-prometheus-server
     replicaCount: 1
@@ -106,65 +115,61 @@ enableAgentDebugLogs:
 # -------------------------------------------------------------------
 # Container Image Configuration
 # -------------------------------------------------------------------
-
-# Global registry for all images - change this to use a different registry for all images
-globalRegistry: "public.ecr.aws"
-
 image:
   smartAgent:
     name: sedai-agent
-    repository: sedai_io/sedai-smart-agent
+    repository: public.ecr.aws/sedai_io/sedai-smart-agent
     imageTag: v1.25.5
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
     name: sedai-enroll
-    repository: sedai_io/sedai-smart-agent-enroll
+    repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
     imageTag: v3.1.0
     imagePullPolicy: Always
 
   ksm:
-    repository: sedai_io/prometheus/kube-state-metrics
+    repository: public.ecr.aws/sedai_io/prometheus/kube-state-metrics
     imageTag: v2.15.0
     imagePullPolicy: IfNotPresent
 
   reload:
-    repository: sedai_io/prometheus/prometheus-config-reloader
+    repository: public.ecr.aws/sedai_io/prometheus/prometheus-config-reloader
     imageTag: v0.80.1
     imagePullPolicy: IfNotPresent
 
   prometheus:
-    repository: sedai_io/prometheus/prometheus
+    repository: public.ecr.aws/sedai_io/prometheus/prometheus
     imageTag: v3.2.1
     imagePullPolicy: IfNotPresent
 
   sedaiSync:
-    repository: sedai_io/sedai-kube-spec-controller
+    repository: public.ecr.aws/sedai_io/sedai-kube-spec-controller
     imageTag: 0.0.4
     imagePullPolicy: IfNotPresent
 
   busyBox:
-    repository: sedai_io/busybox
+    repository: public.ecr.aws/sedai_io/busybox
     imageTag: 1.37
     imagePullPolicy: IfNotPresent
   
   nodeExporter:
-    repository: sedai_io/prometheus/node-exporter
+    repository: public.ecr.aws/sedai_io/prometheus/node-exporter
     imageTag: v1.9.1
     imagePullPolicy: IfNotPresent
   
   beyla:
-    repository: sedai_io/grafana/beyla
+    repository: public.ecr.aws/sedai_io/grafana/beyla
     imageTag: 2.2.4
     imagePullPolicy: IfNotPresent
 
   grafanaAlloy:
-    repository: sedai_io/grafana/alloy
+    repository: public.ecr.aws/sedai_io/grafana/alloy
     imageTag: v1.10.0
     imagePullPolicy: IfNotPresent
 
   victoriaMetrics:
-    repository: sedai_io/victoriametrics/victoria-metrics
+    repository: public.ecr.aws/sedai_io/victoriametrics/victoria-metrics
     imageTag: v1.122.0
     imagePullPolicy: IfNotPresent
 

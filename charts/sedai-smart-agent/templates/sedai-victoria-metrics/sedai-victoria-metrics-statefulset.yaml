@@ -58,11 +58,15 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- with .Values.sedaiVictoriaMetrics.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
       securityContext: {}
       containers:
         - name: vmsingle
           securityContext: {}
-          image: "{{ .Values.globalRegistry }}/{{ .Values.image.victoriaMetrics.repository }}:{{ .Values.image.victoriaMetrics.imageTag }}"
+          image: "{{ .Values.image.victoriaMetrics.repository }}:{{ .Values.image.victoriaMetrics.imageTag }}"
           imagePullPolicy: {{ .Values.image.victoriaMetrics.imagePullPolicy }}
           args:
             - --envflag.enable

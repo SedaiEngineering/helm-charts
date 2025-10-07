@@ -10,6 +10,14 @@ globalAnnotations:
   company.io/owner: platform-team
   monitoring.io/provider: datadog
 
+# Global tolerations for ARM nodes support
+globalTolerations:
+  # Allow scheduling on ARM-based nodes for cost optimization
+  - key: "kubernetes.io/arch"
+    operator: "Equal"
+    value: "arm64"
+    effect: "NoSchedule"
+
 # Sedai integration
 sedaiIntegrationSettings:
   clusterName: "prod-cluster-datadog"
@@ -44,6 +52,18 @@ monitoringProvider:
 # Enable optimization
 sedaiSync:
   enabled: true
+  
+# Configure priority classes for components
+smartAgentEnroll:
+  enabled: true
+  priorityClassName: "sedai-datadog-priority"
+
+workload:
+  smartAgent:
+    priorityClassName: "sedai-datadog-priority"
+
+sedaiSync:
+  priorityClassName: "sedai-datadog-priority"
 
 # Minimal resource allocation since monitoring is external
 resources:

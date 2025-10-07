@@ -6,7 +6,7 @@ kind: ServiceAccount
 automountServiceAccountToken: true
 metadata:
   name: sedai-grafana-alloy
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
@@ -145,5 +145,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: sedai-grafana-alloy
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Release.Namespace }}
 {{- end }}

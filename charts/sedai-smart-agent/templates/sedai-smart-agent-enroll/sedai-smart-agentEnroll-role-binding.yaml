@@ -5,7 +5,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: "{{ .Values.workload.smartAgentEnroll.name }}-role-binding"
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
@@ -17,7 +17,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
   name: "{{ .Values.workload.smartAgentEnroll.name }}-role"

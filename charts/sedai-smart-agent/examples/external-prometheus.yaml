@@ -9,6 +9,14 @@ globalLabels:
 globalAnnotations:
   company.io/owner: platform-team
 
+# Global tolerations for ARM nodes support
+globalTolerations:
+  # Allow scheduling on ARM-based nodes
+  - key: "kubernetes.io/arch"
+    operator: "Equal"
+    value: "arm64"
+    effect: "NoSchedule"
+
 # Sedai integration
 sedaiIntegrationSettings:
   clusterName: "prod-cluster-with-prometheus"
@@ -39,6 +47,21 @@ sedaiKSM:
 # Enable other components as needed
 sedaiSync:
   enabled: true
+
+# Configure priority classes for components
+smartAgentEnroll:
+  enabled: true
+  priorityClassName: "sedai-external-monitoring"
+
+workload:
+  smartAgent:
+    priorityClassName: "sedai-external-monitoring"
+
+sedaiKSM:
+  priorityClassName: "sedai-external-monitoring"
+
+sedaiSync:
+  priorityClassName: "sedai-external-monitoring"
 
 # Reduced resource allocation since we're not running Prometheus
 resources:

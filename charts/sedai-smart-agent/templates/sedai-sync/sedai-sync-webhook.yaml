@@ -1,11 +1,11 @@
 {{- if .Values.sedaiSync.enabled }}
 {{- $ca := genCA "sedai-kube-spec-controller-ca" 3650 }}
-{{- $cert := genSignedCert (printf "sedai-kube-spec-controller-svc.%s" .Values.namespace) (list) (list (printf "sedai-kube-spec-controller-svc.%s.svc" .Values.namespace)) 3650 $ca }}
+{{- $cert := genSignedCert (printf "sedai-kube-spec-controller-svc.%s" .Release.Namespace) (list) (list (printf "sedai-kube-spec-controller-svc.%s.svc" .Release.Namespace)) 3650 $ca }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: sedai-kube-spec-controller-tls
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
@@ -34,11 +34,11 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 webhooks:
-  - name: sedai-kube-spec-controller-svc.{{ .Values.namespace }}.svc
+  - name: sedai-kube-spec-controller-svc.{{ .Release.Namespace }}.svc
     clientConfig:
       service:
         name: sedai-kube-spec-controller-svc
-        namespace: {{ .Values.namespace }}
+        namespace: {{ .Release.Namespace }}
         path: "/mutate"
         port: 8443
       caBundle: {{ $ca.Cert | b64enc }}
@@ -52,7 +52,7 @@ webhooks:
       matchExpressions:
         - key: "kubernetes.io/metadata.name"  # Use the `metadata.name` of the namespace
           operator: NotIn
-          values: ["{{ .Values.namespace }}"]
+          values: ["{{ .Release.Namespace }}"]
     admissionReviewVersions: ["v1"]
     sideEffects: None
     timeoutSeconds: 1

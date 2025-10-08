@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------
 
 # -------------------------------------------------------------------
-# Glabal Labels
+# Global / Common Settings  : Applied to all resources created by this chart
 # -------------------------------------------------------------------
 
 # globalLabels allows you to specify labels that will be added to all resources created by this chart
@@ -20,7 +20,6 @@
 #   - key: "node-role.kubernetes.io/master"
 #     operator: "Exists"
 #     effect: "NoSchedule"
-
 
 # -------------------------------------------------------------------
 # Sedai Component Toggles
@@ -307,7 +306,7 @@ monitoringProvider:
   datadog:
     enabled: false                    # Enable if using Datadog 
     datadogEndpoint:                  # Datadog API endpoint
-    datadogEnvDimensions:             # Datadog environment dimensions (e.g., "env,production")
+    datadogEnvDimensions:             # Datadog environment dimensions (e.g., "env:production")
     datadogApiKey:                    # Datadog API key
     datadogApplicationKey:            # Datadog App key
     datadogSecret:                    # Name of the Kubernetes Secret that stores the Datadog secret

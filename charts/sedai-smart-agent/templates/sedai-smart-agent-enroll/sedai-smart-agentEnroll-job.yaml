@@ -62,7 +62,7 @@ spec:
 
       containers:
         - name: sedai-enroll
-          image: "{{ .Values.image.smartagentEnroll.repository }}:{{ .Values.image.smartagentEnroll.imageTag }}"
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.smartagentEnroll.repository) }}:{{ .Values.image.smartagentEnroll.imageTag }}"
           command: ["/bin/sh", "-c", "python enroll_sedai.py"]
           imagePullPolicy: "{{ .Values.image.smartagentEnroll.imagePullPolicy }}"
           env:

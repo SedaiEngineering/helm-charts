@@ -60,7 +60,7 @@ spec:
 
       containers:
       - name: "{{ .Values.image.smartAgent.name }}"
-        image: "{{ .Values.image.smartAgent.repository }}:{{ .Values.image.smartAgent.imageTag }}"
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.smartAgent.repository) }}:{{ .Values.image.smartAgent.imageTag }}"
         imagePullPolicy: {{ .Values.image.smartAgent.imagePullPolicy }}
         resources:
           requests:

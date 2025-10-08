@@ -6,6 +6,17 @@
 # Global / Common Settings  : Applied to all resources created by this chart
 # -------------------------------------------------------------------
 
+# globalRegistry allows you to specify a default registry prefix for all container images
+# This is useful when using a proxy registry or corporate registry
+# Set to empty string to use full repository URIs as specified in image.*.repository
+# Examples:
+#   globalRegistry: "public.ecr.aws"           -> public.ecr.aws/sedai_io/grafana/beyla:2.2.4
+#   globalRegistry: "my-proxy.com"             -> my-proxy.com/sedai_io/grafana/beyla:2.2.4
+#   globalRegistry: ""                         -> sedai_io/grafana/beyla:2.2.4 (if repository doesn't contain registry)
+# Note: If image.*.repository already contains a full URI (e.g., "some-other.uri/grafana/beyla"), 
+#       the globalRegistry will be ignored for that image to maintain backward compatibility
+globalRegistry: "public.ecr.aws"
+
 # globalLabels allows you to specify labels that will be added to all resources created by this chart
 # globalLabels:
 #   environment: sedai-smart-agent
@@ -117,58 +128,58 @@ enableAgentDebugLogs:
 image:
   smartAgent:
     name: sedai-agent
-    repository: public.ecr.aws/sedai_io/sedai-smart-agent
+    repository: sedai_io/sedai-smart-agent
     imageTag: v1.25.5
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
     name: sedai-enroll
-    repository: public.ecr.aws/sedai_io/sedai-smart-agent-enroll
+    repository: sedai_io/sedai-smart-agent-enroll
     imageTag: v3.1.0
     imagePullPolicy: Always
 
   ksm:
-    repository: public.ecr.aws/sedai_io/prometheus/kube-state-metrics
+    repository: sedai_io/prometheus/kube-state-metrics
     imageTag: v2.15.0
     imagePullPolicy: IfNotPresent
 
   reload:
-    repository: public.ecr.aws/sedai_io/prometheus/prometheus-config-reloader
+    repository: sedai_io/prometheus/prometheus-config-reloader
     imageTag: v0.80.1
     imagePullPolicy: IfNotPresent
 
   prometheus:
-    repository: public.ecr.aws/sedai_io/prometheus/prometheus
+    repository: sedai_io/prometheus/prometheus
     imageTag: v3.2.1
     imagePullPolicy: IfNotPresent
 
   sedaiSync:
-    repository: public.ecr.aws/sedai_io/sedai-kube-spec-controller
+    repository: sedai_io/sedai-kube-spec-controller
     imageTag: 0.0.4
     imagePullPolicy: IfNotPresent
 
   busyBox:
-    repository: public.ecr.aws/sedai_io/busybox
+    repository: sedai_io/busybox
     imageTag: 1.37
     imagePullPolicy: IfNotPresent
   
   nodeExporter:
-    repository: public.ecr.aws/sedai_io/prometheus/node-exporter
+    repository: sedai_io/prometheus/node-exporter
     imageTag: v1.9.1
     imagePullPolicy: IfNotPresent
   
   beyla:
-    repository: public.ecr.aws/sedai_io/grafana/beyla
+    repository: sedai_io/grafana/beyla
     imageTag: 2.2.4
     imagePullPolicy: IfNotPresent
 
   grafanaAlloy:
-    repository: public.ecr.aws/sedai_io/grafana/alloy
+    repository: sedai_io/grafana/alloy
     imageTag: v1.10.0
     imagePullPolicy: IfNotPresent
 
   victoriaMetrics:
-    repository: public.ecr.aws/sedai_io/victoriametrics/victoria-metrics
+    repository: sedai_io/victoriametrics/victoria-metrics
     imageTag: v1.122.0
     imagePullPolicy: IfNotPresent
 

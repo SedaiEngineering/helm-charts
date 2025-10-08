@@ -1,0 +1,35 @@
+# Example configuration for using a custom registry or proxy
+# This example shows how to override the default globalRegistry setting
+# to use a corporate proxy registry or custom registry
+
+# Override the global registry to use a custom registry
+globalRegistry: "my-proxy-registry.company.com"
+
+# Alternatively, you can set globalRegistry to empty string and provide full URIs
+# globalRegistry: ""
+
+# Example of providing a full custom URI for a specific image
+# This will ignore the globalRegistry setting for this specific image
+# image:
+#   beyla:
+#     repository: some-other.uri/grafana/beyla
+#     imageTag: 2.2.4
+#     imagePullPolicy: IfNotPresent
+
+# Standard configuration continues below...
+sedaiIntegrationSettings:
+  nickName: "my-custom-cluster"
+  clusterName: "production-cluster-001"
+  clusterProvider: "AWS"
+  sedaiBaseUrl: "https://app.sedai.io"
+  sedaiApiToken: "your-api-token-here"
+
+# Enable components as needed
+smartAgentEnroll:
+  enabled: true
+
+sedaiPrometheus:
+  enabled: true
+
+sedaiKSM:
+  enabled: true

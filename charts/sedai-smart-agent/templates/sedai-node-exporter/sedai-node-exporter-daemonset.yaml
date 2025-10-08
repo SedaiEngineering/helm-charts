@@ -85,7 +85,7 @@ spec:
 
       containers:
         - name: node-exporter
-          image: "{{ .Values.image.nodeExporter.repository }}:{{ .Values.image.nodeExporter.imageTag }}"
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.nodeExporter.repository) }}:{{ .Values.image.nodeExporter.imageTag }}"
           imagePullPolicy: "{{ .Values.image.nodeExporter.imagePullPolicy }}"
           args:
             - --path.procfs=/host/proc

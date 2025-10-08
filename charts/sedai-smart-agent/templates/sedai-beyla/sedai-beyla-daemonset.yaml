@@ -64,7 +64,7 @@ spec:
 
       containers:
         - name: beyla
-          image: "{{ .Values.image.beyla.repository }}:{{ .Values.image.beyla.imageTag }}"
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.beyla.repository) }}:{{ .Values.image.beyla.imageTag }}"
           imagePullPolicy: "{{ .Values.image.beyla.imagePullPolicy }}"
           securityContext:
             privileged: true

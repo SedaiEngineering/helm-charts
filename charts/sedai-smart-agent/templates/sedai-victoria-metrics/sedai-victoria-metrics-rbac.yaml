@@ -71,7 +71,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: "sedai-victoria-metrics-server"
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

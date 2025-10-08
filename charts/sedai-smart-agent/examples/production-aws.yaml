@@ -14,6 +14,14 @@ globalAnnotations:
   compliance.io/required: "true"
   backup.io/enabled: "true"
 
+# Global tolerations for mixed architecture support
+globalTolerations:
+  # Allow scheduling on ARM-based nodes (AWS Graviton instances)
+  - key: "kubernetes.io/arch"
+    operator: "Equal"
+    value: "arm64"
+    effect: "NoSchedule"
+
 # Sedai platform integration
 sedaiIntegrationSettings:
   nickName: "Production EKS Cluster - US West 2"
@@ -103,11 +111,12 @@ resources:
       limits: "2048Mi"
     storage: "10Gi"
 
-# Workload configuration
+# Workload configuration with priority classes
 workload:
   smartAgent:
     replicaCount: 1
     revisionHistoryLimit: 3
+    priorityClassName: "sedai-production-high"  # High priority for main agent
     nodeSelector:
       node-type: monitoring
     tolerations:
@@ -115,6 +124,29 @@ workload:
       operator: "Equal"
       value: "true"
       effect: "NoSchedule"
+
+# Set priority classes for all components
+smartAgentEnroll:
+  enabled: true
+  priorityClassName: "sedai-production-high"  # High priority for enrollment
+
+sedaiPrometheus:
+  priorityClassName: "sedai-production-medium"  # Medium priority for monitoring
+
+sedaiKSM:
+  priorityClassName: "sedai-production-medium"  # Medium priority for metrics
+
+sedaiSync:
+  priorityClassName: "sedai-production-high"  # High priority for optimization
+
+sedaiNodeExporter:
+  priorityClassName: "system-node-critical"  # Use built-in system priority
+
+sedaiBeyla:
+  priorityClassName: "sedai-production-medium"  # Medium priority for APM
+
+sedaiGrafanaAlloy:
+  priorityClassName: "sedai-production-medium"  # Medium priority for collection
 
 # Enable debug logging if needed (disable in production)
 enableAgentDebugLogs:

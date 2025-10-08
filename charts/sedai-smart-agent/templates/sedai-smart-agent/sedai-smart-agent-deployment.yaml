@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ .Values.workload.smartAgent.name }}"
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
@@ -44,9 +44,18 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-      {{- with .Values.workload.smartAgent.tolerations }}
+      {{- if or .Values.globalTolerations .Values.workload.smartAgent.tolerations }}
       tolerations:
+        {{- with .Values.globalTolerations }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.workload.smartAgent.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+
+      {{- with .Values.workload.smartAgent.priorityClassName }}
+      priorityClassName: {{ . }}
       {{- end }}
 
       containers:
@@ -93,7 +102,7 @@ spec:
 
         {{-  if .Values.sedaiSync.enabled }}
         - name: KUBESPECCONTROLLER_BASEURL
-          value: "https://sedai-kube-spec-controller-svc.{{ .Values.namespace }}.svc:8443"
+          value: "https://sedai-kube-spec-controller-svc.{{ .Release.Namespace }}.svc:8443"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
           value: "{{ .Values.sedaiSync.enabled }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH

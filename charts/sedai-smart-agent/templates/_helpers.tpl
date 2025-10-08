@@ -69,3 +69,15 @@ Global annotations
 {{- toYaml . }}
 {{- end }}
 {{- end }}
+
+{{/*
+Image repository helper - constructs full image URI
+Usage: {{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.smartAgent.repository) }}
+*/}}
+{{- define "sedai-smart-agent.imageRepository" -}}
+{{- if and .globalRegistry (not (or (contains "." .repository) (contains ":" .repository))) -}}
+{{- printf "%s/%s" .globalRegistry .repository -}}
+{{- else -}}
+{{- .repository -}}
+{{- end -}}
+{{- end -}}

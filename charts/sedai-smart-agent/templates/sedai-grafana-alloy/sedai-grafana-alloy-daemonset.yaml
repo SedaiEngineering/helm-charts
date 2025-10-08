@@ -59,7 +59,7 @@ spec:
 
       containers:
         - name: alloy
-          image: "{{ .Values.image.grafanaAlloy.repository }}:{{ .Values.image.grafanaAlloy.imageTag }}"
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.grafanaAlloy.repository) }}:{{ .Values.image.grafanaAlloy.imageTag }}"
           imagePullPolicy: {{ .Values.image.grafanaAlloy.imagePullPolicy }}
           args:
             - run
@@ -98,7 +98,7 @@ spec:
             - name: config
               mountPath: /etc/alloy
         - name: config-reloader
-          image: "{{ .Values.image.reload.repository }}:{{ .Values.image.reload.imageTag }}"
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.reload.repository) }}:{{ .Values.image.reload.imageTag }}"
           args:
             - --watched-dir=/etc/alloy
             - --reload-url=http://localhost:12345/-/reload

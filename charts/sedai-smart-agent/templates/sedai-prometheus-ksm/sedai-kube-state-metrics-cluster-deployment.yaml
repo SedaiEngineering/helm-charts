@@ -71,7 +71,7 @@ spec:
         - --port=8080
         - --resources=certificatesigningrequests,configmaps,cronjobs,daemonsets,deployments,endpoints,horizontalpodautoscalers,ingresses,jobs,leases,limitranges,mutatingwebhookconfigurations,namespaces,networkpolicies,nodes,persistentvolumeclaims,persistentvolumes,poddisruptionbudgets,pods,replicasets,replicationcontrollers,resourcequotas,secrets,services,statefulsets,storageclasses,validatingwebhookconfigurations,volumeattachments
         imagePullPolicy: "{{ .Values.image.ksm.imagePullPolicy }}"
-        image: "{{ .Values.image.ksm.repository }}:{{ .Values.image.ksm.imageTag }}"
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.ksm.repository) }}:{{ .Values.image.ksm.imageTag }}"
         resources:
           requests:
             cpu: "{{ .Values.resources.ksm.cpu.requests }}"          

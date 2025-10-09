@@ -339,3 +339,9 @@ monitoringProvider:
     amp_query_endpoint:               # AMP query endpoint
     amp_iam_role:                     # IAM role to access AMP
     amp_iam_role_external_id:         # (Optional) External ID for the IAM role; leave blank if not used
+  
+  dynatrace:
+    enabled: false                    # Enable if using Dynatrace
+    dynatraceEnvironmentID:           # Dynatrace Environment ID
+    dynatraceApiToken:                # Dynatrace API Token
+    dynatracePlatformToken:           # Dynatrace Platform Token

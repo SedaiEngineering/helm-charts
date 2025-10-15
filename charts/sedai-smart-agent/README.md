@@ -6,7 +6,7 @@ The Sedai Smart Agent Helm Chart deploys the complete Sedai platform components 
 
 ```bash
 # Add the Sedai Helm repository (if available)
-helm repo add sedai https://charts.sedai.io
+helm repo add sedai https://sedaiengineering.github.io/helm-charts/
 helm repo update
 
 # Install with minimal configuration

@@ -42,6 +42,12 @@ smartAgentEnroll:
   priorityClassName: ""             # Priority class name for Smart Agent enrollment job
   jobAnnotations: {}                # Additional annotations for the enrollment job resource
   podAnnotations: {}                # Additional annotations for the enrollment job pod template
+  cleanupJobAnnotations: {}         # Additional annotations for the cleanup job resource (pre-delete hook)
+  cleanupPodAnnotations: {}         # Additional annotations for the cleanup job pod template
+  postUpgradeJobAnnotations: {}     # Additional annotations for the post-upgrade job resource (monitoring provider completion)
+  postUpgradePodAnnotations: {}     # Additional annotations for the post-upgrade job pod template
+  deregisterJobAnnotations: {}      # Additional annotations for the deregister job resource (pre-delete hook)
+  deregisterPodAnnotations: {}      # Additional annotations for the deregister job pod template
 
 sedaiPrometheus:
   enabled: false                    # Enables Sedai-managed Prometheus for metric collection

@@ -135,7 +135,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.1
+    imageTag: v3.1.7
     imagePullPolicy: Always
 
   ksm:

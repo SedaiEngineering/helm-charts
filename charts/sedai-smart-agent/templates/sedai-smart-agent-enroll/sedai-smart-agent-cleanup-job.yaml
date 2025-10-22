@@ -1,4 +1,4 @@
-{{- if .Values.smartAgentEnroll.enabled }}
+{{- if and .Values.smartAgentEnroll.enabled (not .Values.sedaiIntegrationSettings.enableDeRegisterJob) }}
 ---
 apiVersion: batch/v1
 kind: Job

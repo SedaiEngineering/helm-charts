@@ -1,10 +1,10 @@
-{{- if and .Values.smartAgentEnroll.enabled (not .Values.sedaiIntegrationSettings.enableDeRegisterJob) }}
+{{- if and .Values.smartAgentEnroll.enabled .Values.sedaiIntegrationSettings.enableDeRegisterJob }}
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-sa"
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister-sa"
   namespace: {{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
@@ -26,7 +26,7 @@ imagePullSecrets:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-role"
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister-role"
   namespace: {{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
@@ -49,7 +49,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-binding"
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister-binding"
   namespace: {{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
@@ -64,11 +64,11 @@ metadata:
     {{- end }}
 subjects:
 - kind: ServiceAccount
-  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-sa"
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister-sa"
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-role"
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister-role"
   apiGroup: rbac.authorization.k8s.io
 
 {{- end }}

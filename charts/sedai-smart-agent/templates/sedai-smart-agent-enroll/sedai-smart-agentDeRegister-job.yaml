@@ -12,8 +12,9 @@ metadata:
     {{- end }}
   {{- if or .Values.globalAnnotations .Values.smartAgentEnroll.deregisterJobAnnotations }}
   annotations:
-    "helm.sh/hook": pre-delete
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "helm.sh/hook-weight": "1"
     {{- with .Values.globalAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -22,8 +23,9 @@ metadata:
     {{- end }}
   {{- else }}
   annotations:
-    "helm.sh/hook": pre-delete
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "helm.sh/hook-weight": "1"
   {{- end }}
 spec:
   backoffLimit: 1
@@ -44,7 +46,7 @@ spec:
         {{- end }}
       {{- end }}
     spec:
-      serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
+      serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-deregister-sa"
       restartPolicy: Never
       securityContext:
         runAsNonRoot: true
@@ -67,10 +69,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecret }}
                   key: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecretKey }}
-            {{- end }}                  
+            {{- end }}
           envFrom:
             - secretRef:
-                name: "{{ .Values.workload.smartAgentEnroll.name }}-secret"
+                name: "{{ .Values.workload.smartAgentEnroll.name }}-deregister-secret"
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

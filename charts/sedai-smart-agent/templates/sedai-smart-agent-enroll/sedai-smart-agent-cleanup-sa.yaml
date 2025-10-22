@@ -1,0 +1,74 @@
+{{- if .Values.smartAgentEnroll.enabled }}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-sa"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "helm.sh/hook-weight": "-1"
+    {{- with .Values.globalAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-role"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "helm.sh/hook-weight": "-1"
+    {{- with .Values.globalAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["sedai-smart-agent"]
+  verbs: ["get", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-binding"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "helm.sh/hook-weight": "-1"
+    {{- with .Values.globalAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+- kind: ServiceAccount
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-sa"
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-cleanup-role"
+  apiGroup: rbac.authorization.k8s.io
+
+{{- end }}

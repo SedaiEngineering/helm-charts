@@ -339,6 +339,9 @@ monitoringProvider:
   gcpMonitoring:
     enabled: false                    # Enable if using Google Cloud Monitoring, Require additional Settings in GCP Console
     projectID:                        # GCP project ID where metrics will be sent
+    serviceAccountKeyJson:            # Service account key JSON (not recommended for production)
+    gcpSecret:                        # Name of the Kubernetes Secret that stores the GCP service account key
+    gcpServiceAccountKeySecretKey:    # Key for the service account key JSON in the secret (default: "key.json")
 
   amp:
     enabled: false                    # Enable this if you're using Amazon Managed Prometheus (AMP)

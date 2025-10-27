@@ -141,7 +141,7 @@ spec:
             scheme: HTTP
           failureThreshold: 3
           periodSeconds: 30
-          initialDelaySeconds: 120
+          initialDelaySeconds: 40
 
         # Container-level security context
         securityContext:

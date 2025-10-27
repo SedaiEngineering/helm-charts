@@ -100,6 +100,13 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.monitoringProvider.datadog.datadogSecret }}
                   key: {{ .Values.monitoringProvider.datadog.datadogApplicationKeySecretKey }}
+            {{- end }}
+            {{- if and .Values.monitoringProvider.gcpMonitoring.enabled .Values.monitoringProvider.gcpMonitoring.gcpSecret .Values.monitoringProvider.gcpMonitoring.gcpServiceAccountKeySecretKey }}
+            - name: GCP_SERVICE_ACCOUNT_KEY_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.monitoringProvider.gcpMonitoring.gcpSecret }}
+                  key: {{ .Values.monitoringProvider.gcpMonitoring.gcpServiceAccountKeySecretKey | default "key.json" }}
             {{- end }}                  
           envFrom:
             - secretRef:

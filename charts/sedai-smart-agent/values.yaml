@@ -71,6 +71,7 @@ sedaiSync:
   nodeSelector: {}                  # Node selector for both Sedai Sync and DB deployments
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
   priorityClassName: ""             # Priority class name for Sedai Sync deployment
+  encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
 
 sedaiNodeExporter:
   enabled: false

@@ -98,6 +98,20 @@ spec:
           value: "{{ .Values.sedaiSync.sqlitePath }}/sqlite.db"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME
           value: "sqlite3"
+        - name: ENCODE_LOGS_AS_JSON
+          value: "{{ .Values.sedaiSync.encodeLogsAsJson }}"
+        - name: CONTAINER_NAME
+          value: "sedai-kube-spec-controller"
+        - name: AGENT_ACCOUNT_ID
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_ACCOUNTID"
+        - name: AGENT_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_TENANT"
         volumeMounts:
           - name: certs
             mountPath: "{{ .Values.sedaiSync.tlsPath }}"

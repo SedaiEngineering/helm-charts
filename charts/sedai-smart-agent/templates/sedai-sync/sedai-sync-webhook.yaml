@@ -46,7 +46,15 @@ webhooks:
       - apiGroups: ["apps", ""]
         apiVersions: ["v1"]
         operations: ["CREATE", "UPDATE", "DELETE"]
-        resources: ["deployments", "statefulsets", "daemonsets", "pods"]
+        resources: ["deployments", "statefulsets", "daemonsets", "pods", "pods/resize"]
+      - apiGroups: [ "kubeflow.org" ]
+        apiVersions: [ "v1" ]
+        operations: [ "CREATE", "UPDATE", "DELETE" ]
+        resources: [ "notebooks" ]
+      - apiGroups: [ "argoproj.io" ]
+        apiVersions: [ "v1" ]
+        operations: [ "CREATE", "UPDATE", "DELETE" ]
+        resources: [ "rollouts" ]
     failurePolicy: 'Ignore'
     namespaceSelector:
       matchExpressions:

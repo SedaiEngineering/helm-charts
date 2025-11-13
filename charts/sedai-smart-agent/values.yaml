@@ -340,7 +340,7 @@ monitoringProvider:
   gcpMonitoring:
     enabled: false                    # Enable if using Google Cloud Monitoring, Require additional Settings in GCP Console
     projectID:                        # GCP project ID where metrics will be sent
-    serviceAccountKeyJson:            # Service account key JSON (not recommended for production)
+    serviceAccountKeyJson:            # Service account key JSON (not recommended for production). Do not use this if gcpSecret and gcpServiceAccountKeySecretKey are provided.
     gcpSecret:                        # Name of the Kubernetes Secret that stores the GCP service account key
     gcpServiceAccountKeySecretKey:    # Key for the service account key JSON in the secret (default: "key.json")
 

@@ -4,7 +4,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: "{{ .Values.workload.smartAgentEnroll.name }}-role"
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-post-upgrade-role"
   namespace: {{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
@@ -12,15 +12,15 @@ metadata:
     {{- end }}
   {{- if .Values.globalAnnotations }}
   annotations:
-    "helm.sh/hook": pre-install
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
-    "helm.sh/hook-weight": "-1"
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "1"
     {{- toYaml .Values.globalAnnotations | nindent 4 }}
   {{- else }}
   annotations:
-    "helm.sh/hook": pre-install
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
-    "helm.sh/hook-weight": "-1"
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "1"
   {{- end }}
 rules:
   - apiGroups: [""]

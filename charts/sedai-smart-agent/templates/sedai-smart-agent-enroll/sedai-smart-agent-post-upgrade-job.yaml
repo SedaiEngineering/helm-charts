@@ -12,7 +12,7 @@ metadata:
   {{- if or .Values.globalAnnotations .Values.smartAgentEnroll.postUpgradeJobAnnotations }}
   annotations:
     "helm.sh/hook": post-upgrade
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "2"
     {{- with .Values.globalAnnotations }}
     {{- toYaml . | nindent 4 }}
@@ -23,7 +23,7 @@ metadata:
   {{- else }}
   annotations:
     "helm.sh/hook": post-upgrade
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "2"
   {{- end }}
 spec:
@@ -45,7 +45,7 @@ spec:
         {{- end }}
       {{- end }}
     spec:
-      serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-sa"
+      serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-post-upgrade-sa"
       restartPolicy: Never
       securityContext:
         runAsNonRoot: true

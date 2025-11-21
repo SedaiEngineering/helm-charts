@@ -7,7 +7,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   {{- if or .Values.globalAnnotations .Values.smartAgentEnroll.jobAnnotations }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": pre-install
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
     "helm.sh/hook-weight": "1"
     {{- with .Values.globalAnnotations }}
@@ -18,7 +18,7 @@ metadata:
     {{- end }}
   {{- else }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": pre-install
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
     "helm.sh/hook-weight": "1"
   {{- end }}

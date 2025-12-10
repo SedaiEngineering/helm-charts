@@ -147,17 +147,17 @@ image:
 
   ksm:
     repository: sedai_io/prometheus/kube-state-metrics
-    imageTag: v2.15.0
+    imageTag: v2.17.0
     imagePullPolicy: IfNotPresent
 
   reload:
     repository: sedai_io/prometheus/prometheus-config-reloader
-    imageTag: v0.80.1
+    imageTag: v0.87.0
     imagePullPolicy: IfNotPresent
 
   prometheus:
     repository: sedai_io/prometheus/prometheus
-    imageTag: v3.2.1
+    imageTag: v3.8.0
     imagePullPolicy: IfNotPresent
 
   sedaiSync:
@@ -172,7 +172,7 @@ image:
   
   nodeExporter:
     repository: sedai_io/prometheus/node-exporter
-    imageTag: v1.9.1
+    imageTag: v1.10.2
     imagePullPolicy: IfNotPresent
   
   beyla:

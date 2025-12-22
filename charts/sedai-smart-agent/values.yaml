@@ -67,7 +67,7 @@ sedaiSync:
   enabled: false                    # Enables Sedai sync controller for workload auto-optimization
   tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
   sqlitePath: "/data"               # SQLite DB path (for local storage)
-  logLevel: "error"                 # Logging level: trace, debug, info, warn, error
+  logLevel: "INFO"                 # Logging level: trace, debug, info, warn, error
   nodeSelector: {}                  # Node selector for both Sedai Sync and DB deployments
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
   priorityClassName: ""             # Priority class name for Sedai Sync deployment

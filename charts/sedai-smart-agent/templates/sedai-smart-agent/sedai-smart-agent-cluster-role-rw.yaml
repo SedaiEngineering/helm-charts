@@ -23,6 +23,7 @@ rules:
   - pods
   - nodes
   - pods/resize
+  - configmaps
   - namespaces
   - persistentvolumes
   - persistentvolumeclaims

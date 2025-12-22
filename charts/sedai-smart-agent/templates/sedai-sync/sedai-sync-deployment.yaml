@@ -84,8 +84,12 @@ spec:
         ports:
         - containerPort: 8443
         env:
-        - name: LOG_LEVEL
-          value: "{{ .Values.sedaiSync.logLevel }}"
+        - name: CONFIG_PATH
+          value: "/etc/sedai/config"
+        - name: CONFIG_NAME
+          value: "app-config"
+        - name: CONFIG_TYPE
+          value: "yaml"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
           value: "{{ .Values.sedaiSync.tlsPath }}/ca.crt"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CERT_PATH
@@ -118,6 +122,9 @@ spec:
             readOnly: true
           - name: sqlite-data
             mountPath: "{{ .Values.sedaiSync.sqlitePath }}"
+          - name: dynamic-config-vol
+            mountPath: "/etc/sedai/config"
+            readOnly: true
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
@@ -133,4 +140,7 @@ spec:
         - name: sqlite-data
           persistentVolumeClaim:
             claimName: sedai-kube-spec-controller-pvc
+        - name: dynamic-config-vol
+          configMap:
+            name: sedai-kube-spec-controller-config
 {{- end }}

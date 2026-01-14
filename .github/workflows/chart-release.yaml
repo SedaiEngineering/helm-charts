@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Sedai Chart Release
-    runs-on: self-hosted
+    runs-on: sedai-arc-helm-charts
     steps:
       - name: Checkout
         uses: actions/checkout@v5

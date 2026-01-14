@@ -12,7 +12,7 @@ permissions:
 jobs:
   build:
     name: Sedai Chart Release to OCI
-    runs-on: self-hosted
+    runs-on: sedai-arc-helm-charts
     steps:
       - name: Checkout
         uses: actions/checkout@v5

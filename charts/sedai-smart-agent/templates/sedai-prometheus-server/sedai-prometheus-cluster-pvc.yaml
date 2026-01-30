@@ -19,6 +19,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  {{- if .Values.resources.prometheus.storageClass }}
+  storageClassName: "{{ .Values.resources.prometheus.storageClass }}"
+  {{- end }}
   resources:
     requests:
       storage: "{{ .Values.resources.prometheus.storage }}"  

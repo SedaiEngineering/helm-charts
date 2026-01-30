@@ -75,12 +75,14 @@ sedaiSync:
 
 sedaiNodeExporter:
   enabled: false
+  port: 9100                        # Port for node-exporter metrics endpoint
   nodeSelector: {}                  # Node selector for Node Exporter daemonset
   tolerations: []                   # Tolerations for Node Exporter daemonset
   priorityClassName: ""             # Priority class name for Node Exporter daemonset
 
 sedaiBeyla:
   enabled: false
+  port: 8999                        # Port for Beyla metrics endpoint
   nodeSelector: {}                  # Node selector for Beyla daemonset
   tolerations: []                   # Tolerations for Beyla daemonset
   priorityClassName: ""             # Priority class name for Beyla daemonset

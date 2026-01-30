@@ -92,7 +92,7 @@ spec:
             - --path.sysfs=/host/sys
             - --path.rootfs=/host/root
             - --path.udev.data=/host/root/run/udev/data
-            - --web.listen-address=[$(HOST_IP)]:9100
+            - --web.listen-address=[$(HOST_IP)]:{{ .Values.sedaiNodeExporter.port }}
           securityContext:
             readOnlyRootFilesystem: true
           env:
@@ -100,14 +100,14 @@ spec:
               value: 0.0.0.0
           ports:
             - name: metrics
-              containerPort: 9100
+              containerPort: {{ .Values.sedaiNodeExporter.port }}
               protocol: TCP
           livenessProbe:
             failureThreshold: 3
             httpGet:
               httpHeaders:
               path: /
-              port: 9100
+              port: {{ .Values.sedaiNodeExporter.port }}
               scheme: HTTP
             initialDelaySeconds: 0
             periodSeconds: 10
@@ -118,7 +118,7 @@ spec:
             httpGet:
               httpHeaders:
               path: /
-              port: 9100
+              port: {{ .Values.sedaiNodeExporter.port }}
               scheme: HTTP
             initialDelaySeconds: 0
             periodSeconds: 10

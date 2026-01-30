@@ -58,5 +58,5 @@ data:
       - network
       - application
       path: /metrics
-      port: 8999
+      port: {{ .Values.sedaiBeyla.port }}
 {{- end }}

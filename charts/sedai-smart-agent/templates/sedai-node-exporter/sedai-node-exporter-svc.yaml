@@ -21,8 +21,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 9100
-      targetPort: 9100
+    - port: {{ .Values.sedaiNodeExporter.port }}
+      targetPort: {{ .Values.sedaiNodeExporter.port }}
       protocol: TCP
       name: metrics
   selector:

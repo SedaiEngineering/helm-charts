@@ -1,0 +1,30 @@
+{{- if .Values.sedaiDcgmExporter.enabled }}
+---
+# Source: dcgm-exporter/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.workload.dcgmExporter.name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: sedai-dcgm-exporter
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  annotations:
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  ports:
+  - name: "metrics"
+    port: {{ .Values.sedaiDcgmExporter.port }}
+    targetPort: {{ .Values.sedaiDcgmExporter.port }}
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: sedai-dcgm-exporter
+{{- end }}

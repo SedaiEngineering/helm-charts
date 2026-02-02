@@ -211,7 +211,7 @@ data:
             target_label: node
         metric_relabel_configs:
           - action: keep
-            regex: beyla_network_flow_bytes_total|istio_requests_total|istio_request_duration_milliseconds_count|istio_request_duration_milliseconds_sum|istio_request_duration_milliseconds_bucket|nginx_ingress_controller_requests|nginx_ingress_controller_request_duration_seconds_count|nginx_ingress_controller_request_duration_seconds_sum|envoy_cluster_upstream_rq_time|envoy_cluster_upstream_rq_completed|traefik_service_requests_total|traefik_service_request_duration_seconds
+            regex: beyla_network_flow_bytes_total|istio_requests_total|istio_request_duration_milliseconds_count|istio_request_duration_milliseconds_sum|istio_request_duration_milliseconds_bucket|nginx_ingress_controller_requests|nginx_ingress_controller_request_duration_seconds_count|nginx_ingress_controller_request_duration_seconds_sum|envoy_cluster_upstream_rq_time|envoy_cluster_upstream_rq_completed|traefik_service_requests_total|traefik_service_request_duration_seconds|DCGM_FI_PROF_SM_OCCUPANCY|DCGM_FI_PROF_SM_ACTIVE|DCGM_FI_PROF_DRAM_ACTIVE|DCGM_FI_PROF_PCIE_TX_BYTES|DCGM_FI_PROF_PCIE_RX_BYTES|DCGM_FI_DEV_POWER_USAGE|DCGM_FI_DEV_GPU_TEMP|DCGM_FI_DEV_ENC_UTIL|DCGM_FI_DEV_DEC_UTIL|DCGM_FI_PROF_PIPE_FP64_ACTIVE|DCGM_FI_PROF_PIPE_FP32_ACTIVE|DCGM_FI_PROF_PIPE_FP16_ACTIVE|DCGM_FI_PROF_PIPE_TENSOR_ACTIVE|DCGM_FI_DEV_MEM_COPY_UTIL|DCGM_FI_DEV_FB_USED|DCGM_FI_PROF_GR_ENGINE_ACTIVE|DCGM_FI_DEV_FB_FREE
             source_labels: [__name__]
   recording_rules.yml: |
     {}

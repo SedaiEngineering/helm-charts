@@ -93,6 +93,17 @@ sedaiGrafanaAlloy:
   tolerations: []                   # Tolerations for Grafana Alloy daemonset
   priorityClassName: ""             # Priority class name for Grafana Alloy daemonset
 
+sedaiDcgmExporter:
+  enabled: false
+  port: 9400                        # Port for DCGM exporter metrics endpoint
+  nodeSelector: {}                  # Node selector for DCGM exporter daemonset
+  tolerations:                      # Tolerations for DCGM exporter daemonset
+    - key: "nvidia.com/gpu"
+      operator: "Equal"
+      value: "present"
+      effect: "NoSchedule"
+  priorityClassName: ""             # Priority class name for DCGM exporter daemonset
+
 sedaiVictoriaMetrics:
   retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
@@ -122,6 +133,8 @@ workload:
     name: sedai-kube-state-metrics
     replicaCount: 1
     revisionHistoryLimit: 1
+  dcgmExporter:
+    name: sedai-dcgm-exporter
 
 # -------------------------------------------------------------------
 # Debug Logging
@@ -180,6 +193,11 @@ image:
   beyla:
     repository: sedai_io/grafana/beyla
     imageTag: 2.2.4
+    imagePullPolicy: IfNotPresent
+  
+  dcgmExporter:
+    repository: sedai_io/nvidia/dcgm-exporter
+    imageTag: 4.2.0-4.1.0-ubuntu22.04
     imagePullPolicy: IfNotPresent
 
   grafanaAlloy:

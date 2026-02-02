@@ -1,0 +1,110 @@
+{{- if .Values.sedaiDcgmExporter.enabled }}
+---
+# Source: dcgm-exporter/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: "{{ .Values.workload.dcgmExporter.name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: sedai-dcgm-exporter
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sedai-dcgm-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sedai-dcgm-exporter
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.globalAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.sedaiDcgmExporter.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- if not .Values.sedaiDcgmExporter.priorityClassName }}
+      priorityClassName: system-node-critical
+      {{- end }}
+      serviceAccountName: "{{ .Values.workload.dcgmExporter.name }}-sa"
+      {{- with .Values.sedaiDcgmExporter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sedaiDcgmExporter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: "pod-gpu-resources"
+        hostPath:
+          path: /var/lib/kubelet/pod-resources
+      - configMap:
+          items:
+          - key: metrics
+            path: default-counters.csv
+          name: "{{ .Values.workload.dcgmExporter.name }}-metrics-config-map"
+        name: exporter-metrics-volume
+      containers:
+      - name: exporter
+        securityContext:
+          capabilities:
+            add:
+            - SYS_ADMIN
+          runAsNonRoot: false
+          runAsUser: 0
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.dcgmExporter.repository) }}:{{ .Values.image.dcgmExporter.imageTag }}"
+        imagePullPolicy: "{{ .Values.image.dcgmExporter.imagePullPolicy }}"
+        args:
+        - -f
+        - /etc/dcgm-exporter/default-counters.csv
+        env:
+        - name: "DCGM_EXPORTER_KUBERNETES"
+          value: "true"
+        - name: "DCGM_EXPORTER_LISTEN"
+          value: ":{{ .Values.sedaiDcgmExporter.port }}"
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+        - name: "metrics"
+          containerPort: {{ .Values.sedaiDcgmExporter.port }}
+        volumeMounts:
+        - name: "pod-gpu-resources"
+          readOnly: true
+          mountPath: "/var/lib/kubelet/pod-resources"
+        - mountPath: /etc/dcgm-exporter/default-counters.csv
+          name: exporter-metrics-volume
+          subPath: default-counters.csv
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.sedaiDcgmExporter.port }}
+            scheme: HTTP
+          initialDelaySeconds: 45
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.sedaiDcgmExporter.port }}
+            scheme: HTTP
+          initialDelaySeconds: 45
+{{- end }}

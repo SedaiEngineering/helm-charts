@@ -43,10 +43,22 @@ spec:
       {{- if not .Values.sedaiDcgmExporter.priorityClassName }}
       priorityClassName: system-node-critical
       {{- end }}
+      {{- if not .Values.sedaiDcgmExporter.runtimeClassName }}
+      runtimeClassName: nvidia
+      {{- else }}
+      {{- with .Values.sedaiDcgmExporter.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      {{- end }}
       serviceAccountName: "{{ .Values.workload.dcgmExporter.name }}-sa"
+      {{- if not .Values.sedaiDcgmExporter.nodeSelector }}
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      {{- else }}
       {{- with .Values.sedaiDcgmExporter.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
       {{- with .Values.sedaiDcgmExporter.tolerations }}
       tolerations:
@@ -70,6 +82,7 @@ spec:
             - SYS_ADMIN
           runAsNonRoot: false
           runAsUser: 0
+          privileged: true
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.dcgmExporter.repository) }}:{{ .Values.image.dcgmExporter.imageTag }}"
         imagePullPolicy: "{{ .Values.image.dcgmExporter.imagePullPolicy }}"
         args:

@@ -197,7 +197,7 @@ image:
   
   dcgmExporter:
     repository: sedai_io/nvidia/dcgm-exporter
-    imageTag: 4.2.0-4.1.0-ubuntu22.04
+    imageTag: 4.4.2-4.7.0-distroless
     imagePullPolicy: IfNotPresent
 
   grafanaAlloy:

@@ -23,8 +23,8 @@ data:
     {}
   prometheus.yml: |
     global:
-      evaluation_interval: 5m
-      scrape_interval: 5m
+      evaluation_interval: 1m
+      scrape_interval: 1m
       scrape_timeout: 30s
     rule_files:
       - /etc/config/recording_rules.yml
@@ -62,7 +62,7 @@ data:
             regex: kubelet_active_pods|kubelet_desired_pods|kubelet_mirror_pods|kubelet_node_name|kubelet_managed_ephemeral_containers|kubelet_restarted_pods_total|kubelet_running_containers|kubelet_started_containers_total|kubelet_started_pods_errors_total|kubelet_started_pods_total|kubelet_evictions
             source_labels: [__name__]
       - job_name: kubernetes-nodes-cadvisor
-        scrape_interval: 10m
+        scrape_interval: 1m
         bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: node
@@ -104,7 +104,7 @@ data:
             source_labels: [__name__]
       # Dedicated job for Kube State Metrics
       - job_name: kube-state-metrics
-        scrape_interval: 10m
+        scrape_interval: 1m
         honor_labels: true
         kubernetes_sd_configs:
           - role: endpoints
@@ -141,7 +141,7 @@ data:
             source_labels: [__name__]
       # Node Exporter - service endpoint discovery
       - job_name: node-exporter
-        scrape_interval: 10m
+        scrape_interval: 1m
         honor_labels: true
         kubernetes_sd_configs:
           - role: endpoints
@@ -174,7 +174,7 @@ data:
             source_labels: [__name__]
       # DCGM Exporter for GPU metrics
       - job_name: dcgm-exporter
-        scrape_interval: 10m
+        scrape_interval: 1m
         honor_labels: true
         kubernetes_sd_configs:
           - role: endpoints
@@ -205,7 +205,7 @@ data:
             source_labels: [__name__]
       # Beyla eBPF observability for network flow metrics
       - job_name: beyla
-        scrape_interval: 10m
+        scrape_interval: 1m
         honor_labels: true
         kubernetes_sd_configs:
           - role: pod
@@ -256,7 +256,7 @@ data:
             source_labels: [__name__]
       # Service endpoints for service mesh and ingress controllers
       - job_name: kubernetes-service-endpoints
-        scrape_interval: 10m
+        scrape_interval: 1m
         honor_labels: true
         kubernetes_sd_configs:
           - role: endpoints

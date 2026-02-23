@@ -52,7 +52,7 @@ smartAgentEnroll:
 sedaiPrometheus:
   enabled: false                    # Enables Sedai-managed Prometheus for metric collection
   server:
-    retention: '6h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
+    retention: '4h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
   nodeSelector: {}                  # Node selector for Prometheus deployment
   tolerations: []                   # Tolerations for Prometheus deployment
   priorityClassName: ""             # Priority class name for Prometheus deployment

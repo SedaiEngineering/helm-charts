@@ -252,7 +252,7 @@ data:
             target_label: node
         metric_relabel_configs:
           - action: keep
-            regex: beyla_network_flow_bytes_total
+            regex: beyla_network_flow_bytes_total|http_client_request_duration_seconds_count|http_server_request_duration_seconds_count|http_client_request_duration_seconds_bucket|http_server_request_duration_seconds_bucket|http_client_request_duration_seconds_sum|http_server_request_duration_seconds_sum
             source_labels: [__name__]
       # Service endpoints for service mesh and ingress controllers
       - job_name: kubernetes-service-endpoints

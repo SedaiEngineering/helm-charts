@@ -110,7 +110,7 @@ spec:
               cpu: 10m
               memory: 50Mi
       hostPID: true
-      dnsPolicy: ClusterFirst
+      dnsPolicy: ClusterFirstWithHostNet
       volumes:
         - name: config
           configMap:

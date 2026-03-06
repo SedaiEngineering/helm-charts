@@ -76,6 +76,7 @@ spec:
             - --retentionPeriod={{ .Values.sedaiVictoriaMetrics.retentionPeriod }}
             - --storageDataPath=/storage
             - --maxLabelsPerTimeseries=100
+            - --promscrape.maxScrapeSize=128MB
             {{- if .Values.sedaiVictoriaMetrics.enabled }}
             - --promscrape.config=/data/prometheus.yml
             {{- end }}

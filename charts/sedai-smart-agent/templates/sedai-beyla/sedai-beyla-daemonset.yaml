@@ -4,10 +4,10 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: sedai-beyla
+  name: "{{ .Values.workload.beyla.name }}"
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: sedai-beyla
+    app.kubernetes.io/name: "{{ .Values.workload.beyla.name }}"
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
@@ -19,7 +19,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: sedai-beyla
+      app.kubernetes.io/name: "{{ .Values.workload.beyla.name }}"
   updateStrategy:
     type: RollingUpdate
   template:
@@ -29,7 +29,7 @@ spec:
         prometheus.io/port: "{{ .Values.sedaiBeyla.port }}"
         prometheus.io/scrape: "true"
       labels:
-        app.kubernetes.io/name: sedai-beyla
+        app.kubernetes.io/name: "{{ .Values.workload.beyla.name }}"
         {{- with .Values.globalLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -38,7 +38,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: sedai-beyla
+      serviceAccountName: "{{ .Values.workload.beyla.name }}"
       hostPID: true
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -88,5 +88,5 @@ spec:
       volumes:
         - name: beyla-config
           configMap:
-            name: sedai-beyla
+            name: "{{ .Values.workload.beyla.name }}"
 {{- end }}

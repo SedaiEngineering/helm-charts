@@ -53,6 +53,8 @@ sedaiPrometheus:
   enabled: false                    # Enables Sedai-managed Prometheus for metric collection
   server:
     retention: '4h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
+    gogc: 75                        # Go GC target percentage (default 100). Lower = more frequent GC, lower peak memory.
+    autoMemLimitRatio: "0.85"       # automemlimit ratio: GOMEMLIMIT = ratio × cgroup memory limit. Default is 0.9; 0.85 gives more headroom before hard OOM.
   nodeSelector: {}                  # Node selector for Prometheus deployment
   tolerations: []                   # Tolerations for Prometheus deployment
   priorityClassName: ""             # Priority class name for Prometheus deployment
@@ -135,6 +137,8 @@ workload:
     revisionHistoryLimit: 1
   dcgmExporter:
     name: sedai-dcgm-exporter
+  beyla:
+    name: sedai-beyla
 
 # -------------------------------------------------------------------
 # Debug Logging
@@ -231,8 +235,8 @@ resources:
 
   prometheus:
     cpu:
-      requests: "1000m"
-      limits: "1000m"
+      requests: "1500m"
+      limits: "1500m"
     memory:
       requests: "4096Mi"
       limits: "4096Mi"
@@ -273,11 +277,11 @@ resources:
 
   victoriaMetrics:
     cpu:
-      requests: "500m"
-      limits: "500m"
+      requests: "1000m"
+      limits: "1000m"
     memory:
-      requests: "1024Mi"
-      limits: "1024Mi"
+      requests: "4096Mi"
+      limits: "4096Mi"
     storage: "30Gi"                    # Persistent volume storage for Victoria Metrics
 
 # -------------------------------------------------------------------

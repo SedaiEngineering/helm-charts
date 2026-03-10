@@ -107,7 +107,7 @@ sedaiDcgmExporter:
   priorityClassName: ""             # Priority class name for DCGM exporter daemonset
 
 sedaiVictoriaMetrics:
-  retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
+  retentionPeriod: "4h"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
@@ -282,7 +282,7 @@ resources:
     memory:
       requests: "4096Mi"
       limits: "4096Mi"
-    storage: "30Gi"                    # Persistent volume storage for Victoria Metrics
+    storage: "60Gi"                    # Persistent volume storage for Victoria Metrics
 
 # -------------------------------------------------------------------
 # Smart Agent Configurations

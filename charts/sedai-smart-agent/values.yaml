@@ -111,7 +111,7 @@ sedaiVictoriaMetrics:
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
-  enabled: false                    # Use Sedai-managed Victoria Metrics
+  enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default)
 
 # -------------------------------------------------------------------
 # Workload Metadata and Replicas
@@ -320,7 +320,7 @@ sedaiIntegrationSettings:
 # -------------------------------------------------------------------
 monitoringProvider:
   sedaiManagedPrometheus:
-    enabled: false                    # Use Sedai-managed Prometheus (preferred default)
+    enabled: false                    # DEPRECATED: Moved to sedaiVictoriaMetrics
 
   prometheus:
     enabled: false                    # Use self-hosted Prometheus instead

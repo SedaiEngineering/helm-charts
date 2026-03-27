@@ -107,7 +107,7 @@ sedaiDcgmExporter:
   priorityClassName: ""             # Priority class name for DCGM exporter daemonset
 
 sedaiVictoriaMetrics:
-  retentionPeriod: "4h"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
+  retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
@@ -161,22 +161,22 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.11
+    imageTag: v3.1.12
     imagePullPolicy: Always
 
   ksm:
     repository: sedai_io/prometheus/kube-state-metrics
-    imageTag: v2.17.0
+    imageTag: v2.18.0
     imagePullPolicy: IfNotPresent
 
   reload:
     repository: sedai_io/prometheus/prometheus-config-reloader
-    imageTag: v0.87.0
+    imageTag: v0.90.0
     imagePullPolicy: IfNotPresent
 
   prometheus:
     repository: sedai_io/prometheus/prometheus
-    imageTag: v3.8.0
+    imageTag: v3.10.0
     imagePullPolicy: IfNotPresent
 
   sedaiSync:
@@ -196,22 +196,22 @@ image:
   
   beyla:
     repository: sedai_io/grafana/beyla
-    imageTag: 2.2.4
+    imageTag: 3.6.0
     imagePullPolicy: IfNotPresent
   
   dcgmExporter:
     repository: sedai_io/nvidia/dcgm-exporter
-    imageTag: 4.4.2-4.7.0-distroless
+    imageTag: 4.5.2-4.8.1-distroless
     imagePullPolicy: IfNotPresent
 
   grafanaAlloy:
     repository: sedai_io/grafana/alloy
-    imageTag: v1.10.0
+    imageTag: v1.14.1
     imagePullPolicy: IfNotPresent
 
   victoriaMetrics:
     repository: sedai_io/victoriametrics/victoria-metrics
-    imageTag: v1.122.0
+    imageTag: v1.138.0-scratch
     imagePullPolicy: IfNotPresent
 
 # -------------------------------------------------------------------

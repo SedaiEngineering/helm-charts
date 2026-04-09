@@ -19,7 +19,8 @@ metadata:
     app: server
 spec:
   podManagementPolicy: OrderedReady
-  updateStrategy: {}
+  updateStrategy:
+    type: RollingUpdate
   replicas: 1
   serviceName: sedai-victoria-metrics-server
   selector:

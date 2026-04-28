@@ -74,9 +74,11 @@ spec:
         - secretRef:
             name: "{{ .Values.workload.smartAgent.secret }}"
 
+        {{- $memReqMi := ternary (mul (int (.Values.resources.smartAgent.memory.requests | trimSuffix "Gi")) 1024) (int (.Values.resources.smartAgent.memory.requests | trimSuffix "Mi")) (hasSuffix "Gi" .Values.resources.smartAgent.memory.requests) }}
+        {{- $memLimMi := ternary (mul (int (.Values.resources.smartAgent.memory.limits | trimSuffix "Gi")) 1024) (int (.Values.resources.smartAgent.memory.limits | trimSuffix "Mi")) (hasSuffix "Gi" .Values.resources.smartAgent.memory.limits) }}
         env:
         - name: _JAVA_OPTIONS
-          value: "-Xms{{ floor (div (mul (int (.Values.resources.smartAgent.memory.requests | replace "Mi" "")) 25) 100) }}M -Xmx{{ floor (div (mul (int (.Values.resources.smartAgent.memory.limits | replace "Mi" "")) 47) 100) }}M"
+          value: "-Xms{{ floor (div (mul $memReqMi 25) 100) }}M -Xmx{{ floor (div (mul $memLimMi 47) 100) }}M"
         - name: FLAGS_AUTOUPDATE_DISABLED
           value: "true"
 

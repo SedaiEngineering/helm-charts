@@ -2,5 +2,5 @@ apiVersion: v2
 name: sedai-smart-agent
 description: Helm Chart for deploying Sedai Smart Agent
 type: application
-version: 1.4.47
-appVersion: "1.4.47"
+version: 1.4.48
+appVersion: "1.4.48"

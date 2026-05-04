@@ -37,6 +37,16 @@ data:
         relabel_configs:
           - action: labelmap
             regex: __meta_kubernetes_node_label_(.+)
+          - action: labeldrop
+            regex: feature_node_kubernetes_io_cpu_cpuid_.*
+          - action: labeldrop
+            regex: feature_node_kubernetes_io_(kernel|pci|system)_.*
+          - action: labeldrop
+            regex: karpenter_k8s_aws_instance_(category|generation|hypervisor|cpu_manufacturer|cpu_sustained_clock_speed_mhz|ebs_bandwidth|encryption_in_transit_supported|network_bandwidth)
+          - action: labeldrop
+            regex: beta_kubernetes_io_.*
+          - action: labeldrop
+            regex: failure_domain_beta_kubernetes_io_.*
           - replacement: kubernetes.default.svc:443
             target_label: __address__
           - regex: (.+)

@@ -17,4 +17,8 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 automountServiceAccountToken: false
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
 {{- end }}

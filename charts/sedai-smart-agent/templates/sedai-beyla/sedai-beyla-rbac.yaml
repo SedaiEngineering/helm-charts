@@ -16,6 +16,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 automountServiceAccountToken: true
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
 ---
 # Source: beyla/templates/cluster-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1

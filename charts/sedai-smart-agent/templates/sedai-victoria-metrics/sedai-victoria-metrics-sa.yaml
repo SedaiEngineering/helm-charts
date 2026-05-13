@@ -17,4 +17,8 @@ metadata:
     app.kubernetes.io/component: rbac
   name: sedai-victoria-metrics-server
   namespace: {{ .Release.Namespace }}
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
 {{- end }}

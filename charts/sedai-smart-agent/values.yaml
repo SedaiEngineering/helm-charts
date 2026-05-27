@@ -113,6 +113,13 @@ sedaiVictoriaMetrics:
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
   enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default)
 
+sedaiVmalert:
+  enabled: false                    # Enables Sedai-managed vmalert for recording rule evaluation (Spark metrics enrichment)
+  evaluationInterval: "30s"         # Recording rule evaluation interval
+  nodeSelector: {}                  # Node selector for vmalert deployment
+  tolerations: []                   # Tolerations for vmalert deployment
+  priorityClassName: ""             # Priority class name for vmalert deployment
+
 # -------------------------------------------------------------------
 # Workload Metadata and Replicas
 # -------------------------------------------------------------------
@@ -139,6 +146,8 @@ workload:
     name: sedai-dcgm-exporter
   beyla:
     name: sedai-beyla
+  vmalert:
+    name: sedai-vmalert
 
 # -------------------------------------------------------------------
 # Debug Logging
@@ -214,6 +223,11 @@ image:
     imageTag: v1.138.0-scratch
     imagePullPolicy: IfNotPresent
 
+  vmalert:
+    repository: sedai_io/victoriametrics/vmalert
+    imageTag: v1.138.0-scratch
+    imagePullPolicy: IfNotPresent
+
 # -------------------------------------------------------------------
 # Docker Image Pull Secret
 # -------------------------------------------------------------------
@@ -283,6 +297,14 @@ resources:
       requests: "4096Mi"
       limits: "4096Mi"
     storage: "60Gi"                    # Persistent volume storage for Victoria Metrics
+
+  vmalert:
+    cpu:
+      requests: "100m"
+      limits: "200m"
+    memory:
+      requests: "128Mi"
+      limits: "256Mi"
 
 # -------------------------------------------------------------------
 # Smart Agent Configurations

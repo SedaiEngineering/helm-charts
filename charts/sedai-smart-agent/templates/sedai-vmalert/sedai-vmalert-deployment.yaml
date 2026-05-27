@@ -1,0 +1,104 @@
+{{- if .Values.sedaiVmalert.enabled }}
+---
+# Source: vmalert/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.workload.vmalert.name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: sedai-vmalert
+    app: vmalert
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sedai-vmalert
+      app: vmalert
+  template:
+    metadata:
+      labels:
+        {{- include "sedai-smart-agent.labels" . | nindent 8 }}
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/name: sedai-vmalert
+        app: vmalert
+      {{- with .Values.globalAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.sedaiVmalert.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if or .Values.globalTolerations .Values.sedaiVmalert.tolerations }}
+      tolerations:
+        {{- with .Values.globalTolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.sedaiVmalert.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+
+      {{- with .Values.sedaiVmalert.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
+      containers:
+        - name: vmalert
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.vmalert.repository) }}:{{ .Values.image.vmalert.imageTag }}"
+          imagePullPolicy: {{ .Values.image.vmalert.imagePullPolicy }}
+          args:
+            - --envflag.enable
+            - --envflag.prefix=VM_
+            - --httpListenAddr=:8880
+            - --loggerFormat=json
+            - --datasource.url=http://sedai-victoria-metrics-server:8428
+            - --remoteWrite.url=http://sedai-victoria-metrics-server:8428
+            - --rule=/etc/vmalert/rules/spark-rules.yml
+            - --evaluationInterval={{ .Values.sedaiVmalert.evaluationInterval }}
+          ports:
+            - name: http
+              containerPort: 8880
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: "{{ .Values.resources.vmalert.cpu.requests }}"
+              memory: "{{ .Values.resources.vmalert.memory.requests }}"
+            limits:
+              cpu: "{{ .Values.resources.vmalert.cpu.limits }}"
+              memory: "{{ .Values.resources.vmalert.memory.limits }}"
+          volumeMounts:
+            - name: rules
+              mountPath: /etc/vmalert/rules
+              readOnly: true
+      volumes:
+        - name: rules
+          configMap:
+            name: "{{ .Values.workload.vmalert.name }}-rules"
+{{- end }}

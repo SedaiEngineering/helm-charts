@@ -26,11 +26,11 @@ data:
           - record: spark:container_memory_working_set_bytes
             expr: |
               container_memory_working_set_bytes{container!="", container!="POD"}
-                * on(pod, namespace) group_left(label_spark_role, label_spark_app_name)
+                * on(pod, namespace) group_left(label_spark_role, label_spark_app_name, label_spark_app_selector)
                 kube_pod_labels{label_spark_app_name!=""}
           - record: spark:container_cpu_usage_seconds_total
             expr: |
               container_cpu_usage_seconds_total{container!="", container!="POD"}
-                * on(pod, namespace) group_left(label_spark_role, label_spark_app_name)
+                * on(pod, namespace) group_left(label_spark_role, label_spark_app_name, label_spark_app_selector)
                 kube_pod_labels{label_spark_app_name!=""}
 {{- end }}

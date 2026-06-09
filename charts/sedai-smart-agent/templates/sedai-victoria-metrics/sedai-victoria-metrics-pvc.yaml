@@ -18,6 +18,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  {{- if .Values.sedaiVictoriaMetrics.storageClass }}
+  storageClassName: {{ .Values.sedaiVictoriaMetrics.storageClass }}
+  {{- end }}
   resources:
     requests:
       storage: "{{ .Values.resources.victoriaMetrics.storage }}"

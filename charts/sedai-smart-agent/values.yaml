@@ -67,7 +67,8 @@ sedaiKSM:
   priorityClassName: ""             # Priority class name for KSM deployment
 
 sedaiSync:
-  enabled: false                    # Enables Sedai sync controller for workload auto-optimization
+  specControllerEnabled: false     # Enables Sedai sync controller for workload auto-optimization
+  sparkControllerEnabled: false    # Enables Sedai sync controller for Spark workload optimization (sparkapplications via sparkoperator.k8s.io)
   tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
   sqlitePath: "/data"               # SQLite DB path (for local storage)
   logLevel: "INFO"                 # Logging level: trace, debug, info, warn, error

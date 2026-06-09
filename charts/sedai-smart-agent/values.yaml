@@ -157,7 +157,7 @@ image:
   smartAgent:
     name: sedai-agent
     repository: sedai_io/sedai-smart-agent
-    imageTag: v1.25.29
+    imageTag: v1.25.31
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  

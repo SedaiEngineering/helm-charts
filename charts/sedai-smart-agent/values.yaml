@@ -108,7 +108,6 @@ sedaiDcgmExporter:
   priorityClassName: ""             # Priority class name for DCGM exporter daemonset
 
 sedaiVictoriaMetrics:
-  name: sedai-victoria-metrics-server  # Name for Victoria Metrics resources (StatefulSet, Service, SA, RBAC)
   retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
   storageClass: ""                  # StorageClass for Victoria Metrics PVC; empty = cluster default
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
@@ -140,6 +139,8 @@ workload:
     revisionHistoryLimit: 1
   dcgmExporter:
     name: sedai-dcgm-exporter
+  victoriaMetrics:
+    name: sedai-victoria-metrics-server
   beyla:
     name: sedai-beyla
 

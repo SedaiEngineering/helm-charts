@@ -15,7 +15,7 @@ metadata:
   {{- end }}
     app.kubernetes.io/name: sedai-victoria-metrics
     app.kubernetes.io/component: rbac
-  name: {{ .Values.sedaiVictoriaMetrics.name }}
+  name: {{ .Values.workload.victoriaMetrics.name }}
   namespace: {{ .Release.Namespace }}
 {{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
 imagePullSecrets:

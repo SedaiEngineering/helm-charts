@@ -441,7 +441,7 @@ data:
     
     prometheus.remote_write "victoriametrics" {
       endpoint {
-        url = "http://sedai-victoria-metrics-server.{{ .Release.Namespace }}:8428/api/v1/write"
+        url = "http://{{ .Values.workload.victoriaMetrics.name }}.{{ .Release.Namespace }}:8428/api/v1/write"
       }
     }
 {{- end }}

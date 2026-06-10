@@ -4,7 +4,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: sedai-victoria-metrics-server
+  name: {{ .Values.sedaiVictoriaMetrics.name }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
@@ -22,7 +22,7 @@ spec:
   updateStrategy:
     type: RollingUpdate
   replicas: 1
-  serviceName: sedai-victoria-metrics-server
+  serviceName: {{ .Values.sedaiVictoriaMetrics.name }}
   selector:
     matchLabels:
       app.kubernetes.io/name: sedai-victoria-metrics
@@ -41,7 +41,7 @@ spec:
         app.kubernetes.io/name: sedai-victoria-metrics
         app: server
     spec:
-      serviceAccountName: sedai-victoria-metrics-server
+      serviceAccountName: {{ .Values.sedaiVictoriaMetrics.name }}
       automountServiceAccountToken: true
 
       {{- with .Values.sedaiVictoriaMetrics.nodeSelector }}
@@ -123,6 +123,6 @@ spec:
         {{- if .Values.sedaiVictoriaMetrics.enabled }}
         - name: scrape-config
           configMap:
-            name: sedai-victoria-metrics-server-configmap
+            name: {{ .Values.sedaiVictoriaMetrics.name }}-configmap
         {{- end }}
 {{- end }}

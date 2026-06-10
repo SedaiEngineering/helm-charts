@@ -13,7 +13,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: "sedai-victoria-metrics-server-cluster-role"
+  name: "{{ .Values.sedaiVictoriaMetrics.name }}-cluster-role"
 rules:
   - apiGroups:
       - ""
@@ -67,13 +67,13 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: "sedai-victoria-metrics-server-cluster-role-binding"
+  name: "{{ .Values.sedaiVictoriaMetrics.name }}-cluster-role-binding"
 subjects:
   - kind: ServiceAccount
-    name: "sedai-victoria-metrics-server"
+    name: "{{ .Values.sedaiVictoriaMetrics.name }}"
     namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: "sedai-victoria-metrics-server-cluster-role"
+  name: "{{ .Values.sedaiVictoriaMetrics.name }}-cluster-role"
 {{- end }}

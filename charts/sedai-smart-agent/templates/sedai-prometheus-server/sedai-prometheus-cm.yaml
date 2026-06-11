@@ -63,8 +63,8 @@ data:
             regex: container_cpu_cfs_periods_total|container_cpu_cfs_throttled_periods_total|container_cpu_cfs_throttled_seconds_total|container_cpu_system_seconds_total|container_cpu_usage_seconds_total|container_cpu_user_seconds_total|container_fs_io_time_seconds_total|container_fs_io_time_weighted_seconds_total|container_memory_cache|container_memory_failcnt|container_memory_failures_total|container_memory_max_usage_bytes|container_memory_rss|container_memory_swap|container_memory_usage_bytes|container_memory_working_set_bytes|container_network_receive_bytes_total|container_network_receive_errors_total|container_network_receive_packets_dropped_total|container_network_transmit_bytes_total|container_network_transmit_errors_total|container_network_transmit_packets_dropped_total|container_spec_cpu_period|container_spec_cpu_quota|container_spec_memory_limit_bytes
             source_labels: [__name__]
           - action: drop
-            regex: ^$
-            source_labels: [container]
+            regex: ^;container_(?:cpu|memory|fs|spec).*
+            source_labels: [container, __name__]
           - action: labeldrop
             regex: id
           - action: labeldrop

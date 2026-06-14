@@ -1,0 +1,44 @@
+enableAgentDebugLogs:
+  enabled: true
+  agentLogLevel: "WARNING"
+  loggingConfig: "classpath:log4j2-onprem.xml"
+
+sedaiIntegrationSettings:
+  clusterName: "sedai-labs-eks-delta-01"
+  clusterProvider: "AWS"
+  sedaiBaseUrl: "https://sparktest.sedai.cloud"
+  sedaiApiToken: "eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1zIjpbXSwic3ViIjoib3JnLnBhYzRqLmp3dC5wcm9maWxlLkp3dFByb2ZpbGUjVGhvbWFzLUFicmFoYW0tKE9wZXJhdG9yKS0oQVBJLUtleSkiLCIkaW50X3JvbGVzIjpbIlNlZGFpQWRtaW4iXSwiZXhwIjoxNzgzNzUzMzMwLCJkaXNwbGF5X25hbWUiOiJUaG9tYXMgQWJyYWhhbSAoT3BlcmF0b3IpIChBUEkgS2V5KSIsImlhdCI6MTc4MTE2MTMzMCwiZmlyc3RfbmFtZSI6IlRob21hcyIsImZhbWlseV9uYW1lIjoiQWJyYWhhbSIsImp0aSI6IjZiMTlmZTZhLTc1NzMtNDVkYy04NDUxLTQyOTJjYzVmZjhjZSJ9.MJ2x8EAJ8U9KCFhkF4htAgvlZS3C84GWWLRnbK0caOGnss2q-VM8ZnxtBGbqq_vLfGTYUs7DyJKWRfJw4aYm8QiqC1zCgLy-Co6kScz9PKQ7lA3g4_iQMwGHfIS8xLU5-eBN9Oj-2Scv7cxRt76isIgI3QbPOKSHm5pe34Z3VRaP-5aLy5PSfIfbK6OinYNynGhjfEVbfklRbiUmjcm6A3YX0s_6TwskqaH7rqBY23v0mDCtwGOY8eS769caEryW_3QzKLWs-cI87wB-lcoUMsNXFb-7BlXsS4eXlvgVjJbXVPArd_eta1lx2KMhTr9JmqA0GDv5uJWOfDNMr_r74A"
+
+sedaiVictoriaMetrics:
+  enabled: true
+sedaiKSM:
+  enabled: true
+sedaiNodeExporter:
+  enabled: true
+  port: 9105
+sedaiBeyla:
+  enabled: true
+  port: 8997
+sedaiSync:
+  enabled: true
+sedaiVmalert:
+  enabled: true
+
+image:
+  smartAgent:
+    name: sedai-agent
+    repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent
+    imageTag: spark-kubeflow
+    imagePullPolicy: Always
+  sedaiSync:
+    repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-kube-spec-controller
+    imageTag: dev-sparktest
+    imagePullPolicy: Always
+resources:
+  smartAgent:
+    cpu:
+      requests: "1000m"
+      limits: "1000m"
+    memory:
+      requests: "2048Mi"
+      limits: "2048Mi"

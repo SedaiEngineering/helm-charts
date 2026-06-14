@@ -145,6 +145,14 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - sparkoperator.k8s.io
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
 - verbs:
   - get
   nonResourceURLs:

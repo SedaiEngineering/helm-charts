@@ -154,6 +154,16 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - sparkoperator.k8s.io
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - verbs:
   - get
   nonResourceURLs:

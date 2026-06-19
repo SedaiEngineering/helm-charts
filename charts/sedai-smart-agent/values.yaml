@@ -165,7 +165,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.15
+    imageTag: v3.1.16
     imagePullPolicy: Always
 
   ksm:
@@ -231,11 +231,11 @@ imagePullSecret:
 resources:
   smartAgent:
     cpu:
-      requests: "500m"
-      limits: "500m"
+      requests: "1000m"
+      limits: "1000m"
     memory:
-      requests: "1024Mi"
-      limits: "1024Mi"
+      requests: "2Gi"
+      limits: "2Gi"
 
   prometheus:
     cpu:

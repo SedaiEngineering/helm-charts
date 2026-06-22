@@ -1,4 +1,4 @@
-{{- if .Values.sedaiSync.enabled }}
+{{- if or .Values.sedaiSync.specControllerEnabled .Values.sedaiSync.sparkControllerEnabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

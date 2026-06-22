@@ -1,4 +1,4 @@
-{{- if .Values.sedaiSync.enabled }}
+{{- if or .Values.sedaiSync.specControllerEnabled .Values.sedaiSync.sparkControllerEnabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

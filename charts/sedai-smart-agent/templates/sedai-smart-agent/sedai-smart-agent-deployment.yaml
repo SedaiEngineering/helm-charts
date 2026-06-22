@@ -102,11 +102,11 @@ spec:
           value: {{ .Values.enableAgentDebugLogs.loggingConfig }}   
         {{- end }}
 
-        {{-  if .Values.sedaiSync.enabled }}
+        {{- if or .Values.sedaiSync.specControllerEnabled .Values.sedaiSync.sparkControllerEnabled }}
         - name: KUBESPECCONTROLLER_BASEURL
           value: "https://sedai-kube-spec-controller-svc.{{ .Release.Namespace }}.svc:8443"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
-          value: "{{ .Values.sedaiSync.enabled }}"
+          value: "true"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
           value: "{{ .Values.sedaiSync.tlsPath }}/ca.crt"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CERT_PATH
@@ -118,7 +118,7 @@ spec:
         - name: KUBERNETES_MASTER
           value: "{{ .Values.kubernetes_master }}"
 
-        {{-  if .Values.sedaiSync.enabled }}
+        {{- if or .Values.sedaiSync.specControllerEnabled .Values.sedaiSync.sparkControllerEnabled }}
         volumeMounts:
           - name: certs
             mountPath: "{{ .Values.sedaiSync.tlsPath }}"
@@ -157,7 +157,7 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
-      {{-  if .Values.sedaiSync.enabled }}
+      {{- if or .Values.sedaiSync.specControllerEnabled .Values.sedaiSync.sparkControllerEnabled }}
       volumes:
         - name: certs
           secret:

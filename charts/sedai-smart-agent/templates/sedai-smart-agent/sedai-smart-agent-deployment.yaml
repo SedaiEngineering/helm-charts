@@ -133,8 +133,8 @@ spec:
           initialDelaySeconds: 120
           periodSeconds: 30
           successThreshold: 1
-          timeoutSeconds: 1          
-          failureThreshold: 3
+          timeoutSeconds: 5
+          failureThreshold: 5
           httpGet:
             path: /agent/health
             port: 8080
@@ -145,9 +145,10 @@ spec:
             path: /agent/health
             port: 8080
             scheme: HTTP
-          failureThreshold: 3
+          failureThreshold: 10
           periodSeconds: 30
           initialDelaySeconds: 40
+          timeoutSeconds: 5
 
         # Container-level security context
         securityContext:

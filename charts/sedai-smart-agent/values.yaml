@@ -55,6 +55,7 @@ sedaiPrometheus:
     retention: '4h'                 # Retention period for Prometheus metrics (e.g., '6h', '1d', '7d')
     gogc: 75                        # Go GC target percentage (default 100). Lower = more frequent GC, lower peak memory.
     autoMemLimitRatio: "0.85"       # automemlimit ratio: GOMEMLIMIT = ratio × cgroup memory limit. Default is 0.9; 0.85 gives more headroom before hard OOM.
+  storageClass: ""                  # StorageClass for Prometheus PVC; empty = cluster default
   nodeSelector: {}                  # Node selector for Prometheus deployment
   tolerations: []                   # Tolerations for Prometheus deployment
   priorityClassName: ""             # Priority class name for Prometheus deployment
@@ -108,6 +109,7 @@ sedaiDcgmExporter:
 
 sedaiVictoriaMetrics:
   retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
+  storageClass: ""                  # StorageClass for Victoria Metrics PVC; empty = cluster default
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
@@ -144,6 +146,8 @@ workload:
     revisionHistoryLimit: 1
   dcgmExporter:
     name: sedai-dcgm-exporter
+  victoriaMetrics:
+    name: sedai-victoria-metrics-server
   beyla:
     name: sedai-beyla
   vmalert:
@@ -164,13 +168,13 @@ image:
   smartAgent:
     name: sedai-agent
     repository: sedai_io/sedai-smart-agent
-    imageTag: v1.25.29
+    imageTag: v1.25.31
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.15
+    imageTag: v3.1.16
     imagePullPolicy: Always
 
   ksm:
@@ -241,11 +245,11 @@ imagePullSecret:
 resources:
   smartAgent:
     cpu:
-      requests: "500m"
-      limits: "500m"
+      requests: "1000m"
+      limits: "1000m"
     memory:
-      requests: "1024Mi"
-      limits: "1024Mi"
+      requests: "2Gi"
+      limits: "2Gi"
 
   prometheus:
     cpu:

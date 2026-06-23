@@ -17,7 +17,7 @@ metadata:
     app.kubernetes.io/name: sedai-victoria-metrics
     app.kubernetes.io/component: networking
     app: server
-  name: sedai-victoria-metrics-server
+  name: {{ .Values.workload.victoriaMetrics.name }}
 spec:
   type: ClusterIP
   ports:

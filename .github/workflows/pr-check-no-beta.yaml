@@ -4,8 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'charts/sedai-smart-agent/Chart.yaml'
 
 jobs:
   check-version:

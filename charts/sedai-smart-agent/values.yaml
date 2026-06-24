@@ -115,8 +115,8 @@ sedaiVictoriaMetrics:
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
   enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default)
 
-sedaiVmalert:
-  enabled: false                    # Enables Sedai-managed vmalert for recording rule evaluation (Spark metrics enrichment)
+kubeflowSparkOptimization:
+  enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment)
   evaluationInterval: "30s"         # Recording rule evaluation interval
   nodeSelector: {}                  # Node selector for vmalert deployment
   tolerations: []                   # Tolerations for vmalert deployment

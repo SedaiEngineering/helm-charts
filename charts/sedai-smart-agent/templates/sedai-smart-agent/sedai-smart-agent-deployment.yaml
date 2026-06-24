@@ -110,7 +110,7 @@ spec:
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
           value: "{{ .Values.sedaiSync.tlsPath }}/ca.crt"
         - name: SEDAI_SPARK_KUBEFLOW_ENABLED
-          value: "{{ .Values.sedaiVmalert.enabled }}"
+          value: "{{ .Values.kubeflowSparkOptimization.enabled }}"
         - name: SEDAI_SPARK_KUBEFLOW_INITIAL_DELAY
           value: 1m
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CERT_PATH

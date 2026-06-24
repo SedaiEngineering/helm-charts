@@ -21,7 +21,7 @@ sedaiBeyla:
   port: 8997
 sedaiSync:
   enabled: true
-sedaiVmalert:
+kubeflowSparkOptimization:
   enabled: true
 
 image:

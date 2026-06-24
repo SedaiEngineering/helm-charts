@@ -1,4 +1,4 @@
-{{- if .Values.sedaiVmalert.enabled }}
+{{- if .Values.kubeflowSparkOptimization.enabled }}
 ---
 # Source: vmalert/templates/service.yaml
 apiVersion: v1

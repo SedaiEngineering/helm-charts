@@ -1,4 +1,4 @@
-{{- if .Values.sedaiSync.enabled }}
+{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
 {{- $ca := genCA "sedai-kube-spec-controller-ca" 3650 }}
 {{- $cert := genSignedCert (printf "sedai-kube-spec-controller-svc.%s" .Release.Namespace) (list) (list (printf "sedai-kube-spec-controller-svc.%s.svc" .Release.Namespace)) 3650 $ca }}
 apiVersion: v1
@@ -20,6 +20,7 @@ data:
   tls.key: {{ $cert.Key | b64enc }}
 type: kubernetes.io/tls
 
+{{- if .Values.sedaiSync.enabled }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
@@ -64,4 +65,47 @@ webhooks:
     admissionReviewVersions: ["v1"]
     sideEffects: None
     timeoutSeconds: 1
+{{- end }}
+
+{{- if .Values.kubeflowSparkOptimization.enabled }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: sedai-kube-spec-controller-spark-mutation-webhook
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+webhooks:
+  - name: sedai-kube-spec-controller-svc.{{ .Release.Namespace }}.svc
+    clientConfig:
+      service:
+        name: sedai-kube-spec-controller-svc
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate-kubeflow-spark"
+        port: 8443
+      caBundle: {{ $ca.Cert | b64enc }}
+    rules:
+      - apiGroups: ["sparkoperator.k8s.io"]
+        apiVersions: ["v1beta2"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["sparkapplications"]
+        scope: Namespaced
+    failurePolicy: "Ignore"
+    namespaceSelector:
+      matchLabels:
+        sedai-spark-optimization-enabled: "true"
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"
+          operator: NotIn
+          values: ["{{ .Release.Namespace }}"]
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    timeoutSeconds: 1
+{{- end }}
 {{- end }}

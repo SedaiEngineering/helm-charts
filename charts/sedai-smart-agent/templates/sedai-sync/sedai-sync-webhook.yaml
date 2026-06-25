@@ -1,6 +1,19 @@
 {{- if .Values.sedaiSync.enabled }}
+{{- $existingSecret := lookup "v1" "Secret" .Release.Namespace "sedai-kube-spec-controller-tls" }}
+{{- $caCrt := "" }}
+{{- $tlsCrt := "" }}
+{{- $tlsKey := "" }}
+{{- if $existingSecret }}
+{{- $caCrt = index $existingSecret.data "ca.crt" }}
+{{- $tlsCrt = index $existingSecret.data "tls.crt" }}
+{{- $tlsKey = index $existingSecret.data "tls.key" }}
+{{- else }}
 {{- $ca := genCA "sedai-kube-spec-controller-ca" 3650 }}
 {{- $cert := genSignedCert (printf "sedai-kube-spec-controller-svc.%s" .Release.Namespace) (list) (list (printf "sedai-kube-spec-controller-svc.%s.svc" .Release.Namespace)) 3650 $ca }}
+{{- $caCrt = $ca.Cert | b64enc }}
+{{- $tlsCrt = $cert.Cert | b64enc }}
+{{- $tlsKey = $cert.Key | b64enc }}
+{{- end }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -15,9 +28,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 data:
-  ca.crt: {{ $ca.Cert | b64enc }}
-  tls.crt: {{ $cert.Cert | b64enc }}
-  tls.key: {{ $cert.Key | b64enc }}
+  ca.crt: {{ $caCrt }}
+  tls.crt: {{ $tlsCrt }}
+  tls.key: {{ $tlsKey }}
 type: kubernetes.io/tls
 
 ---
@@ -41,7 +54,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         path: "/mutate/pod"
         port: 8443
-      caBundle: {{ $ca.Cert | b64enc }}
+      caBundle: {{ $caCrt }}
     rules:
       - apiGroups: [""]
         apiVersions: ["v1"]

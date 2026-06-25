@@ -185,7 +185,7 @@ image:
 
   sedaiSync:
     repository: sedai_io/sedai-kube-spec-controller
-    imageTag: 0.1.1
+    imageTag: 0.1.2
     imagePullPolicy: IfNotPresent
 
   busyBox:

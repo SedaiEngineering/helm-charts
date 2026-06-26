@@ -26,8 +26,8 @@ spec:
         {{- toYaml .Values.sedaiSmartScheduler.podSecurityContext | nindent 8 }}
       containers:
         - name: kube-scheduler
-          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.sedaiSmartScheduler.image.repository) }}:{{ include "smart-scheduler.imageTag" . }}"
-          imagePullPolicy: {{ .Values.sedaiSmartScheduler.image.pullPolicy }}
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.scheduler.repository) }}:{{ include "smart-scheduler.imageTag" . }}"
+          imagePullPolicy: {{ .Values.image.scheduler.imagePullPolicy }}
           command:
             - kube-scheduler
             - --config=/etc/kubernetes/scheduler-config.yaml
@@ -54,7 +54,7 @@ spec:
             timeoutSeconds: 15
             failureThreshold: 3
           resources:
-            {{- toYaml .Values.sedaiSmartScheduler.resources | nindent 12 }}
+            {{- toYaml .Values.resources.scheduler | nindent 12 }}
           securityContext:
             {{- toYaml .Values.sedaiSmartScheduler.securityContext | nindent 12 }}
           volumeMounts:

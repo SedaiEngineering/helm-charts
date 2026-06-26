@@ -29,8 +29,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: compactor
-          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.sedaiSmartScheduler.compactor.image.repository) }}:{{ include "smart-scheduler.compactorImageTag" . }}"
-          imagePullPolicy: {{ .Values.sedaiSmartScheduler.compactor.image.pullPolicy }}
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.compactor.repository) }}:{{ include "smart-scheduler.compactorImageTag" . }}"
+          imagePullPolicy: {{ .Values.image.compactor.imagePullPolicy }}
           command:
             - /bin/descheduler
             - --policy-config-file=/policy-dir/policy.yaml
@@ -63,7 +63,7 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           resources:
-            {{- toYaml .Values.sedaiSmartScheduler.compactor.resources | nindent 12 }}
+            {{- toYaml .Values.resources.compactor | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

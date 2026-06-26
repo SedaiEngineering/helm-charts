@@ -123,21 +123,21 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{- define "smart-scheduler.imageTag" -}}
-{{- if .Values.sedaiSmartScheduler.image.tag -}}
-{{- .Values.sedaiSmartScheduler.image.tag -}}
+{{- if .Values.image.scheduler.imageTag -}}
+{{- .Values.image.scheduler.imageTag -}}
 {{- else -}}
 {{- $minor := .Capabilities.KubeVersion.Minor | replace "+" "" | trimSuffix "*" -}}
-{{- $tag := index .Values.sedaiSmartScheduler.image.tagByK8sMinor $minor -}}
-{{- required (printf "Unsupported K8s minor 1.%s for scheduler image. Override sedaiSmartScheduler.image.tag or extend sedaiSmartScheduler.image.tagByK8sMinor." $minor) $tag -}}
+{{- $tag := index .Values.image.scheduler.tagByK8sMinor $minor -}}
+{{- required (printf "Unsupported K8s minor 1.%s for scheduler image. Override image.scheduler.imageTag or extend image.scheduler.tagByK8sMinor." $minor) $tag -}}
 {{- end -}}
 {{- end -}}
 
 {{- define "smart-scheduler.compactorImageTag" -}}
-{{- if .Values.sedaiSmartScheduler.compactor.image.tag -}}
-{{- .Values.sedaiSmartScheduler.compactor.image.tag -}}
+{{- if .Values.image.compactor.imageTag -}}
+{{- .Values.image.compactor.imageTag -}}
 {{- else -}}
 {{- $minor := .Capabilities.KubeVersion.Minor | replace "+" "" | trimSuffix "*" -}}
-{{- $tag := index .Values.sedaiSmartScheduler.compactor.image.tagByK8sMinor $minor -}}
-{{- required (printf "Unsupported K8s minor 1.%s for compactor image. Override sedaiSmartScheduler.compactor.image.tag or extend sedaiSmartScheduler.compactor.image.tagByK8sMinor." $minor) $tag -}}
+{{- $tag := index .Values.image.compactor.tagByK8sMinor $minor -}}
+{{- required (printf "Unsupported K8s minor 1.%s for compactor image. Override image.compactor.imageTag or extend image.compactor.tagByK8sMinor." $minor) $tag -}}
 {{- end -}}
 {{- end -}}

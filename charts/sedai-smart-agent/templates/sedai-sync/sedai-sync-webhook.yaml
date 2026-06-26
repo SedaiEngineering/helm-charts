@@ -94,7 +94,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         path: "/mutate-kubeflow-spark"
         port: 8443
-      caBundle: {{ $ca.Cert | b64enc }}
+      caBundle: {{ $caCrt }}
     rules:
       - apiGroups: ["sparkoperator.k8s.io"]
         apiVersions: ["v1beta2"]

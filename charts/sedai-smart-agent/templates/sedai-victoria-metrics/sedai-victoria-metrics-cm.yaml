@@ -88,15 +88,11 @@ data:
             regex: true
             source_labels:
               - __meta_kubernetes_service_annotation_prometheus_io_scrape
-          # Target ONLY this chart's KSM service. Broader patterns like
-          # `.*kube-state-metrics.*` can match unrelated KSM services in the
-          # same namespace, causing the same KSM pod to be scraped multiple
-          # times (once per matching Service), which produces duplicate
-          # kube_pod_labels series and breaks `group_left` joins in vmalert.
+          # Target kube-state-metrics service directly
           - action: keep
             source_labels:
               - __meta_kubernetes_service_name
-            regex: {{ .Values.workload.ksm.name }}-service
+            regex: .*kube-state-metrics.*|.*ksm.*
           # Use prometheus.io/port annotation for port
           - action: replace
             regex: (.+?)(?::\d+)?;(\d+)

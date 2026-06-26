@@ -154,6 +154,18 @@ rules:
   - patch
   - update
   - watch
+{{- if .Values.kubeflowSparkOptimization.enabled }}
+- apiGroups:
+  - sparkoperator.k8s.io
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+{{- end }}
 - verbs:
   - get
   nonResourceURLs:

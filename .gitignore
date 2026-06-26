@@ -2,3 +2,4 @@ tests/
 .vscode/
 pack/
 .idea/
+charts/sedai-smart-agent/custom-values-spark.yaml

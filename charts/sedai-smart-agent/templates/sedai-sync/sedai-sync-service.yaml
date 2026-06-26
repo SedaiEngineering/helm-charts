@@ -1,4 +1,4 @@
-{{- if .Values.sedaiSync.enabled }}
+{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

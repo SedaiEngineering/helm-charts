@@ -1,0 +1,54 @@
+{{- if .Values.kubeflowSparkOptimization.enabled }}
+---
+# Source: vmalert/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Values.workload.vmalert.name }}-rules"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: sedai-vmalert
+    app: vmalert
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  spark-rules.yml: |
+    groups:
+      - name: spark_container_metrics
+        interval: 30s
+        rules:
+          - record: spark:container_memory_working_set_bytes
+            expr: |
+              container_memory_working_set_bytes{container!="", container!="POD"}
+                * on(pod, namespace) group_left(spark_role, spark_app_name, spark_app_selector)
+                label_replace(
+                  label_replace(
+                    label_replace(
+                      kube_pod_labels{label_spark_app_name!=""},
+                      "spark_role", "$1", "label_spark_role", "(.*)"
+                    ),
+                    "spark_app_name", "$1", "label_spark_app_name", "(.*)"
+                  ),
+                  "spark_app_selector", "$1", "label_spark_app_selector", "(.*)"
+                )
+          - record: spark:container_cpu_usage_seconds_total
+            expr: |
+              container_cpu_usage_seconds_total{container!="", container!="POD"}
+                * on(pod, namespace) group_left(spark_role, spark_app_name, spark_app_selector)
+                label_replace(
+                  label_replace(
+                    label_replace(
+                      kube_pod_labels{label_spark_app_name!=""},
+                      "spark_role", "$1", "label_spark_role", "(.*)"
+                    ),
+                    "spark_app_name", "$1", "label_spark_app_name", "(.*)"
+                  ),
+                  "spark_app_selector", "$1", "label_spark_app_selector", "(.*)"
+                )
+{{- end }}

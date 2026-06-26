@@ -1,0 +1,31 @@
+{{- if .Values.kubeflowSparkOptimization.enabled }}
+---
+# Source: vmalert/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.workload.vmalert.name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: sedai-vmalert
+    app.kubernetes.io/component: networking
+    app: vmalert
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8880
+      protocol: TCP
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: sedai-vmalert
+    app: vmalert
+{{- end }}

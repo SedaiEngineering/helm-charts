@@ -1,0 +1,25 @@
+{{- if .Values.sedaiSmartScheduler.enabled }}
+# Bootstrap config. Real profiles are populated at runtime by Sedai's smart-agent.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+  annotations:
+    sedai.io/managed-by: smart-agent
+data:
+  scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: {{ .Values.sedaiSmartScheduler.leaderElection.enabled }}
+      {{- if .Values.sedaiSmartScheduler.leaderElection.enabled }}
+      resourceName: {{ .Values.sedaiSmartScheduler.leaderElection.leaseName | quote }}
+      resourceNamespace: {{ .Release.Namespace | quote }}
+      resourceLock: leases
+      {{- end }}
+    profiles:
+      - schedulerName: sedai-scheduler-bootstrap
+{{- end }}

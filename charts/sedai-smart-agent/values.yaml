@@ -96,6 +96,52 @@ sedaiGrafanaAlloy:
   tolerations: []                   # Tolerations for Grafana Alloy daemonset
   priorityClassName: ""             # Priority class name for Grafana Alloy daemonset
 
+sedaiSmartScheduler:
+  enabled: true                     # Enables the Sedai smart scheduler (workload-aware bin-packing scheduler)
+
+  nameOverride: ""
+  fullnameOverride: ""
+
+  replicaCount: 2
+
+  scheduler:
+    verbosity: 2                    # klog verbosity: 0=silent, 2=normal, 4=debug
+
+  leaderElection:
+    enabled: true
+    leaseName: sedai-smart-scheduler
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+
+  rbac:
+    create: true
+
+  # Compactor: evicts pods from underutilized nodes so cluster-autoscaler can drain them.
+  # Off by default; smart-agent enables when policy permits.
+  compactor:
+    enabled: false
+    replicas: 1
+    reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
+    verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
+    leaderElection:
+      enabled: false
+      leaseName: sedai-smart-compactor
+
 sedaiDcgmExporter:
   enabled: false
   port: 9400                        # Port for DCGM exporter metrics endpoint
@@ -218,6 +264,26 @@ image:
     imageTag: v1.138.0-scratch
     imagePullPolicy: IfNotPresent
 
+  scheduler:
+    repository: sedai_io/seda-kube-scheduler
+    imageTag: ""                    # Leave empty to auto-select via tagByK8sMinor
+    imagePullPolicy: IfNotPresent
+    tagByK8sMinor:
+      "31": "v0.31.8"
+      "32": "v0.32.7"
+      "33": "v0.33.5"
+      "34": "v0.34.7"
+
+  compactor:
+    repository: sedai_io/seda-kube-descheduler
+    imageTag: ""                    # Leave empty to auto-select via tagByK8sMinor
+    imagePullPolicy: IfNotPresent
+    tagByK8sMinor:
+      "31": "v0.36.0"
+      "32": "v0.36.0"
+      "33": "v0.36.0"
+      "34": "v0.36.0"
+
 # -------------------------------------------------------------------
 # Docker Image Pull Secret
 # -------------------------------------------------------------------
@@ -287,6 +353,22 @@ resources:
       requests: "4096Mi"
       limits: "4096Mi"
     storage: "60Gi"                    # Persistent volume storage for Victoria Metrics
+
+  scheduler:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  compactor:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
 
 # -------------------------------------------------------------------
 # Smart Agent Configurations

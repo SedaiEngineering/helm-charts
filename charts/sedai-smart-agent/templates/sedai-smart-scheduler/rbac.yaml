@@ -1,0 +1,52 @@
+# Scheduler RBAC: binds the smart-agent SA to the K8s built-in scheduler roles
+# (system:kube-scheduler, system:volume-scheduler, extension-apiserver-authn).
+{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.rbac.create }}
+# Adds pods/binding create, pods/status patch, events create.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-as-kube-scheduler
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-scheduler
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "smart-scheduler.serviceAccountName" . }}
+    namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
+---
+# Adds PV/PVC updates for volume-aware scheduling.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-as-volume-scheduler
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:volume-scheduler
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "smart-scheduler.serviceAccountName" . }}
+    namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
+---
+# Read one ConfigMap in kube-system for the scheduler's authn delegator.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-extension-apiserver-authn
+  namespace: kube-system
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "smart-scheduler.serviceAccountName" . }}
+    namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
+{{- end }}

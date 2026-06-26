@@ -90,7 +90,9 @@ sedai-smart-scheduler helpers — used by templates/sedai-smart-scheduler/*
 {{- end -}}
 
 {{- define "smart-scheduler.fullname" -}}
-{{- if .Values.sedaiSmartScheduler.fullnameOverride -}}
+{{- if .Values.workload.smartScheduler.name -}}
+{{- .Values.workload.smartScheduler.name | trunc 63 | trimSuffix "-" -}}
+{{- else if .Values.sedaiSmartScheduler.fullnameOverride -}}
 {{- .Values.sedaiSmartScheduler.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- $name := default "sedai-smart-scheduler" .Values.sedaiSmartScheduler.nameOverride -}}

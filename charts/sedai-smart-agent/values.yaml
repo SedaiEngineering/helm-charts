@@ -134,7 +134,7 @@ sedaiSmartScheduler:
   # Compactor: evicts pods from underutilized nodes so cluster-autoscaler can drain them.
   # Off by default; smart-agent enables when policy permits.
   compactor:
-    enabled: false
+    enabled: true
     replicas: 1
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug

@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sedai-smart-compactor-config
+  name: {{ .Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}-config
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}

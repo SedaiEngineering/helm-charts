@@ -2,7 +2,7 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: sedai-smart-compactor
+  name: {{ .Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}

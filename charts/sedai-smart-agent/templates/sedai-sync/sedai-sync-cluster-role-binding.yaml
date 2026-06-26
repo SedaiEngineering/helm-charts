@@ -1,0 +1,23 @@
+{{- if .Values.sedaiSync.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sedai-kube-spec-controller-role-binding
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: sedai-kube-spec-controller-role
+subjects:
+- kind: ServiceAccount
+  name: sedai-kube-spec-controller-sa
+  namespace: {{ .Release.Namespace }}
+{{- end }}

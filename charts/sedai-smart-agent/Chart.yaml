@@ -4,3 +4,4 @@ description: Helm Chart for deploying Sedai Smart Agent
 type: application
 version: 1.4.63-beta.5
 appVersion: "1.4.63-beta.5"
+

@@ -204,8 +204,8 @@ enableAgentDebugLogs:
 image:
   smartAgent:
     name: sedai-agent
-    repository: sedai_io/sedai-smart-agent
-    imageTag: v1.25.31
+    repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent
+    imageTag: v1.2.0
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
@@ -230,8 +230,8 @@ image:
     imagePullPolicy: IfNotPresent
 
   sedaiSync:
-    repository: sedai_io/sedai-kube-spec-controller
-    imageTag: 0.1.1
+    repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-kube-spec-controller
+    imageTag: dev-latest
     imagePullPolicy: IfNotPresent
 
   busyBox:

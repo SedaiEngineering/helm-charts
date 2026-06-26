@@ -1,0 +1,40 @@
+name: Release Charts (Dev)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'charts/sedai-smart-agent/Chart.yaml'
+
+jobs:
+  build:
+    name: Sedai Chart Release (Dev)
+    runs-on: sedai-arc-helm-charts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Validate beta version
+        run: |
+          VERSION=$(grep -E "^version:" charts/sedai-smart-agent/Chart.yaml | awk '{print $2}')
+          if [[ "$VERSION" != *"beta"* ]]; then
+            echo "Error: Chart version '$VERSION' must include a beta pre-release tag on the dev branch (e.g. 1.4.63-beta.1)"
+            exit 1
+          fi
+          echo "Version: $VERSION"
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          mark_as_latest: false
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

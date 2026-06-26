@@ -1,0 +1,15 @@
+{{- if and .Values.sedaiSmartScheduler.enabled (gt (int .Values.sedaiSmartScheduler.replicaCount) 1) -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: sedai-smart-scheduler
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

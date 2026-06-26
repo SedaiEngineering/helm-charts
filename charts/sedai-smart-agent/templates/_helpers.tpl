@@ -81,3 +81,63 @@ Usage: {{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Va
 {{- .repository -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+sedai-smart-scheduler helpers — used by templates/sedai-smart-scheduler/*
+*/}}
+{{- define "smart-scheduler.name" -}}
+{{- default "sedai-smart-scheduler" .Values.sedaiSmartScheduler.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "smart-scheduler.fullname" -}}
+{{- if .Values.sedaiSmartScheduler.fullnameOverride -}}
+{{- .Values.sedaiSmartScheduler.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "sedai-smart-scheduler" .Values.sedaiSmartScheduler.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "smart-scheduler.labels" -}}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{ include "smart-scheduler.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "smart-scheduler.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "smart-scheduler.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "smart-scheduler.serviceAccountName" -}}
+{{- printf "%s-sa" .Values.workload.smartAgent.name -}}
+{{- end -}}
+
+{{- define "smart-scheduler.serviceAccountNamespace" -}}
+{{- .Release.Namespace -}}
+{{- end -}}
+
+{{- define "smart-scheduler.imageTag" -}}
+{{- if .Values.image.scheduler.imageTag -}}
+{{- .Values.image.scheduler.imageTag -}}
+{{- else -}}
+{{- $minor := .Capabilities.KubeVersion.Minor | replace "+" "" | trimSuffix "*" -}}
+{{- $tag := index .Values.image.scheduler.tagByK8sMinor $minor -}}
+{{- required (printf "Unsupported K8s minor 1.%s for scheduler image. Override image.scheduler.imageTag or extend image.scheduler.tagByK8sMinor." $minor) $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "smart-scheduler.compactorImageTag" -}}
+{{- if .Values.image.compactor.imageTag -}}
+{{- .Values.image.compactor.imageTag -}}
+{{- else -}}
+{{- $minor := .Capabilities.KubeVersion.Minor | replace "+" "" | trimSuffix "*" -}}
+{{- $tag := index .Values.image.compactor.tagByK8sMinor $minor -}}
+{{- required (printf "Unsupported K8s minor 1.%s for compactor image. Override image.compactor.imageTag or extend image.compactor.tagByK8sMinor." $minor) $tag -}}
+{{- end -}}
+{{- end -}}

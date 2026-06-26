@@ -1,0 +1,80 @@
+{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.compactor.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sedai-smart-compactor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+    app: sedai-smart-compactor
+spec:
+  replicas: {{ .Values.sedaiSmartScheduler.compactor.replicas }}
+  selector:
+    matchLabels:
+      app: sedai-smart-compactor
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: sedai-smart-compactor
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/sedai-smart-scheduler/compactor-configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "smart-scheduler.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: compactor
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.compactor.repository) }}:{{ include "smart-scheduler.compactorImageTag" . }}"
+          imagePullPolicy: {{ .Values.image.compactor.imagePullPolicy }}
+          command:
+            - /bin/descheduler
+            - --policy-config-file=/policy-dir/policy.yaml
+            - --descheduling-interval={{ .Values.sedaiSmartScheduler.compactor.reconcileInterval }}
+            - --leader-elect={{ .Values.sedaiSmartScheduler.compactor.leaderElection.enabled }}
+            {{- if .Values.sedaiSmartScheduler.compactor.leaderElection.enabled }}
+            - --leader-elect-resource-name={{ .Values.sedaiSmartScheduler.compactor.leaderElection.leaseName }}
+            - --leader-elect-resource-namespace={{ .Release.Namespace }}
+            {{- end }}
+            - --v={{ .Values.sedaiSmartScheduler.compactor.verbosity }}
+          ports:
+            - name: https
+              containerPort: 10258
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 10258
+              scheme: HTTPS
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 10258
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources.compactor | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: policy
+              mountPath: /policy-dir
+              readOnly: true
+      volumes:
+        - name: policy
+          configMap:
+            name: sedai-smart-compactor-config
+{{- end }}

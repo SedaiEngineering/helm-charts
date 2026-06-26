@@ -1,0 +1,15 @@
+{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.compactor.enabled (gt (int .Values.sedaiSmartScheduler.compactor.replicas) 1) -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sedai-smart-compactor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: sedai-smart-compactor
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

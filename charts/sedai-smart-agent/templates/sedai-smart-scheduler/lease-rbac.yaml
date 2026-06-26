@@ -1,0 +1,41 @@
+# Leader-election RBAC: grants the smart-agent SA permission to acquire/renew
+# coordination.k8s.io/Lease objects so scheduler/compactor replicas can elect a leader.
+{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.rbac.create (or .Values.sedaiSmartScheduler.leaderElection.enabled .Values.sedaiSmartScheduler.compactor.leaderElection.enabled) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-leases
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    resourceNames:
+      {{- if .Values.sedaiSmartScheduler.leaderElection.enabled }}
+      - {{ .Values.sedaiSmartScheduler.leaderElection.leaseName }}
+      {{- end }}
+      {{- if .Values.sedaiSmartScheduler.compactor.leaderElection.enabled }}
+      - {{ .Values.sedaiSmartScheduler.compactor.leaderElection.leaseName }}
+      {{- end }}
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-leases
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "smart-scheduler.fullname" . }}-leases
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "smart-scheduler.serviceAccountName" . }}
+    namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
+{{- end }}

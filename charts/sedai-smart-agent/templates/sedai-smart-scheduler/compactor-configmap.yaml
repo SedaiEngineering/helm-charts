@@ -1,0 +1,21 @@
+# Bootstrap policy. No strategy plugins enabled — Sedai's smart-agent populates
+# the real policy at runtime; until then, no evictions happen.
+{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.compactor.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sedai-smart-compactor-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+  annotations:
+    sedai.io/managed-by: smart-agent
+data:
+  policy.yaml: |
+    apiVersion: descheduler/v1alpha2
+    kind: DeschedulerPolicy
+    profiles:
+      - name: sedai-compactor-bootstrap
+        pluginConfig:
+          - name: DefaultEvictor
+{{- end }}

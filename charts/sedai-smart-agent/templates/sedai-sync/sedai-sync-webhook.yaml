@@ -77,7 +77,7 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: sedai-kube-spec-controller-spark-mutation-webhook
+  name: sedai-kube-spec-controller-spark-mutation-webhook-{{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}

@@ -106,7 +106,7 @@ spec:
         - name: KUBESPECCONTROLLER_BASEURL
           value: "https://sedai-kube-spec-controller-svc.{{ .Release.Namespace }}.svc:8443"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
-          value: "{{ .Values.sedaiSync.enabled }}"
+          value: "{{ or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
           value: "{{ .Values.sedaiSync.tlsPath }}/ca.crt"
         - name: SEDAI_SPARK_KUBEFLOW_ENABLED

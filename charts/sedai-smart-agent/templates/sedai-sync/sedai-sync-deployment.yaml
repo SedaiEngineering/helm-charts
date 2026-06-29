@@ -19,7 +19,8 @@ spec:
   selector:
     matchLabels:
       app: "sedai-kube-spec-controller"
-  strategy: {}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:

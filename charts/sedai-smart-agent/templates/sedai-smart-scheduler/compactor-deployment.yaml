@@ -41,10 +41,6 @@ spec:
             - --leader-elect-resource-namespace={{ .Release.Namespace }}
             {{- end }}
             - --v={{ .Values.sedaiSmartScheduler.compactor.verbosity }}
-            - --logging-format=json
-            {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
-            - --log-file=/logs/compactor.log
-            {{- end }}
           ports:
             - name: https
               containerPort: 10258
@@ -77,42 +73,8 @@ spec:
             - name: policy
               mountPath: /policy-dir
               readOnly: true
-            {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
-            - name: logs
-              mountPath: /logs
-            {{- end }}
-        {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
-        - name: log-forwarder
-          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.logForwarder.repository) }}:{{ .Values.image.logForwarder.imageTag }}"
-          imagePullPolicy: {{ .Values.image.logForwarder.imagePullPolicy }}
-          envFrom:
-            - secretRef:
-                name: "{{ .Values.workload.smartAgent.secret }}"
-            - secretRef:
-                name: sedai-smart-scheduler-loki-secret
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            readOnlyRootFilesystem: true
-          volumeMounts:
-            - name: logs
-              mountPath: /logs
-              readOnly: true
-            - name: log-forwarder-config
-              mountPath: /fluent-bit/etc/fluent-bit.conf
-              subPath: fluent-bit.conf
-              readOnly: true
-        {{- end }}
       volumes:
         - name: policy
           configMap:
             name: {{ .Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}-config
-        {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
-        - name: logs
-          emptyDir: {}
-        - name: log-forwarder-config
-          configMap:
-            name: {{ .Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}-log-forwarder-config
-        {{- end }}
 {{- end }}

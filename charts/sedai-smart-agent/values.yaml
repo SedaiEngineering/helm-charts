@@ -142,18 +142,6 @@ sedaiSmartScheduler:
       enabled: false
       leaseName: sedai-smart-compactor
 
-  # Log forwarder: Fluent Bit sidecar that ships scheduler/compactor logs to Loki.
-  # Mirrors the log4j2 Loki appender used by the smart-agent.
-  logForwarder:
-    enabled: false
-    loki:
-      host: gw.sedai.cloud
-      port: "443"
-      username: ""
-      password: ""
-    # tenant and accountId are read automatically from the sedai-smart-agent secret
-    # (populated by the enrollment job as AGENT_TENANT and AGENT_ACCOUNTID)
-
 sedaiDcgmExporter:
   enabled: false
   port: 9400                        # Port for DCGM exporter metrics endpoint
@@ -210,10 +198,6 @@ workload:
     name: sedai-beyla
   vmalert:
     name: sedai-vmalert
-  smartScheduler:
-    name: sedai-smart-scheduler
-  smartCompactor:
-    name: sedai-smart-compactor
 
 # -------------------------------------------------------------------
 # Debug Logging
@@ -312,11 +296,6 @@ image:
       "32": "v0.36.0"
       "33": "v0.36.0"
       "34": "v0.36.0"
-
-  logForwarder:
-    repository: sedai_io/fluent/fluent-bit
-    imageTag: "3.3.2"
-    imagePullPolicy: IfNotPresent
 
 # -------------------------------------------------------------------
 # Docker Image Pull Secret

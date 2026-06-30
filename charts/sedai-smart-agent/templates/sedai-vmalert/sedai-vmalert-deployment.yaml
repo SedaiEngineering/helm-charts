@@ -66,8 +66,8 @@ spec:
             - --envflag.prefix=VM_
             - --httpListenAddr=:8880
             - --loggerFormat=json
-            - --datasource.url=http://sedai-victoria-metrics-server:8428
-            - --remoteWrite.url=http://sedai-victoria-metrics-server:8428
+            - --datasource.url=http://{{ .Values.workload.victoriaMetrics.name }}:8428
+            - --remoteWrite.url=http://{{ .Values.workload.victoriaMetrics.name }}:8428
             - --rule=/etc/vmalert/rules/spark-rules.yml
             - --evaluationInterval={{ .Values.kubeflowSparkOptimization.evaluationInterval }}
           ports:

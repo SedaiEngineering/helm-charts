@@ -77,7 +77,7 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: sedai-kube-spec-controller-spark-mutation-webhook
+  name: sedai-kube-spec-controller-spark-mutation-webhook-{{ .Release.Namespace }}
   labels:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
@@ -92,7 +92,7 @@ webhooks:
       service:
         name: sedai-kube-spec-controller-svc
         namespace: {{ .Release.Namespace }}
-        path: "/mutate-kubeflow-spark"
+        path: "/mutate/kubeflow-spark"
         port: 8443
       caBundle: {{ $caCrt }}
     rules:

@@ -92,7 +92,7 @@ webhooks:
       service:
         name: sedai-kube-spec-controller-svc
         namespace: {{ .Release.Namespace }}
-        path: "/mutate-kubeflow-spark"
+        path: "/mutate/kubeflow-spark"
         port: 8443
       caBundle: {{ $caCrt }}
     rules:

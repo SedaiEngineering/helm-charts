@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sedai-kube-spec-controller-config
+  name: "{{ .Values.workload.kubeSpecController.name }}-config"
   namespace: {{ .Values.namespace }}
 data:
   # This key becomes the filename inside the pod

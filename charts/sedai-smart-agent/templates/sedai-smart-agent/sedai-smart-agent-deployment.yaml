@@ -104,7 +104,7 @@ spec:
 
         {{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
         - name: KUBESPECCONTROLLER_BASEURL
-          value: "https://sedai-kube-spec-controller-svc.{{ .Release.Namespace }}.svc:8443"
+          value: "https://{{ .Values.workload.kubeSpecController.name }}-svc.{{ .Release.Namespace }}.svc:8443"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
           value: "{{ or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
@@ -165,5 +165,5 @@ spec:
       volumes:
         - name: certs
           secret:
-            secretName: sedai-kube-spec-controller-tls
+            secretName: "{{ .Values.workload.kubeSpecController.name }}-tls"
       {{- end }}

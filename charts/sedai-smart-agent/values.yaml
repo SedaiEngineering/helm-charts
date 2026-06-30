@@ -67,7 +67,7 @@ sedaiKSM:
   priorityClassName: ""             # Priority class name for KSM deployment
 
 sedaiSync:
-  enabled: false                    # Enables Sedai sync controller for workload auto-optimization
+  enabled: true                    # Enables Sedai sync controller for workload auto-optimization
   tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
   sqlitePath: "/data"               # SQLite DB path (for local storage)
   logLevel: "INFO"                 # Logging level: trace, debug, info, warn, error
@@ -164,7 +164,7 @@ sedaiVictoriaMetrics:
   enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default)
 
 kubeflowSparkOptimization:
-  enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment)
+  enabled: true                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment)
   evaluationInterval: "30s"         # Recording rule evaluation interval
   nodeSelector: {}                  # Node selector for vmalert deployment
   tolerations: []                   # Tolerations for vmalert deployment
@@ -204,6 +204,8 @@ workload:
     name: sedai-smart-scheduler
   smartCompactor:
     name: sedai-smart-compactor
+  kubeSpecController:
+    name: sedai-kube-spec-controller
 
 # -------------------------------------------------------------------
 # Debug Logging

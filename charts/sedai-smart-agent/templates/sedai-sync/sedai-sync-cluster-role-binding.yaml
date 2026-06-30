@@ -1,8 +1,8 @@
-{{- if .Values.sedaiSync.enabled }}
+{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: sedai-kube-spec-controller-role-binding
+  name: "{{ .Values.workload.kubeSpecController.name }}-role-binding"
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
@@ -15,9 +15,9 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: sedai-kube-spec-controller-role
+  name: "{{ .Values.workload.kubeSpecController.name }}-role"
 subjects:
 - kind: ServiceAccount
-  name: sedai-kube-spec-controller-sa
+  name: "{{ .Values.workload.kubeSpecController.name }}-sa"
   namespace: {{ .Release.Namespace }}
 {{- end }}

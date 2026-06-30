@@ -33,6 +33,34 @@ subjects:
     name: {{ include "smart-scheduler.serviceAccountName" . }}
     namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
 ---
+# DRA permissions — not included in system:kube-scheduler for resource.k8s.io
+# (ResourceClaims, ResourceSlices, DeviceClasses added in k8s 1.26+).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-dra
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["resource.k8s.io"]
+    resources: ["resourceclaims", "resourceslices", "deviceclasses"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-dra
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "smart-scheduler.fullname" . }}-dra
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "smart-scheduler.serviceAccountName" . }}
+    namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
+---
 # Read one ConfigMap in kube-system for the scheduler's authn delegator.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

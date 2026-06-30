@@ -73,6 +73,9 @@ spec:
             - name: policy
               mountPath: /policy-dir
               readOnly: true
+      {{- with .Values.sedaiSmartScheduler.compactor.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       volumes:
         - name: policy
           configMap:

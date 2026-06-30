@@ -65,6 +65,9 @@ spec:
         - name: config
           configMap:
             name: {{ include "smart-scheduler.fullname" . }}-config
+      {{- with .Values.sedaiSmartScheduler.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       {{- with .Values.sedaiSmartScheduler.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -111,6 +111,7 @@ sedaiSmartScheduler:
     enabled: true
     leaseName: sedai-smart-scheduler
 
+  priorityClassName: "system-cluster-critical"  # Priority class for the scheduler pod
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -138,6 +139,7 @@ sedaiSmartScheduler:
     replicas: 1
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
+    priorityClassName: "system-cluster-critical"  # Priority class for the compactor pod
     leaderElection:
       enabled: false
       leaseName: sedai-smart-compactor

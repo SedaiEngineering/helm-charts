@@ -198,6 +198,10 @@ workload:
     name: sedai-beyla
   vmalert:
     name: sedai-vmalert
+  smartScheduler:
+    name: sedai-smart-scheduler
+  smartCompactor:
+    name: sedai-smart-compactor
 
 # -------------------------------------------------------------------
 # Debug Logging

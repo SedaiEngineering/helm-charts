@@ -1,15 +1,22 @@
 {{- if .Values.sedaiSmartScheduler.enabled }}
 # Bootstrap config. Real profiles are populated at runtime by Sedai's smart-agent.
+# lookup preserves agent-written data on helm upgrade — only the bootstrap is
+# applied on first install (when the ConfigMap does not yet exist in the cluster).
+{{- $cmName := printf "%s-config" (include "smart-scheduler.fullname" .) }}
+{{- $existing := lookup "v1" "ConfigMap" .Release.Namespace $cmName }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "smart-scheduler.fullname" . }}-config
+  name: {{ $cmName }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}
   annotations:
     sedai.io/managed-by: smart-agent
 data:
+  {{- if $existing }}
+  {{- toYaml $existing.data | nindent 2 }}
+  {{- else }}
   scheduler-config.yaml: |
     apiVersion: kubescheduler.config.k8s.io/v1
     kind: KubeSchedulerConfiguration
@@ -22,4 +29,5 @@ data:
       {{- end }}
     profiles:
       - schedulerName: sedai-scheduler-bootstrap
+  {{- end }}
 {{- end }}

@@ -1,16 +1,23 @@
+{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.compactor.enabled }}
 # Bootstrap policy. No strategy plugins enabled — Sedai's smart-agent populates
 # the real policy at runtime; until then, no evictions happen.
-{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.compactor.enabled }}
+# lookup preserves agent-written data on helm upgrade — bootstrap is only applied
+# on first install (when the ConfigMap does not yet exist in the cluster).
+{{- $cmName := printf "%s-config" (.Values.workload.smartCompactor.name | default "sedai-smart-compactor") }}
+{{- $existing := lookup "v1" "ConfigMap" .Release.Namespace $cmName }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}-config
+  name: {{ $cmName }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}
   annotations:
     sedai.io/managed-by: smart-agent
 data:
+  {{- if $existing }}
+  {{- toYaml $existing.data | nindent 2 }}
+  {{- else }}
   policy.yaml: |
     apiVersion: descheduler/v1alpha2
     kind: DeschedulerPolicy
@@ -18,4 +25,5 @@ data:
       - name: sedai-compactor-bootstrap
         pluginConfig:
           - name: DefaultEvictor
+  {{- end }}
 {{- end }}

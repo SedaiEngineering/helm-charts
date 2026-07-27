@@ -101,7 +101,36 @@ spec:
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SQLITE_DB_PATH
           value: "{{ .Values.sedaiSync.sqlitePath }}/sqlite.db"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME
-          value: "sqlite3"
+          value: "{{ .Values.sedaiSync.dbDriver | default "pgx" }}"
+        {{- if .Values.sedaiSync.db.enabled }}
+        # Shared Postgres store wiring. Present whenever the DB is deployed so the controller can be
+        # switched to it by flipping sedaiSync.dbDriver to "pgx" — no other change needed.
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_HOST
+          value: "sedai-kube-spec-store"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PORT
+          value: "{{ .Values.sedaiSync.db.port }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.sedaiSync.db.existingSecret | default "sedai-kube-spec-store" }}"
+              key: "POSTGRES_DB"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.sedaiSync.db.existingSecret | default "sedai-kube-spec-store" }}"
+              key: "POSTGRES_USER"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.sedaiSync.db.existingSecret | default "sedai-kube-spec-store" }}"
+              key: "POSTGRES_PASSWORD"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_MAX_OPEN_CONNS
+          value: "{{ .Values.sedaiSync.db.maxOpenConns }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_MAX_IDLE_CONNS
+          value: "{{ .Values.sedaiSync.db.maxIdleConns }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_CONN_MAX_LIFETIME_MINS
+          value: "{{ .Values.sedaiSync.db.connMaxLifetimeMins }}"
+        {{- end }}
         - name: ENCODE_LOGS_AS_JSON
           value: "{{ .Values.sedaiSync.encodeLogsAsJson }}"
         - name: CONTAINER_NAME

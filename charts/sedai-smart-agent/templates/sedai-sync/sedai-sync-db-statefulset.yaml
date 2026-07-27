@@ -1,0 +1,108 @@
+{{- if and .Values.sedaiSync.enabled .Values.sedaiSync.db.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "sedai-kube-spec-store"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    app: "sedai-kube-spec-store"
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: "sedai-kube-spec-store"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "sedai-kube-spec-store"
+  template:
+    metadata:
+      labels:
+        app: "sedai-kube-spec-store"
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.globalAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.sedaiSync.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.globalTolerations .Values.sedaiSync.tolerations }}
+      tolerations:
+        {{- with .Values.globalTolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.sedaiSync.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.sedaiSync.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: postgres
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiSyncDb.repository) }}:{{ .Values.image.sedaiSyncDb.imageTag }}"
+        imagePullPolicy: {{ .Values.image.sedaiSyncDb.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: "{{ .Values.resources.sedaiSyncDb.cpu.requests }}"
+            memory: "{{ .Values.resources.sedaiSyncDb.memory.requests }}"
+          limits:
+            cpu: "{{ .Values.resources.sedaiSyncDb.cpu.limits }}"
+            memory: "{{ .Values.resources.sedaiSyncDb.memory.limits }}"
+        ports:
+        - name: postgres
+          containerPort: 5432
+        envFrom:
+        - secretRef:
+            name: "{{ .Values.sedaiSync.db.existingSecret | default "sedai-kube-spec-store" }}"
+        env:
+        # Keep the data in a subdirectory so a lost+found on the volume root does not block init.
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: data
+          mountPath: "/var/lib/postgresql/data"
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "{{ .Values.sedaiSync.db.user }}", "-d", "{{ .Values.sedaiSync.db.name }}"]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "{{ .Values.sedaiSync.db.user }}"]
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          timeoutSeconds: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      {{- with .Values.sedaiSync.db.storageClassName }}
+      storageClassName: {{ . }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.sedaiSync.db.storage | default "2Gi" }}
+{{- end }}

@@ -2,11 +2,11 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: "sedai-kube-spec-controller-db"
+  name: "sedai-kube-spec-store"
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
-    app: "sedai-kube-spec-controller-db"
+    app: "sedai-kube-spec-store"
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -15,15 +15,15 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  serviceName: "sedai-kube-spec-controller-db"
+  serviceName: "sedai-kube-spec-store"
   replicas: 1
   selector:
     matchLabels:
-      app: "sedai-kube-spec-controller-db"
+      app: "sedai-kube-spec-store"
   template:
     metadata:
       labels:
-        app: "sedai-kube-spec-controller-db"
+        app: "sedai-kube-spec-store"
         {{- with .Values.globalLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -65,7 +65,7 @@ spec:
           containerPort: 5432
         envFrom:
         - secretRef:
-            name: "{{ .Values.sedaiSync.db.existingSecret | default "sedai-kube-spec-controller-db" }}"
+            name: "{{ .Values.sedaiSync.db.existingSecret | default "sedai-kube-spec-store" }}"
         env:
         # Keep the data in a subdirectory so a lost+found on the volume root does not block init.
         - name: PGDATA

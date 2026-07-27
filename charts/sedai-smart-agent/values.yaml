@@ -75,6 +75,28 @@ sedaiSync:
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
   priorityClassName: ""             # Priority class name for Sedai Sync deployment
   encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
+  # Store driver for the spec controller. "sqlite3" (default) keeps the per-pod SQLite on PVC.
+  # Set to "pgx" to serve from the shared Postgres below (db.enabled must be true). Switching an
+  # existing install to "pgx" is the migration flip — see docs; the empty store is repopulated by
+  # the agent's WISB refresh. Only "sqlite3" and "pgx" are supported.
+  dbDriver: "sqlite3"
+  # Shared in-cluster Postgres store for the spec controller. Deployed alongside sedaiSync by
+  # default; when dbDriver stays "sqlite3" it is provisioned-but-idle (PGSQL_* env is wired so the
+  # only step to migrate is flipping dbDriver to "pgx"). Set db.enabled=false to opt out entirely.
+  db:
+    enabled: true                   # Deploy the shared Postgres store for the spec controller
+    name: "sedai_kube_spec_controller_db"   # Postgres database name
+    port: 5432                      # Postgres service/container port
+    user: "postgres"                # Postgres username (used when existingSecret is empty)
+    password: "postgres"            # Postgres password — OVERRIDE in production installs
+    existingSecret: ""              # Name of a pre-created Secret with keys POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB; if set, user/password/name above are ignored
+    storage: "2Gi"                  # PVC size for the Postgres data volume (ReadWriteOnce)
+    storageClassName: ""            # StorageClass for the Postgres PVC ("" = cluster default)
+    # Client connection-pool caps applied by each controller replica (must satisfy
+    # replicas * maxOpenConns <= Postgres max_connections - headroom).
+    maxOpenConns: 20
+    maxIdleConns: 5
+    connMaxLifetimeMins: 30
 
 sedaiNodeExporter:
   enabled: false
@@ -188,6 +210,11 @@ image:
     imageTag: 0.1.4
     imagePullPolicy: IfNotPresent
 
+  sedaiSyncDb:
+    repository: sedai_io/postgres
+    imageTag: 16-alpine
+    imagePullPolicy: IfNotPresent
+
   busyBox:
     repository: sedai_io/busybox
     imageTag: 1.37.0
@@ -262,7 +289,15 @@ resources:
       requests: "1024Mi"
       limits: "1024Mi"
     storage: "2Gi"                      # Persistent volume storage for SQLite database
-  
+
+  sedaiSyncDb:
+    cpu:
+      requests: "100m"
+      limits: "1"
+    memory:
+      requests: "256Mi"
+      limits: "512Mi"
+
   sedaiBeyla:
     cpu:
       requests: "500m"

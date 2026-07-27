@@ -1,0 +1,26 @@
+{{- if and .Values.sedaiSync.enabled .Values.sedaiSync.db.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "sedai-kube-spec-controller-db"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    app: "sedai-kube-spec-controller-db"
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ports:
+  - name: "postgres"
+    port: {{ .Values.sedaiSync.db.port }}
+    targetPort: 5432
+    protocol: TCP
+  selector:
+    app: "sedai-kube-spec-controller-db"
+  type: ClusterIP
+{{- end }}

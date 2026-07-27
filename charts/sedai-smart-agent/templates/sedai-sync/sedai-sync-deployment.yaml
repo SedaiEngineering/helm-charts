@@ -101,7 +101,7 @@ spec:
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SQLITE_DB_PATH
           value: "{{ .Values.sedaiSync.sqlitePath }}/sqlite.db"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME
-          value: "{{ include "sedai-smart-agent.specControllerDriver" . }}"
+          value: "{{ .Values.sedaiSync.dbDriver | default "pgx" }}"
         {{- if .Values.sedaiSync.db.enabled }}
         # Shared Postgres store wiring. Present whenever the DB is deployed so the controller can be
         # switched to it by flipping sedaiSync.dbDriver to "pgx" — no other change needed.

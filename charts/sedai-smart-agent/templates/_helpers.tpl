@@ -81,3 +81,38 @@ Usage: {{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Va
 {{- .repository -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Resolves the spec-controller store driver, honouring the "pgx for new installs, existing
+customers flip manually" policy:
+  1. If sedaiSync.dbDriver is set explicitly, it always wins (the manual flip; also the escape hatch).
+  2. Else, if the controller Deployment already exists, PRESERVE its current driver — so an existing
+     SQLite customer is never auto-migrated on a `helm upgrade`; they stay put until they set
+     dbDriver=pgx themselves.
+  3. Else (brand-new install, no existing Deployment) default to "pgx" — greenfield goes straight to
+     the shared Postgres.
+Note: `lookup` returns empty during `helm template`/`--dry-run`, so previews render "pgx"; the
+real install/upgrade path resolves correctly.
+*/}}
+{{- define "sedai-smart-agent.specControllerDriver" -}}
+{{- if .Values.sedaiSync.dbDriver -}}
+{{- .Values.sedaiSync.dbDriver -}}
+{{- else -}}
+{{- $dep := lookup "apps/v1" "Deployment" .Release.Namespace "sedai-kube-spec-controller" -}}
+{{- if $dep -}}
+{{- $driver := "sqlite3" -}}
+{{- range $c := $dep.spec.template.spec.containers -}}
+{{- if eq $c.name "sedai-kube-spec-controller" -}}
+{{- range $e := $c.env -}}
+{{- if eq $e.name "SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME" -}}
+{{- $driver = $e.value -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $driver -}}
+{{- else -}}
+pgx
+{{- end -}}
+{{- end -}}
+{{- end -}}

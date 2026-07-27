@@ -75,11 +75,14 @@ sedaiSync:
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
   priorityClassName: ""             # Priority class name for Sedai Sync deployment
   encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
-  # Store driver for the spec controller. "sqlite3" (default) keeps the per-pod SQLite on PVC.
-  # Set to "pgx" to serve from the shared Postgres below (db.enabled must be true). Switching an
-  # existing install to "pgx" is the migration flip — see docs; the empty store is repopulated by
-  # the agent's WISB refresh. Only "sqlite3" and "pgx" are supported.
-  dbDriver: "sqlite3"
+  # Store driver for the spec controller. Leave EMPTY for the default policy:
+  #   * brand-new install  -> "pgx"     (greenfield goes straight to the shared Postgres below)
+  #   * existing install   -> preserved (an existing SQLite customer is never auto-migrated on a
+  #                                       helm upgrade — they stay on sqlite3 until they flip)
+  # Set explicitly to force a value: "pgx" is the manual migration flip for an existing customer
+  # (the empty store repopulates via the agent's WISB refresh); "sqlite3" pins/rolls back to SQLite.
+  # Only "sqlite3" and "pgx" are supported. db.enabled must be true to use "pgx".
+  dbDriver: ""
   # Shared in-cluster Postgres store for the spec controller. Deployed alongside sedaiSync by
   # default; when dbDriver stays "sqlite3" it is provisioned-but-idle (PGSQL_* env is wired so the
   # only step to migrate is flipping dbDriver to "pgx"). Set db.enabled=false to opt out entirely.

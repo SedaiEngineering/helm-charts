@@ -75,6 +75,8 @@ sedaiSync:
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
   priorityClassName: ""             # Priority class name for Sedai Sync deployment
   encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
+  httpsPort: "8443"
+  isHostAddress: false
 
 sedaiNodeExporter:
   enabled: false

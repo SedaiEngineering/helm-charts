@@ -54,7 +54,7 @@ webhooks:
         name: "{{ .Values.workload.kubeSpecController.name }}-svc"
         namespace: {{ .Release.Namespace }}
         path: "/mutate/pod"
-        port: {{ .Values.sedaiSync.httpsPort }}
+        port: {{ .Values.sedaiSync.port }}
       caBundle: {{ $caCrt }}
     rules:
       - apiGroups: [""]
@@ -93,7 +93,7 @@ webhooks:
         name: "{{ .Values.workload.kubeSpecController.name }}-svc"
         namespace: {{ .Release.Namespace }}
         path: "/mutate/kubeflow-spark"
-        port: {{ .Values.sedaiSync.httpsPort }}
+        port: {{ .Values.sedaiSync.port }}
       caBundle: {{ $caCrt }}
     rules:
       - apiGroups: ["sparkoperator.k8s.io"]

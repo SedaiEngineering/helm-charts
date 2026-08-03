@@ -17,8 +17,8 @@ metadata:
 spec:
   ports:
   - name: "api"
-    port: {{ .Values.sedaiSync.httpsPort }}
-    targetPort: {{ .Values.sedaiSync.httpsPort }}
+    port: {{ .Values.sedaiSync.port }}
+    targetPort: {{ .Values.sedaiSync.port }}
     protocol: TCP
   selector:
     app: "{{ .Values.workload.kubeSpecController.name }}"

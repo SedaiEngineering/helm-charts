@@ -88,7 +88,7 @@ spec:
             cpu: "{{ .Values.resources.sedaiSync.cpu.limits }}"
             memory: "{{ .Values.resources.sedaiSync.memory.limits }}"
         ports:
-          - containerPort: {{ .Values.sedaiSync.httpsPort }}
+          - containerPort: {{ .Values.sedaiSync.port }}
         env:
         - name: CONFIG_PATH
           value: "/etc/sedai/config"
@@ -103,7 +103,7 @@ spec:
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_KEY_PATH
           value: "{{ .Values.sedaiSync.tlsPath }}/tls.key"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_PORT
-          value: "{{ .Values.sedaiSync.httpsPort }}"
+          value: "{{ .Values.sedaiSync.port }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SQLITE_DB_PATH
           value: "{{ .Values.sedaiSync.sqlitePath }}/sqlite.db"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME

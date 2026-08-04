@@ -140,6 +140,19 @@ resources:
     storage: "30Gi"
 ```
 
+#### DCGM Exporter (GPU Metrics)
+
+```yaml
+sedaiDcgmExporter:
+  enabled: true
+  nodeSelector: {}
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Equal"
+      value: "present"
+      effect: "NoSchedule"
+```
+
 ### Optimization Components
 
 #### Sedai Sync (Auto-Optimization)
@@ -150,6 +163,16 @@ sedaiSync:
   logLevel: "error"  # trace, debug, info, warn, error
   nodeSelector: {}
   tolerations: []
+```
+
+#### Kubeflow Spark Optimization
+
+Deploys `vmalert` to evaluate recording rules that enrich Spark job metrics for optimization:
+
+```yaml
+kubeflowSparkOptimization:
+  enabled: true
+  evaluationInterval: "30s"
 ```
 
 #### Application Performance Monitoring
@@ -166,6 +189,36 @@ sedaiGrafanaAlloy:
   enabled: true
   nodeSelector: {}
   tolerations: []
+```
+
+### Scheduling Components
+
+#### Sedai Smart Scheduler
+
+A workload-aware bin-packing scheduler that improves node utilization:
+
+```yaml
+sedaiSmartScheduler:
+  enabled: true
+  replicaCount: 2
+```
+
+Optionally enable the compactor, which evicts pods from underutilized nodes so cluster-autoscaler can drain them (off by default; the Smart Agent enables it when policy permits):
+
+```yaml
+sedaiSmartScheduler:
+  compactor:
+    enabled: true
+    reconcileInterval: 4h
+```
+
+### Karpenter Integration
+
+Opts the cluster in to Sedai-managed Karpenter installation and integration. Enabling this reports `optedEnableKarpenter: true` to Sedai during enrollment, and grants the Smart Agent's ServiceAccount the additional RBAC permissions (namespaces, ServiceAccounts, Services, ConfigMaps, Deployments, and RBAC objects) needed to deploy the Karpenter installer workload on your behalf:
+
+```yaml
+sedaiKarpenter:
+  enabled: true
 ```
 
 ## Global Labels and Annotations

@@ -1,0 +1,28 @@
+{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
+# Standalone PVC for the spec-controller Postgres store, NOT a StatefulSet volumeClaimTemplate.
+# volumeClaimTemplates are immutable, so growing the store would mean recreating the STS with
+# --cascade=orphan; a standalone PVC can be expanded in place (edit spec.resources.requests.storage,
+# StorageClass permitting). Single replica keeps the RWO volume single-writer.
+{{- $dbName := printf "%s-db" .Values.workload.kubeSpecController.name }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $dbName }}-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    app: {{ $dbName | quote }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.resources.sedaiSyncDB.storage | default "2Gi" }}
+{{- end }}

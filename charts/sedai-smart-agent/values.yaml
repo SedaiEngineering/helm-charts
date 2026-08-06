@@ -69,7 +69,6 @@ sedaiKSM:
 sedaiSync:
   enabled: true                    # Enables Sedai sync controller for workload auto-optimization
   tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
-  sqlitePath: "/data"               # SQLite DB path (for local storage)
   logLevel: "INFO"                 # Logging level: trace, debug, info, warn, error
   nodeSelector: {}                  # Node selector for both Sedai Sync and DB deployments
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
@@ -77,6 +76,19 @@ sedaiSync:
   encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
   port: "8443"
   isHostAddress: false
+  # Shared in-namespace Postgres store (replaces the embedded SQLite file). The controller
+  # connects via its pgx backend; core remains the source of truth and re-pushes WISBs, so this
+  # store is rebuildable and runs as a single replica (see shared-db-ha/postgres-devops-requirements.md).
+  db:
+    user: "sedai"
+    name: "sedai_kube_spec_controller_db"
+    # Leave blank: the chart generates a password once and preserves it across upgrades via lookup.
+    # Set explicitly only to adopt an externally-managed credential.
+    password: ""
+    # Client pool bounds. Invariant: replicas x maxOpenConns <= PG max_connections (100) - 20.
+    maxOpenConns: 20
+    maxIdleConns: 5
+    connMaxLifetimeMins: 30
 
 sedaiNodeExporter:
   enabled: false
@@ -256,6 +268,13 @@ image:
     imageTag: 0.1.4
     imagePullPolicy: IfNotPresent
 
+  # Postgres store for the spec controller. runAsUser 999 in the StatefulSet is tied to this
+  # Debian-based postgres variant; if the tag changes to an alpine variant, update the uid/gid.
+  sedaiSyncDB:
+    repository: sedai_io/postgres
+    imageTag: "14.6"
+    imagePullPolicy: IfNotPresent
+
   busyBox:
     repository: sedai_io/busybox
     imageTag: 1.37.0
@@ -353,8 +372,19 @@ resources:
     memory:
       requests: "1024Mi"
       limits: "1024Mi"
-    storage: "2Gi"                      # Persistent volume storage for SQLite database
-  
+
+  sedaiSyncDB:
+    # Per shared-db-ha/postgres-devops-requirements.md: do NOT ship quarter-core limits —
+    # admission-burst p95 collapses under CPU throttling at 250m. Requests small, limit a full core.
+    cpu:
+      requests: "100m"
+      limits: "1"
+    memory:
+      requests: "256Mi"
+      limits: "512Mi"
+    # PVC for the store StatefulSet. Data is ~100MB even at 10k workloads; 2Gi covers WAL + bloat.
+    storage: "2Gi"
+
   sedaiBeyla:
     cpu:
       requests: "500m"

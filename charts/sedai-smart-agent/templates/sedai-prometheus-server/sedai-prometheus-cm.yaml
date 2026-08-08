@@ -113,31 +113,35 @@ data:
           - action: keep
             regex: kube_deployment_status_replicas|kube_deployment_status_replicas_ready|kube_deployment_status_replicas_available|kube_job_info|kube_node_status_allocatable|kube_node_status_capacity|kube_pod_container_resource_limits|kube_pod_container_resource_requests|kube_pod_container_status_last_terminated_reason|kube_pod_container_status_restarts_total|kube_pod_info|kube_pod_start_time|kube_pod_status_phase|kube_pod_status_ready_time|kube_pod_status_scheduled_time|kube_replicaset_spec_replicas
             source_labels: [__name__]
-      # Node Exporter - service endpoint discovery
+      # Node Exporter - pod discovery (DaemonSet, no Service required)
       - job_name: node-exporter
         scrape_interval: 1m
         honor_labels: true
         kubernetes_sd_configs:
-          - role: endpoints
+          - role: pod
         relabel_configs:
-          # Target node-exporter service
+          # Target node-exporter pods by name
           - action: keep
             source_labels:
-              - __meta_kubernetes_service_name
+              - __meta_kubernetes_pod_label_app_kubernetes_io_name
             regex: .*node-exporter.*
-          # Keep only metrics port (from your pod spec)
+          # Keep only running pods
           - action: keep
             source_labels:
-              - __meta_kubernetes_endpoint_port_name
-            regex: metrics
+              - __meta_kubernetes_pod_phase
+            regex: Running
+          # Use the correct container port
+          - action: replace
+            regex: (.+?)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            source_labels:
+              - __meta_kubernetes_pod_ip
+              - __meta_kubernetes_pod_container_port_number
+            target_label: __address__
           - action: replace
             source_labels:
               - __meta_kubernetes_namespace
             target_label: namespace
-          - action: replace
-            source_labels:
-              - __meta_kubernetes_service_name
-            target_label: service
           - action: replace
             source_labels:
               - __meta_kubernetes_pod_node_name

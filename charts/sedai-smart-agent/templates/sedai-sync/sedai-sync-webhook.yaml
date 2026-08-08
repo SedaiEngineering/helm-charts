@@ -39,22 +39,14 @@ webhooks:
       service:
         name: sedai-kube-spec-controller-svc
         namespace: {{ .Release.Namespace }}
-        path: "/mutate"
+        path: "/mutate/pod"
         port: 8443
       caBundle: {{ $ca.Cert | b64enc }}
     rules:
-      - apiGroups: ["apps", ""]
+      - apiGroups: [""]
         apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE", "DELETE"]
-        resources: ["deployments", "statefulsets", "daemonsets", "pods", "pods/resize"]
-      - apiGroups: [ "kubeflow.org" ]
-        apiVersions: [ "v1" ]
-        operations: [ "CREATE", "UPDATE", "DELETE" ]
-        resources: [ "notebooks" ]
-      - apiGroups: [ "argoproj.io" ]
-        apiVersions: [ "v1" ]
-        operations: [ "CREATE", "UPDATE", "DELETE" ]
-        resources: [ "rollouts" ]
+        operations: ["CREATE"]
+        resources: ["pods"]
     failurePolicy: 'Ignore'
     namespaceSelector:
       matchExpressions:

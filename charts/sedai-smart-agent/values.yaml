@@ -48,6 +48,9 @@ smartAgentEnroll:
   postUpgradePodAnnotations: {}     # Additional annotations for the post-upgrade job pod template
   deregisterJobAnnotations: {}      # Additional annotations for the deregister job resource (pre-delete hook)
   deregisterPodAnnotations: {}      # Additional annotations for the deregister job pod template
+  clearDuplicateAgents:
+    enabled: false                  # When true, checks the namespaces below for existing sedai-smart-agent Deployments and deletes them before enrolling, to prevent duplicate agents reporting to Sedai
+    namespaces: []                  # Namespaces to check for duplicate agents. Empty/null defaults to ["sedai", "sedai-smart-agent"]
 
 sedaiPrometheus:
   enabled: false                    # Enables Sedai-managed Prometheus for metric collection
@@ -245,7 +248,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.18
+    imageTag: v3.1.19
     imagePullPolicy: Always
 
   ksm:

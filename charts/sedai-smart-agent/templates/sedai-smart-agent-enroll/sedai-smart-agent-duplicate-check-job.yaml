@@ -1,0 +1,89 @@
+{{- if and .Values.smartAgentEnroll.enabled .Values.smartAgentEnroll.clearDuplicateAgents.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-duplicate-check"
+  namespace: {{ .Release.Namespace }}
+  {{- if .Values.globalAnnotations }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "0"
+    {{- toYaml .Values.globalAnnotations | nindent 4 }}
+  {{- else }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "0"
+  {{- end }}
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.workload.smartAgentEnroll.name }}-duplicate-check
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if .Values.globalAnnotations }}
+      annotations:
+        {{- toYaml .Values.globalAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: "{{ .Values.workload.smartAgentEnroll.name }}-duplicate-check-sa"
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+
+      {{- with .Values.smartAgentEnroll.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if or .Values.globalTolerations .Values.smartAgentEnroll.tolerations }}
+      tolerations:
+        {{- with .Values.globalTolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.smartAgentEnroll.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+
+      {{- with .Values.smartAgentEnroll.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
+      containers:
+        - name: sedai-duplicate-check
+          image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.smartagentEnroll.repository) }}:{{ .Values.image.smartagentEnroll.imageTag }}"
+          command: ["/bin/sh", "-c", "python duplicate_agent_cleanup.py"]
+          imagePullPolicy: "{{ .Values.image.smartagentEnroll.imagePullPolicy }}"
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LOG_LEVEL
+              value: {{ .Values.workload.logLevel | default "INFO" | upper | quote }}
+            - name: CLEAR_DUPLICATE_AGENTS
+              value: {{ .Values.smartAgentEnroll.clearDuplicateAgents.enabled | quote }}
+            - name: AGENT_CHECK_NAMESPACES
+              value: {{ .Values.smartAgentEnroll.clearDuplicateAgents.namespaces | default (list "sedai" "sedai-smart-agent") | join "," | quote }}
+            - name: RELEASE_NAME
+              value: {{ .Release.Name | quote }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+{{- end }}

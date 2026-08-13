@@ -61,12 +61,11 @@ spec:
       {{- end }}
 
       initContainers:
-      - name: init-sqlite-db
+      # Gate startup on the store being reachable — the controller runs DB migrations on boot and
+      # exits fatally if it cannot connect, so waiting here avoids a CrashLoopBackOff during rollout.
+      - name: wait-for-db
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.busyBox.repository) }}:{{ .Values.image.busyBox.imageTag }}"
-        command: ["sh", "-c", "chmod 777 {{ .Values.sedaiSync.sqlitePath }} && touch {{ .Values.sedaiSync.sqlitePath }}/sqlite.db && chmod 666 {{ .Values.sedaiSync.sqlitePath }}/sqlite.db"]
-        volumeMounts:
-          - name: sqlite-data
-            mountPath: "{{ .Values.sedaiSync.sqlitePath }}"
+        command: ["sh", "-c", "until nc -z {{ .Values.workload.kubeSpecController.name }}-db 5432; do echo waiting for spec-controller store; sleep 2; done"]
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
@@ -104,10 +103,35 @@ spec:
           value: "{{ .Values.sedaiSync.tlsPath }}/tls.key"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_PORT
           value: "{{ .Values.sedaiSync.port }}"
-        - name: SEDAI_KUBE_SPEC_CONTROLLER_SQLITE_DB_PATH
-          value: "{{ .Values.sedaiSync.sqlitePath }}/sqlite.db"
+        # Postgres store (pgx backend). "pgx" is the exact driver name the controller maps to a
+        # Postgres DSN; any other value falls back to SQLite.
         - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME
-          value: "sqlite3"
+          value: "pgx"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_HOST
+          value: "{{ .Values.workload.kubeSpecController.name }}-db"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PORT
+          value: "5432"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: username
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: password
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: dbname
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_MAX_OPEN_CONNS
+          value: "{{ .Values.sedaiSync.db.maxOpenConns }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_MAX_IDLE_CONNS
+          value: "{{ .Values.sedaiSync.db.maxIdleConns }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_CONN_MAX_LIFETIME_MINS
+          value: "{{ .Values.sedaiSync.db.connMaxLifetimeMins }}"
         - name: ENCODE_LOGS_AS_JSON
           value: "{{ .Values.sedaiSync.encodeLogsAsJson }}"
         - name: CONTAINER_NAME
@@ -126,8 +150,6 @@ spec:
           - name: certs
             mountPath: "{{ .Values.sedaiSync.tlsPath }}"
             readOnly: true
-          - name: sqlite-data
-            mountPath: "{{ .Values.sedaiSync.sqlitePath }}"
           - name: dynamic-config-vol
             mountPath: "/etc/sedai/config"
             readOnly: true
@@ -143,9 +165,6 @@ spec:
         - name: certs
           secret:
             secretName: "{{ .Values.workload.kubeSpecController.name }}-tls"
-        - name: sqlite-data
-          persistentVolumeClaim:
-            claimName: "{{ .Values.workload.kubeSpecController.name }}-pvc"
         - name: dynamic-config-vol
           configMap:
             name: "{{ .Values.workload.kubeSpecController.name }}-config"

@@ -1,0 +1,29 @@
+{{- if and .Values.smartAgentEnroll.enabled .Values.sedaiIntegrationSettings.correctClusterName.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ .Values.workload.smartAgentEnroll.name }}-correct-cluster-name-sa"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if .Values.globalAnnotations }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "-1"
+    {{- toYaml .Values.globalAnnotations | nindent 4 }}
+  {{- else }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "-1"
+  {{- end }}
+{{- if and .Values.imagePullSecret.enabled .Values.imagePullSecret.secretName }}
+imagePullSecrets:
+  - name: "{{ .Values.imagePullSecret.secretName }}"
+{{- end }}
+
+{{- end }}

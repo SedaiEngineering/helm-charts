@@ -168,7 +168,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.19
+    imageTag: v3.1.20
     imagePullPolicy: Always
 
   ksm:
@@ -320,6 +320,9 @@ sedaiIntegrationSettings:
   sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
   forceCreate: false              # Force creation of Sedai config even if API token is invalid
   enableDeRegisterJob: false      # Enable Sedai de-registration helm pre-delete hook
+  correctClusterName:
+    enabled: false                 # Detect (and log) a GKE clusterName mismatch on the already-onboarded account for this cluster
+    write: false                   # Actually apply the correction; requires enabled=true. Off by default — dry-run only
 
 
 # -------------------------------------------------------------------

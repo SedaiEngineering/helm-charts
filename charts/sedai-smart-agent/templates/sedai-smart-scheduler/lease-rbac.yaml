@@ -1,6 +1,6 @@
 # Leader-election RBAC: grants the smart-agent SA permission to acquire/renew
 # coordination.k8s.io/Lease objects so scheduler/compactor replicas can elect a leader.
-{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.rbac.create (or .Values.sedaiSmartScheduler.leaderElection.enabled .Values.sedaiSmartScheduler.compactor.leaderElection.enabled) }}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create (or .Values.sedaiSmartScheduler.leaderElection.enabled .Values.sedaiSmartScheduler.compactor.leaderElection.enabled) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

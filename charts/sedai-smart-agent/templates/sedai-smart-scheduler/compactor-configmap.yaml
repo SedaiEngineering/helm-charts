@@ -1,4 +1,4 @@
-{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.compactor.enabled }}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.compactor.enabled }}
 # Bootstrap policy. No strategy plugins enabled — Sedai's smart-agent populates
 # the real policy at runtime; until then, no evictions happen.
 # lookup preserves agent-written data on helm upgrade — bootstrap is only applied

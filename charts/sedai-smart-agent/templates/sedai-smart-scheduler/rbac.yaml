@@ -1,6 +1,6 @@
 # Scheduler RBAC: binds the smart-agent SA to the K8s built-in scheduler roles
 # (system:kube-scheduler, system:volume-scheduler, extension-apiserver-authn).
-{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.rbac.create }}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create }}
 # Adds pods/binding create, pods/status patch, events create.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -33,8 +33,8 @@ subjects:
     name: {{ include "smart-scheduler.serviceAccountName" . }}
     namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
 ---
-# DRA permissions — not included in system:kube-scheduler for resource.k8s.io
-# (ResourceClaims, ResourceSlices, DeviceClasses added in k8s 1.26+).
+# Supplemental permissions not covered by system:kube-scheduler: DRA resources
+# (ResourceClaims, ResourceSlices, DeviceClasses added in k8s 1.26+) and PriorityClasses.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -44,6 +44,9 @@ metadata:
 rules:
   - apiGroups: ["resource.k8s.io"]
     resources: ["resourceclaims", "resourceslices", "deviceclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["scheduling.k8s.io"]
+    resources: ["priorityclasses"]
     verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

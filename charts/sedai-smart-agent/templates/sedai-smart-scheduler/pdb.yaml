@@ -1,4 +1,4 @@
-{{- if and .Values.sedaiSmartScheduler.enabled (gt (int .Values.sedaiSmartScheduler.replicaCount) 1) -}}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") (gt (int .Values.sedaiSmartScheduler.replicaCount) 1) -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

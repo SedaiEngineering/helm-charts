@@ -1,4 +1,4 @@
-{{- if .Values.sedaiSmartScheduler.enabled }}
+{{- if eq (include "smart-scheduler.installOk" .) "true" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

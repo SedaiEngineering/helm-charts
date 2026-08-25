@@ -318,7 +318,7 @@ sedaiIntegrationSettings:
   sedaiApiToken: ""               # API token (use this OR provide a Kubernetes Secret)
   sedaiApiTokenSecret: ""         # Name of the Kubernetes Secret that stores the token
   sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
-  forceCreate: false              # Force creation of Sedai config even if API token is invalid
+  forceCreate: true              # Force creation of Sedai config even if API token is invalid
   enableDeRegisterJob: false      # Enable Sedai de-registration helm pre-delete hook
   correctClusterName:
     enabled: false                 # Detect (and log) a GKE clusterName mismatch on the already-onboarded account for this cluster

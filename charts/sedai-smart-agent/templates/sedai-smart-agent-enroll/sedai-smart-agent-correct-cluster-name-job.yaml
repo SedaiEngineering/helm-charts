@@ -83,7 +83,7 @@ spec:
             {{- end }}
           envFrom:
             - secretRef:
-                name: "{{ .Values.workload.smartAgentEnroll.name }}-secret"
+                name: "{{ .Values.workload.smartAgentEnroll.name }}-correct-cluster-name-secret"
           securityContext:
             runAsNonRoot: true
             runAsUser: 1001

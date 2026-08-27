@@ -1,6 +1,6 @@
 # Compactor RBAC: grants the smart-agent SA pods/eviction:create so the descheduler
 # can call the polite (PDB-respecting) eviction API.
-{{- if and .Values.sedaiSmartScheduler.enabled .Values.sedaiSmartScheduler.rbac.create .Values.sedaiSmartScheduler.compactor.enabled }}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create .Values.sedaiSmartScheduler.compactor.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

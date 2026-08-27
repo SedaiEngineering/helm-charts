@@ -14,6 +14,6 @@ metadata:
   {{- end }}
 rules:
 - apiGroups: ["apps"]
-  resources: ["replicasets"]
+  resources: ["replicasets", "deployments"]
   verbs: ["get"]
 {{- end }}

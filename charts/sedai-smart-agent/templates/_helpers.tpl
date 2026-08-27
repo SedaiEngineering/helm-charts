@@ -124,22 +124,78 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- .Release.Namespace -}}
 {{- end -}}
 
-{{- define "smart-scheduler.imageTag" -}}
-{{- if .Values.image.scheduler.imageTag -}}
-{{- .Values.image.scheduler.imageTag -}}
-{{- else -}}
-{{- $minor := .Capabilities.KubeVersion.Minor | replace "+" "" | trimSuffix "*" -}}
-{{- $tag := index .Values.image.scheduler.tagByK8sMinor $minor -}}
-{{- required (printf "Unsupported K8s minor 1.%s for scheduler image. Override image.scheduler.imageTag or extend image.scheduler.tagByK8sMinor." $minor) $tag -}}
+{{- define "smart-scheduler.k8sMinor" -}}
+{{- .Capabilities.KubeVersion.Minor | replace "+" "" | trimSuffix "*" -}}
+{{- end -}}
+
+{{/*
+Scheduler version-skew lookup: exact minor, else N-1 (https://kubernetes.io/releases/version-skew-policy/#kube-apiserver-1). "" if neither is mapped.
+*/}}
+{{- define "smart-scheduler.resolveTag" -}}
+{{- $minor := atoi .minor -}}
+{{- $exact := toString $minor -}}
+{{- $prior := toString (sub $minor 1) -}}
+{{- if hasKey .tagByK8sMinor $exact -}}
+{{- index .tagByK8sMinor $exact -}}
+{{- else if hasKey .tagByK8sMinor $prior -}}
+{{- index .tagByK8sMinor $prior -}}
 {{- end -}}
 {{- end -}}
 
-{{- define "smart-scheduler.compactorImageTag" -}}
+{{/*
+Compactor lookup: exact minor only, no N-1 (descheduler isn't bound by kube-scheduler's skew policy). "" if unmapped.
+*/}}
+{{- define "smart-scheduler.resolveTagExact" -}}
+{{- $exact := toString (atoi .minor) -}}
+{{- if hasKey .tagByK8sMinor $exact -}}
+{{- index .tagByK8sMinor $exact -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Override, else lookup. May be empty if the cluster's minor is unsupported.
+*/}}
+{{- define "smart-scheduler.schedulerTagRaw" -}}
+{{- if .Values.image.scheduler.imageTag -}}
+{{- .Values.image.scheduler.imageTag -}}
+{{- else -}}
+{{- include "smart-scheduler.resolveTag" (dict "minor" (include "smart-scheduler.k8sMinor" .) "tagByK8sMinor" .Values.image.scheduler.tagByK8sMinor) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "smart-scheduler.compactorTagRaw" -}}
 {{- if .Values.image.compactor.imageTag -}}
 {{- .Values.image.compactor.imageTag -}}
 {{- else -}}
-{{- $minor := .Capabilities.KubeVersion.Minor | replace "+" "" | trimSuffix "*" -}}
-{{- $tag := index .Values.image.compactor.tagByK8sMinor $minor -}}
-{{- required (printf "Unsupported K8s minor 1.%s for compactor image. Override image.compactor.imageTag or extend image.compactor.tagByK8sMinor." $minor) $tag -}}
+{{- include "smart-scheduler.resolveTagExact" (dict "minor" (include "smart-scheduler.k8sMinor" .) "tagByK8sMinor" .Values.image.compactor.tagByK8sMinor) -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+`required` is a defensive guardrail — templates are already gated on installOk, so this shouldn't trip.
+*/}}
+{{- define "smart-scheduler.imageTag" -}}
+{{- $minor := include "smart-scheduler.k8sMinor" . -}}
+{{- required (printf "Unsupported K8s minor 1.%s for scheduler image. Override image.scheduler.imageTag or extend image.scheduler.tagByK8sMinor." $minor) (include "smart-scheduler.schedulerTagRaw" .) -}}
+{{- end -}}
+
+{{- define "smart-scheduler.compactorImageTag" -}}
+{{- $minor := include "smart-scheduler.k8sMinor" . -}}
+{{- required (printf "Unsupported K8s minor 1.%s for compactor image. Override image.compactor.imageTag or extend image.compactor.tagByK8sMinor." $minor) (include "smart-scheduler.compactorTagRaw" .) -}}
+{{- end -}}
+
+{{/*
+"true" if scheduler is compatible and (compactor is disabled or also compatible) — skips both if either fails.
+*/}}
+{{- define "smart-scheduler.versionCompatible" -}}
+{{- $schedulerOk := ne (include "smart-scheduler.schedulerTagRaw" .) "" -}}
+{{- $compactorOk := or (not .Values.sedaiSmartScheduler.compactor.enabled) (ne (include "smart-scheduler.compactorTagRaw" .) "") -}}
+{{- if and $schedulerOk $compactorOk -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Single flag every sedai-smart-scheduler/* template gates on: enabled AND version-compatible.
+*/}}
+{{- define "smart-scheduler.installOk" -}}
+{{- if and .Values.sedaiSmartScheduler.enabled (eq (include "smart-scheduler.versionCompatible" .) "true") -}}true{{- end -}}
 {{- end -}}

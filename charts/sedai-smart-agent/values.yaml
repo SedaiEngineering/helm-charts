@@ -312,25 +312,41 @@ image:
     repository: sedai_io/victoriametrics/vmalert
     imageTag: v1.138.0-scratch
     imagePullPolicy: IfNotPresent
+  # Exact minor, else N-1 (kube-scheduler version-skew policy). Unmapped minor -> scheduler AND
+  # compactor are both skipped, not just this one, rather than failing the whole chart.
   scheduler:
-    repository: sedai_io/seda-kube-scheduler
+    repository: sedai_io/sedai-kube-scheduler
     imageTag: ""                    # Leave empty to auto-select via tagByK8sMinor
     imagePullPolicy: IfNotPresent
     tagByK8sMinor:
+      "26": "v0.26.7"
+      "27": "v0.27.8"
+      "28": "v0.28.9"
+      "29": "v0.29.7"
+      "30": "v0.30.12"
       "31": "v0.31.8"
       "32": "v0.32.7"
       "33": "v0.33.5"
       "34": "v0.34.7"
 
+  # Exact minor only, no N-1 — descheduler isn't bound by the scheduler's skew policy.
+  # Tags per descheduler's own matrix: https://github.com/kubernetes-sigs/descheduler#compatibility-matrix
   compactor:
-    repository: sedai_io/seda-kube-descheduler
+    repository: sedai_io/sedai-kube-descheduler
     imageTag: ""                    # Leave empty to auto-select via tagByK8sMinor
     imagePullPolicy: IfNotPresent
     tagByK8sMinor:
-      "31": "v0.36.0"
-      "32": "v0.36.0"
-      "33": "v0.36.0"
-      "34": "v0.36.0"
+      "26": "v0.26.1"
+      "27": "v0.27.1"
+      "28": "v0.28.1"
+      "29": "v0.29.0"
+      "30": "v0.30.1"
+      "31": "v0.31.0"
+      "32": "v0.32.2"
+      "33": "v0.33.0"
+      "34": "v0.34.0"
+      "35": "v0.35.1"
+      "36": "v0.36.0"
 
 # -------------------------------------------------------------------
 # Docker Image Pull Secret

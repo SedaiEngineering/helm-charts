@@ -13,6 +13,12 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 rules:
+# The admission owner resolver climbs a pod's ownerReferences (Pod -> ReplicaSet -> Deployment, and
+# other workload owners) to find the workload it manages. Kubeflow owners live in kubeflow.org, so
+# that group must be readable too or resolution fails with a forbidden on the CRD. Kept get-only --
+# the controller only reads owners, it mutates pods via the admission response, never the API -- and
+# scoped to these two API groups rather than a cluster-wide wildcard.
+# Keep in sync with sedai-smart-agent's kube-spec-controller.yaml.
 - apiGroups: ["apps", "kubeflow.org"]
   resources: ["*"]
   verbs: ["get"]

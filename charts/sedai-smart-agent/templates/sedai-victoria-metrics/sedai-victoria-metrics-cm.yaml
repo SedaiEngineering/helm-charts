@@ -125,11 +125,11 @@ data:
             source_labels:
               - __meta_kubernetes_service_name
             regex: .*node-exporter.*
-          # Keep only metrics port (from your pod spec)
+          # Keep only metrics port (matches "metrics", "http-metrics", etc. across our own and customer-owned node-exporters)
           - action: keep
             source_labels:
               - __meta_kubernetes_endpoint_port_name
-            regex: metrics
+            regex: .*metrics.*
           - action: replace
             source_labels:
               - __meta_kubernetes_namespace

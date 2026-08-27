@@ -81,7 +81,7 @@ sedaiSync:
 
 sedaiNodeExporter:
   enabled: false
-  port: 9100                        # Port for node-exporter metrics endpoint
+  port: 19100                       # Non-standard port (outside the 9100-9999 Prometheus exporter port block) to avoid hostNetwork conflicts with customer's own node-exporter
   nodeSelector: {}                  # Node selector for Node Exporter daemonset
   tolerations: []                   # Tolerations for Node Exporter daemonset
   priorityClassName: ""             # Priority class name for Node Exporter daemonset

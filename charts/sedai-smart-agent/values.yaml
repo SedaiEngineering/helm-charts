@@ -217,7 +217,7 @@ workload:
   victoriaMetrics:
     name: sedai-victoria-metrics-server
   beyla:
-    name: sedai-beyla
+    name: sedai-beyla-ds
   vmalert:
     name: sedai-vmalert
   smartScheduler:

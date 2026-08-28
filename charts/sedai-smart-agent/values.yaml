@@ -49,7 +49,7 @@ smartAgentEnroll:
   deregisterJobAnnotations: {}      # Additional annotations for the deregister job resource (pre-delete hook)
   deregisterPodAnnotations: {}      # Additional annotations for the deregister job pod template
   clearDuplicateAgents:
-    enabled: false                  # When true, checks the namespaces below for existing sedai-smart-agent Deployments and deletes them before enrolling, to prevent duplicate agents reporting to Sedai
+    enabled: true                  # When true, checks the namespaces below for existing sedai-smart-agent Deployments and deletes them before enrolling, to prevent duplicate agents reporting to Sedai
     namespaces: []                  # Namespaces to check for duplicate agents. Empty/null defaults to ["sedai", "sedai-smart-agent"]
 
 sedaiPrometheus:
@@ -248,7 +248,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.20
+    imageTag: v3.1.21
     imagePullPolicy: Always
 
   ksm:
@@ -479,7 +479,8 @@ sedaiIntegrationSettings:
   sedaiApiToken: ""               # API token (use this OR provide a Kubernetes Secret)
   sedaiApiTokenSecret: ""         # Name of the Kubernetes Secret that stores the token
   sedaiApiTokenSecretKey: ""      # Key within the Secret that stores the token
-  forceCreate: false              # Force creation of Sedai config even if API token is invalid
+  forceCreate: true              # When an account with this name already exists on Sedai, import it and create the local Secret for it (used for reinstalls and legacy-method migrations)
+  recreateExistingSecret: false  # Force-refresh the enroll Secret even when it already exists locally. Rare; off by default to avoid unnecessary Sedai API calls on every sync/upgrade
   enableDeRegisterJob: false      # Enable Sedai de-registration helm pre-delete hook
   correctClusterName:
     enabled: false                 # Detect (and log) a GKE clusterName mismatch on the already-onboarded account for this cluster

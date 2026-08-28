@@ -38,7 +38,7 @@ type: kubernetes.io/tls
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: "{{ .Values.workload.kubeSpecController.name }}-mutation-webhook"
+  name: "{{ .Values.workload.kubeSpecController.name }}-mutation-webhook-{{ .Release.Namespace }}"
   labels:
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}

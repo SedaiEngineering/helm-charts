@@ -242,7 +242,7 @@ image:
   smartAgent:
     name: sedai-agent
     repository: sedai_io/sedai-smart-agent
-    imageTag: v1.26.13
+    imageTag: v2.0.0
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
@@ -268,7 +268,7 @@ image:
 
   sedaiSync:
     repository: sedai_io/sedai-kube-spec-controller
-    imageTag: 0.1.4
+    imageTag: v2.0.0
     imagePullPolicy: IfNotPresent
 
   # Postgres store for the spec controller. runAsUser 999 in the StatefulSet is tied to this

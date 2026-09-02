@@ -102,30 +102,30 @@ spec:
           value: {{ .Values.enableAgentDebugLogs.loggingConfig }}   
         {{- end }}
 
-        {{- if or .Values.podInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+        {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
         - name: KUBESPECCONTROLLER_BASEURL
-          value: "https://{{ .Values.workload.kubeSpecController.name }}-svc.{{ .Release.Namespace }}.svc:{{ .Values.podInterceptor.port }}"
+          value: "https://{{ .Values.workload.kubeSpecController.name }}-svc.{{ .Release.Namespace }}.svc:{{ .Values.sedaiPodInterceptor.port }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
-          value: "{{ or .Values.podInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}"
+          value: "{{ or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
-          value: "{{ .Values.podInterceptor.tlsPath }}/ca.crt"
+          value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/ca.crt"
         - name: SEDAI_SPARK_KUBEFLOW_ENABLED
           value: "{{ .Values.kubeflowSparkOptimization.enabled }}"
         - name: SEDAI_SPARK_KUBEFLOW_INITIAL_DELAY
           value: 1m
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CERT_PATH
-          value: "{{ .Values.podInterceptor.tlsPath }}/tls.crt"
+          value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/tls.crt"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_KEY_PATH
-          value: "{{ .Values.podInterceptor.tlsPath }}/tls.key"
+          value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/tls.key"
         {{- end }}
         
         - name: KUBERNETES_MASTER
           value: "{{ .Values.kubernetes_master }}"
 
-        {{- if or .Values.podInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+        {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
         volumeMounts:
           - name: certs
-            mountPath: "{{ .Values.podInterceptor.tlsPath }}"
+            mountPath: "{{ .Values.sedaiPodInterceptor.tlsPath }}"
             readOnly: true
         {{- end }}
 
@@ -161,7 +161,7 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
-      {{- if or .Values.podInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+      {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
       volumes:
         - name: certs
           secret:

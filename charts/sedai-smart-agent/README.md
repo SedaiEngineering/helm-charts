@@ -155,10 +155,10 @@ sedaiDcgmExporter:
 
 ### Optimization Components
 
-#### Sedai Sync (Auto-Optimization)
+#### Pod Interceptor (Auto-Optimization)
 
 ```yaml
-sedaiSync:
+podInterceptor:
   enabled: true
   logLevel: "error"  # trace, debug, info, warn, error
   nodeSelector: {}
@@ -416,7 +416,7 @@ sedaiKSM:
 sedaiNodeExporter:
   enabled: true
 
-sedaiSync:
+podInterceptor:
   enabled: true
 
 # Resource allocation for production

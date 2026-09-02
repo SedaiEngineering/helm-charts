@@ -53,7 +53,7 @@ sedaiKSM:
   enabled: true
 
 # Enable optimization
-sedaiSync:
+podInterceptor:
   enabled: true
 ```
 
@@ -155,12 +155,12 @@ sedaiVictoriaMetrics:
 
 ### Optimization Components
 
-#### Sedai Sync
+#### Pod Interceptor
 
 Enables autonomous optimization:
 
 ```yaml
-sedaiSync:
+podInterceptor:
   enabled: true
   logLevel: "error"  # trace, debug, info, warn, error
   nodeSelector: {}

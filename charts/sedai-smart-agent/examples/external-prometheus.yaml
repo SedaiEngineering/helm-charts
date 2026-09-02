@@ -45,7 +45,7 @@ sedaiKSM:
   enabled: true
 
 # Enable other components as needed
-sedaiSync:
+podInterceptor:
   enabled: true
 
 # Configure priority classes for components
@@ -60,7 +60,7 @@ workload:
 sedaiKSM:
   priorityClassName: "sedai-external-monitoring"
 
-sedaiSync:
+podInterceptor:
   priorityClassName: "sedai-external-monitoring"
 
 # Reduced resource allocation since we're not running Prometheus

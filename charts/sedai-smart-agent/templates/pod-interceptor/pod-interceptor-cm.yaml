@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or .Values.podInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,5 +7,5 @@ metadata:
 data:
   # This key becomes the filename inside the pod
   app-config.yaml: |
-    logLevel: "{{ .Values.sedaiSync.logLevel }}"
+    logLevel: "{{ .Values.podInterceptor.logLevel }}"
 {{- end }}

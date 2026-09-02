@@ -56,7 +56,7 @@ properties:
         description: "Enables deployment of Kube State Metrics"
         default: false
   
-  sedaiSync:
+  podInterceptor:
     type: object
     properties:
       enabled:

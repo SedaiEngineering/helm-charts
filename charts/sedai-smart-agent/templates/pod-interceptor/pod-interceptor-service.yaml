@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or .Values.podInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -17,8 +17,8 @@ metadata:
 spec:
   ports:
   - name: "api"
-    port: {{ .Values.sedaiSync.port }}
-    targetPort: {{ .Values.sedaiSync.port }}
+    port: {{ .Values.podInterceptor.port }}
+    targetPort: {{ .Values.podInterceptor.port }}
     protocol: TCP
   selector:
     app: "{{ .Values.workload.kubeSpecController.name }}"

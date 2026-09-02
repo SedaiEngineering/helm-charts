@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or .Values.podInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 
 ---
 apiVersion: v1

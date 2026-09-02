@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 # Standalone PVC for the spec-controller Postgres store, NOT a StatefulSet volumeClaimTemplate.
 # volumeClaimTemplates are immutable, so growing the store would mean recreating the STS with
 # --cascade=orphan; a standalone PVC can be expanded in place (edit spec.resources.requests.storage,
@@ -24,5 +24,5 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.resources.sedaiSyncDB.storage | default "2Gi" }}
+      storage: {{ .Values.resources.sedaiPodInterceptorDB.storage | default "2Gi" }}
 {{- end }}

@@ -50,7 +50,7 @@ monitoringProvider:
     # datadogApplicationKeySecretKey: "app-key"
 
 # Enable optimization
-sedaiSync:
+sedaiPodInterceptor:
   enabled: true
   
 # Configure priority classes for components
@@ -62,7 +62,7 @@ workload:
   smartAgent:
     priorityClassName: "sedai-datadog-priority"
 
-sedaiSync:
+sedaiPodInterceptor:
   priorityClassName: "sedai-datadog-priority"
 
 # Minimal resource allocation since monitoring is external
@@ -75,7 +75,7 @@ resources:
       requests: "1024Mi"
       limits: "2048Mi"
   
-  sedaiSync:
+  sedaiPodInterceptor:
     cpu:
       requests: "300m"
       limits: "600m"

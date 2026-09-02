@@ -69,7 +69,7 @@ sedaiKSM:
   tolerations: []                   # Tolerations for KSM deployment
   priorityClassName: ""             # Priority class name for KSM deployment
 
-sedaiSync:
+sedaiPodInterceptor:
   enabled: false                    # Enables Sedai sync controller for workload auto-optimization
   tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
   logLevel: "INFO"                 # Logging level: trace, debug, info, warn, error
@@ -266,14 +266,14 @@ image:
     imageTag: v3.10.0
     imagePullPolicy: IfNotPresent
 
-  sedaiSync:
+  sedaiPodInterceptor:
     repository: sedai_io/sedai-kube-spec-controller
     imageTag: v2.0.0
     imagePullPolicy: IfNotPresent
 
   # Postgres store for the spec controller. runAsUser 999 in the StatefulSet is tied to this
   # Debian-based postgres variant; if the tag changes to an alpine variant, update the uid/gid.
-  sedaiSyncDB:
+  sedaiPodInterceptorDB:
     repository: sedai_io/postgres
     imageTag: "14.6"
     imagePullPolicy: IfNotPresent
@@ -384,7 +384,7 @@ resources:
       requests: "1024Mi"
       limits: "1024Mi"
 
-  sedaiSync:
+  sedaiPodInterceptor:
     cpu:
       requests: "500m"
       limits: "500m"
@@ -392,7 +392,7 @@ resources:
       requests: "1024Mi"
       limits: "1024Mi"
 
-  sedaiSyncDB:
+  sedaiPodInterceptorDB:
     # Per shared-db-ha/postgres-devops-requirements.md: do NOT ship quarter-core limits —
     # admission-burst p95 collapses under CPU throttling at 250m. Requests small, limit a full core.
     cpu:

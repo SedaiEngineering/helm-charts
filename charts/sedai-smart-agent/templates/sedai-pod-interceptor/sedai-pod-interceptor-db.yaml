@@ -1,16 +1,16 @@
-{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 # ── Spec-controller store: in-namespace Postgres ─────────────────────────────────────────────
 # Chart-managed credentials. The password is generated once and preserved across upgrades via
 # lookup (same pattern as the TLS secret), unless an explicit password is set in values.
 {{- $dbName := printf "%s-db" .Values.workload.kubeSpecController.name }}
 {{- $existingDbSecret := lookup "v1" "Secret" .Release.Namespace $dbName }}
-{{- $dbUser := .Values.sedaiSync.db.user | default "sedai" }}
-{{- $dbDatabase := .Values.sedaiSync.db.name | default "sedai_kube_spec_controller_db" }}
+{{- $dbUser := .Values.sedaiPodInterceptor.db.user | default "sedai" }}
+{{- $dbDatabase := .Values.sedaiPodInterceptor.db.name | default "sedai_kube_spec_controller_db" }}
 {{- $dbPassword := "" }}
 {{- if and $existingDbSecret (index $existingDbSecret.data "password") }}
 {{- $dbPassword = index $existingDbSecret.data "password" | b64dec }}
-{{- else if .Values.sedaiSync.db.password }}
-{{- $dbPassword = .Values.sedaiSync.db.password }}
+{{- else if .Values.sedaiPodInterceptor.db.password }}
+{{- $dbPassword = .Values.sedaiPodInterceptor.db.password }}
 {{- else }}
 {{- $dbPassword = randAlphaNum 24 }}
 {{- end }}
@@ -96,20 +96,20 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
-      {{- with .Values.sedaiSync.nodeSelector }}
+      {{- with .Values.sedaiPodInterceptor.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if or .Values.globalTolerations .Values.sedaiSync.tolerations }}
+      {{- if or .Values.globalTolerations .Values.sedaiPodInterceptor.tolerations }}
       tolerations:
         {{- with .Values.globalTolerations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- with .Values.sedaiSync.tolerations }}
+        {{- with .Values.sedaiPodInterceptor.tolerations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- end }}
-      {{- with .Values.sedaiSync.priorityClassName }}
+      {{- with .Values.sedaiPodInterceptor.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
       securityContext:
@@ -122,8 +122,8 @@ spec:
         fsGroup: 999
       containers:
       - name: postgres
-        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiSyncDB.repository) }}:{{ .Values.image.sedaiSyncDB.imageTag }}"
-        imagePullPolicy: {{ .Values.image.sedaiSyncDB.imagePullPolicy }}
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiPodInterceptorDB.repository) }}:{{ .Values.image.sedaiPodInterceptorDB.imageTag }}"
+        imagePullPolicy: {{ .Values.image.sedaiPodInterceptorDB.imagePullPolicy }}
         ports:
         - name: postgres
           containerPort: 5432
@@ -148,11 +148,11 @@ spec:
           value: /var/lib/postgresql/data/pgdata
         resources:
           requests:
-            cpu: "{{ .Values.resources.sedaiSyncDB.cpu.requests }}"
-            memory: "{{ .Values.resources.sedaiSyncDB.memory.requests }}"
+            cpu: "{{ .Values.resources.sedaiPodInterceptorDB.cpu.requests }}"
+            memory: "{{ .Values.resources.sedaiPodInterceptorDB.memory.requests }}"
           limits:
-            cpu: "{{ .Values.resources.sedaiSyncDB.cpu.limits }}"
-            memory: "{{ .Values.resources.sedaiSyncDB.memory.limits }}"
+            cpu: "{{ .Values.resources.sedaiPodInterceptorDB.cpu.limits }}"
+            memory: "{{ .Values.resources.sedaiPodInterceptorDB.memory.limits }}"
         readinessProbe:
           exec:
             command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
@@ -175,7 +175,7 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
-      # The data volume is a standalone PVC (see sedai-sync-db-pvc.yaml), NOT a StatefulSet
+      # The data volume is a standalone PVC (see sedai-pod-interceptor-db-pvc.yaml), NOT a StatefulSet
       # volumeClaimTemplate — a standalone PVC can be expanded in place. Single replica keeps
       # the RWO volume single-writer.
       volumes:

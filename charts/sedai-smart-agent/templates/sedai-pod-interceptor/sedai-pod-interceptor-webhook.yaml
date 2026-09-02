@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiSync.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 {{- $existingSecret := lookup "v1" "Secret" .Release.Namespace (printf "%s-tls" .Values.workload.kubeSpecController.name) }}
 {{- $caCrt := "" }}
 {{- $tlsCrt := "" }}
@@ -33,7 +33,7 @@ data:
   tls.key: {{ $tlsKey }}
 type: kubernetes.io/tls
 
-{{- if .Values.sedaiSync.enabled }}
+{{- if .Values.sedaiPodInterceptor.enabled }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
@@ -54,7 +54,7 @@ webhooks:
         name: "{{ .Values.workload.kubeSpecController.name }}-svc"
         namespace: {{ .Release.Namespace }}
         path: "/mutate/pod"
-        port: {{ .Values.sedaiSync.port }}
+        port: {{ .Values.sedaiPodInterceptor.port }}
       caBundle: {{ $caCrt }}
     rules:
       - apiGroups: [""]
@@ -93,7 +93,7 @@ webhooks:
         name: "{{ .Values.workload.kubeSpecController.name }}-svc"
         namespace: {{ .Release.Namespace }}
         path: "/mutate/kubeflow-spark"
-        port: {{ .Values.sedaiSync.port }}
+        port: {{ .Values.sedaiPodInterceptor.port }}
       caBundle: {{ $caCrt }}
     rules:
       - apiGroups: ["sparkoperator.k8s.io"]

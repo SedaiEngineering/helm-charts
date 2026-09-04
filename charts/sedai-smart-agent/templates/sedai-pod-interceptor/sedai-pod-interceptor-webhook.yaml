@@ -70,6 +70,78 @@ webhooks:
     admissionReviewVersions: ["v1"]
     sideEffects: None
     timeoutSeconds: 1
+  # ── Owner-level replica enforcement (/mutate/workload) ──────────────────────────────────────
+  # Applies the horizontal recommendation the same way the pod webhook above applies the vertical
+  # one: by mutation at admission. Sedai therefore never writes spec.replicas into the workload
+  # manifest, so a GitOps reconciler has no Sedai-authored diff to revert.
+  #
+  # UPDATE and DELETE for the workload itself, deliberately:
+  #   - CREATE is not intercepted; a workload being created has no recommendation yet.
+  #   - DELETE is intercepted to RELEASE the recommendation, never to refuse the delete. Without it
+  #     the owner row outlives the workload permanently — the controller never garbage-collects, a
+  #     row with a NULL expiration_time never ages out, and every other release path keys off a
+  #     write to a workload that no longer exists. The next workload created with the same
+  #     namespace/name then inherits the dead one's replica count, which an ArgoCD prune-and-sync
+  #     or a `kubectl replace --force` produces routinely.
+  #   - The */scale subresource is NOT intercepted. That would capture every HPA and KEDA scaling
+  #     decision — a far larger blast radius — for no benefit against the revert this targets,
+  #     which arrives as a full-manifest UPDATE on the main resource.
+  #
+  # failurePolicy Ignore matches the pod webhook: the controller being down must never block a
+  # customer's deploy. The agent compensates by verifying the value landed and writing it directly
+  # if it did not.
+  #
+  # Registered alongside the pod webhook above whenever the spec controller is deployed: the two are
+  # the halves of one mechanism, so they share a single switch and cannot drift apart. Enforcement
+  # stays per-workload regardless — the controller acts only on a workload that has a replica WISB
+  # registered and passes everything else through untouched, so this entry is inert for workloads
+  # Sedai is not optimising horizontally.
+  # Keep in sync with sedai-smart-agent's kube-spec-controller.yaml.
+  - name: "workload.{{ .Values.workload.kubeSpecController.name }}-svc.{{ .Release.Namespace }}.svc"
+    reinvocationPolicy: Never
+    clientConfig:
+      service:
+        name: "{{ .Values.workload.kubeSpecController.name }}-svc"
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate/workload"
+        port: {{ .Values.sedaiPodInterceptor.port }}
+      caBundle: {{ $caCrt }}
+    rules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["UPDATE", "DELETE"]
+        resources: ["deployments", "statefulsets"]
+        scope: "Namespaced"
+      # The autoscaler bounds are the horizontal surface for HPA-managed
+      # workloads, where the replica count itself is the HPA's and not ours. Same
+      # route: an HPA's recommendation is stored on the owner-level row of the
+      # workload it scales, found via spec.scaleTargetRef.
+      # DELETE is registered alongside UPDATE, and is the ONE place this feature
+      # refuses a request rather than correcting it. A DELETE admission review
+      # carries no object to patch, so an autoscaler under a live Sedai
+      # recommendation can only be preserved by denying its removal. The
+      # controller allows the delete whenever nothing is registered, when Sedai
+      # itself issues it, and — critically — for the namespace controller and the
+      # garbage collector, since denying those wedges namespace teardown.
+      - apiGroups: ["autoscaling"]
+        apiVersions: ["v2"]
+        # CREATE matters even though a new autoscaler has no bounds to enforce: it
+        # is the moment a replica-COUNT recommendation becomes void, because the
+        # HPA now owns spec.replicas. Without it, an ArgoCD-created HPA would leave
+        # the count recommendation live and re-asserted against the autoscaler on
+        # every sync, with nothing able to correct it.
+        operations: ["CREATE", "UPDATE", "DELETE"]
+        resources: ["horizontalpodautoscalers"]
+        scope: "Namespaced"
+    failurePolicy: 'Ignore'
+    namespaceSelector:
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"  # Use the `metadata.name` of the namespace
+          operator: NotIn
+          values: ["{{ .Release.Namespace }}"]
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    timeoutSeconds: 5
 {{- end }}
 
 {{- if .Values.kubeflowSparkOptimization.enabled }}

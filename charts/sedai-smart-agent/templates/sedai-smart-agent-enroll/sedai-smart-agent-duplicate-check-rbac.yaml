@@ -49,20 +49,35 @@ metadata:
     "helm.sh/hook-weight": "-1"
   {{- end }}
 rules:
-  # Never the Namespace object itself. Bound cluster-wide (via ClusterRoleBinding, below) so
-  # the job's SA can operate across every namespace in AGENT_CHECK_NAMESPACES.
+  # Agent-duplicate sweep (clear_duplicate_agents) — matched by label, so only list+delete.
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    verbs: ["get", "list", "delete"]
+    verbs: ["list", "delete"]
   - apiGroups: [""]
-    resources: ["serviceaccounts", "configmaps", "secrets", "services", "persistentvolumeclaims"]
-    verbs: ["get", "list", "delete"]
-  # Legacy cluster-scoped RBAC left behind by the raw-kubectl-apply/embedded-chart install
-  # path (_cleanup_legacy_cluster_rbac) — matched by the sedai-autonomous-mode-clusterrole[-binding]
-  # name prefix only, never this chart's own ClusterRole.
+    resources: ["serviceaccounts"]
+    verbs: ["delete"]
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterroles", "clusterrolebindings"]
     verbs: ["list", "delete"]
+  # Deprecated-chart resource sweep (clear_deprecated_chart_resources) — the label-based
+  # passes need list+delete; the fixed-name passes (kube-spec-controller, node-exporter,
+  # victoria-metrics, dcgm-exporter) read the object first to check Helm ownership
+  # annotations before deleting, so they also need get.
+  - apiGroups: ["apps"]
+    resources: ["deployments", "daemonsets", "statefulsets"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "services", "serviceaccounts", "persistentvolumeclaims", "resourcequotas"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["mutatingwebhookconfigurations"]
+    verbs: ["get", "list", "delete"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1

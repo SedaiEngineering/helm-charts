@@ -242,13 +242,13 @@ image:
   smartAgent:
     name: sedai-agent
     repository: sedai_io/sedai-smart-agent
-    imageTag: v2.0.0
+    imageTag: v2.0.1
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.22
+    imageTag: v3.1.28
     imagePullPolicy: Always
 
   ksm:
@@ -268,7 +268,7 @@ image:
 
   sedaiPodInterceptor:
     repository: sedai_io/sedai-kube-spec-controller
-    imageTag: v2.0.0
+    imageTag: v2.0.1
     imagePullPolicy: IfNotPresent
 
   # Postgres store for the spec controller. runAsUser 999 in the StatefulSet is tied to this
@@ -319,15 +319,17 @@ image:
     imageTag: ""                    # Leave empty to auto-select via tagByK8sMinor
     imagePullPolicy: IfNotPresent
     tagByK8sMinor:
-      "26": "v0.26.7"
-      "27": "v0.27.8"
-      "28": "v0.28.9"
-      "29": "v0.29.7"
-      "30": "v0.30.12"
-      "31": "v0.31.8"
-      "32": "v0.32.7"
-      "33": "v0.33.5"
-      "34": "v0.34.7"
+      "26": "v1.26.15"
+      "27": "v1.27.16"
+      "28": "v1.28.15"
+      "29": "v1.29.15"
+      "30": "v1.30.14"
+      "31": "v1.31.14"
+      "32": "v1.32.13"
+      "33": "v1.33.13"
+      "34": "v1.34.11"
+      "35": "v1.35.8"
+      "36": "v1.36.4"
 
   # Exact minor only, no N-1 — descheduler isn't bound by the scheduler's skew policy.
   # Tags per descheduler's own matrix: https://github.com/kubernetes-sigs/descheduler#compatibility-matrix

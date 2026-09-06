@@ -17,9 +17,17 @@ rules:
 # other workload owners) to find the workload it manages. Kubeflow owners live in kubeflow.org, so
 # that group must be readable too or resolution fails with a forbidden on the CRD. Kept get-only --
 # the controller only reads owners, it mutates pods via the admission response, never the API -- and
-# scoped to these two API groups rather than a cluster-wide wildcard.
+# scoped to these API groups rather than a cluster-wide wildcard.
+#
+# argoproj.io covers Argo Rollouts. An Argo-owned pod resolves Pod -> ReplicaSet -> Rollout, and the
+# resolver probes the WISB store at each level as it climbs: with a Rollout WISB registered it HITS
+# at the Rollout level and returns before ever fetching the Rollout object, so the walk succeeds on
+# the apps grant alone. The grant matters on the miss path -- no WISB registered yet, or one keyed
+# above the Rollout -- where the resolver does fetch it, gets a forbidden, and abandons the walk.
+# That failure is fail-open (the pod is admitted unmutated), so the symptom is not a broken deploy
+# but a warn-level "owner fetch failed" per pod creation and enforcement that silently never lands.
 # Keep in sync with sedai-smart-agent's kube-spec-controller.yaml.
-- apiGroups: ["apps", "kubeflow.org"]
+- apiGroups: ["apps", "kubeflow.org", "argoproj.io"]
   resources: ["*"]
   verbs: ["get"]
 {{- end }}

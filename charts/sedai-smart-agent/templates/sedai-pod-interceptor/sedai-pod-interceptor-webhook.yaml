@@ -68,7 +68,7 @@ webhooks:
           operator: NotIn
           values: ["{{ .Release.Namespace }}"]
     admissionReviewVersions: ["v1"]
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     timeoutSeconds: 1
   # ── Owner-level replica enforcement (/mutate/workload) ──────────────────────────────────────
   # Applies the horizontal recommendation the same way the pod webhook above applies the vertical
@@ -140,7 +140,7 @@ webhooks:
           operator: NotIn
           values: ["{{ .Release.Namespace }}"]
     admissionReviewVersions: ["v1"]
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     timeoutSeconds: 5
 {{- end }}
 
@@ -182,7 +182,7 @@ webhooks:
           operator: NotIn
           values: ["{{ .Release.Namespace }}"]
     admissionReviewVersions: ["v1"]
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     timeoutSeconds: 1
 {{- end }}
 {{- end }}

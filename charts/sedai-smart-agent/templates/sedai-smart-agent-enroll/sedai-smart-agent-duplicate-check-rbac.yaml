@@ -50,15 +50,6 @@ metadata:
   {{- end }}
 rules:
   # Agent-duplicate sweep (clear_duplicate_agents) — matched by label, so only list+delete.
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["list", "delete"]
-  - apiGroups: [""]
-    resources: ["serviceaccounts"]
-    verbs: ["delete"]
-  - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["clusterroles", "clusterrolebindings"]
-    verbs: ["list", "delete"]
   # Deprecated-chart resource sweep (clear_deprecated_chart_resources) — the label-based
   # passes need list+delete; the fixed-name passes (kube-spec-controller, node-exporter,
   # victoria-metrics, dcgm-exporter) read the object first to check Helm ownership

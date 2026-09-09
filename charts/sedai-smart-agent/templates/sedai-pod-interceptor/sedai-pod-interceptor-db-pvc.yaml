@@ -22,6 +22,9 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
+  {{- if .Values.sedaiPodInterceptor.db.storageClass }}
+  storageClassName: {{ .Values.sedaiPodInterceptor.db.storageClass }}
+  {{- end }}
   resources:
     requests:
       storage: {{ .Values.resources.sedaiPodInterceptorDB.storage | default "2Gi" }}

@@ -268,7 +268,7 @@ image:
 
   sedaiPodInterceptor:
     repository: sedai_io/sedai-kube-spec-controller
-    imageTag: v2.0.5
+    imageTag: v2.0.4
     imagePullPolicy: IfNotPresent
 
   # Postgres store for the spec controller. runAsUser 999 in the StatefulSet is tied to this

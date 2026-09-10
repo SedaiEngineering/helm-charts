@@ -92,6 +92,7 @@ sedaiPodInterceptor:
     maxOpenConns: 20
     maxIdleConns: 5
     connMaxLifetimeMins: 30
+    storageClass: ""                 # StorageClass for the spec-controller DB PVC; empty = cluster default
 
 sedaiNodeExporter:
   enabled: false

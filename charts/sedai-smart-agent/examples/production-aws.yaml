@@ -58,7 +58,7 @@ sedaiNodeExporter:
   - operator: "Exists"
 
 # Enable auto-optimization
-sedaiSync:
+sedaiPodInterceptor:
   enabled: true
   logLevel: "info"
   nodeSelector:
@@ -102,7 +102,7 @@ resources:
       requests: "1024Mi"
       limits: "2048Mi"
   
-  sedaiSync:
+  sedaiPodInterceptor:
     cpu:
       requests: "500m"
       limits: "1000m"
@@ -136,7 +136,7 @@ sedaiPrometheus:
 sedaiKSM:
   priorityClassName: "sedai-production-medium"  # Medium priority for metrics
 
-sedaiSync:
+sedaiPodInterceptor:
   priorityClassName: "sedai-production-high"  # High priority for optimization
 
 sedaiNodeExporter:

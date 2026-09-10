@@ -1,0 +1,11 @@
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Values.workload.kubeSpecController.name }}-config"
+  namespace: {{ .Release.Namespace }}
+data:
+  # This key becomes the filename inside the pod
+  app-config.yaml: |
+    logLevel: "{{ .Values.sedaiPodInterceptor.logLevel }}"
+{{- end }}

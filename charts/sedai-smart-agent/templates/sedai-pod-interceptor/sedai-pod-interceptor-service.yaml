@@ -1,11 +1,11 @@
-{{- if .Values.sedaiSync.enabled }}
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: "sedai-kube-spec-controller-svc"
+  name: "{{ .Values.workload.kubeSpecController.name }}-svc"
   labels:
     {{- include "sedai-smart-agent.labels" . | nindent 4 }}
-    app: "sedai-kube-spec-controller"
+    app: "{{ .Values.workload.kubeSpecController.name }}"
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -17,10 +17,10 @@ metadata:
 spec:
   ports:
   - name: "api"
-    port: 8443
-    targetPort: 8443
+    port: {{ .Values.sedaiPodInterceptor.port }}
+    targetPort: {{ .Values.sedaiPodInterceptor.port }}
     protocol: TCP
   selector:
-    app: "sedai-kube-spec-controller"
+    app: "{{ .Values.workload.kubeSpecController.name }}"
   type: ClusterIP
 {{- end }}

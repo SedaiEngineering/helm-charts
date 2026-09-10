@@ -1,0 +1,61 @@
+{{- if .Values.sedaiKarpenter.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: "{{ .Values.workload.smartAgent.name }}-karpenter-installer-deployer"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+
+  # Namespace management - create and delete the Karpenter installer namespace.
+  # delete cascades to all namespace-scoped resources (ConfigMap, Deployment, Service, Job, Pods, ServiceAccount)
+  # patch/update required for fabric8 server-side apply
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["create", "delete", "patch", "update"]
+
+  # ServiceAccount management - create/delete the Karpenter installer ServiceAccount
+  # patch/update required for fabric8 server-side apply
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "list", "create", "delete", "patch", "update"]
+
+  # Service create/delete - deploy the Karpenter installer Service
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["create", "delete", "patch", "update"]
+
+  # ConfigMap creation - create the Karpenter installer ConfigMap
+  # patch/update required for fabric8 server-side apply
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "patch", "update"]
+
+  # Pod log access - monitor the Karpenter installer Deployment pod output
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list", "watch"]
+
+  # Deployment create/delete - deploy the Karpenter installer Deployment
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["create", "delete", "patch", "update"]
+
+  # RBAC management - create the RBAC resources required by the Karpenter installer
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles", "clusterrolebindings"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+{{- end }}

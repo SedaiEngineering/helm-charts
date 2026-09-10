@@ -1,0 +1,171 @@
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.workload.kubeSpecController.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    app: "{{ .Values.workload.kubeSpecController.name }}"
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ .Values.workload.kubeSpecController.name }}"
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.workload.kubeSpecController.name }}"
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.globalAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccount: "{{ .Values.workload.kubeSpecController.name }}-sa"
+      serviceAccountName: "{{ .Values.workload.kubeSpecController.name }}-sa"
+
+      {{- if .Values.sedaiPodInterceptor.isHostAddress }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+
+      {{- with .Values.sedaiPodInterceptor.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if or .Values.globalTolerations .Values.sedaiPodInterceptor.tolerations }}
+      tolerations:
+        {{- with .Values.globalTolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.sedaiPodInterceptor.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+
+      {{- with .Values.sedaiPodInterceptor.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
+      initContainers:
+      # Gate startup on the store being reachable — the controller runs DB migrations on boot and
+      # exits fatally if it cannot connect, so waiting here avoids a CrashLoopBackOff during rollout.
+      - name: wait-for-db
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.busyBox.repository) }}:{{ .Values.image.busyBox.imageTag }}"
+        command: ["sh", "-c", "until nc -z {{ .Values.workload.kubeSpecController.name }}-db 5432; do echo waiting for spec-controller store; sleep 2; done"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+
+      containers:
+      - name: sedai-kube-spec-controller
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiPodInterceptor.repository) }}:{{ .Values.image.sedaiPodInterceptor.imageTag }}"
+        imagePullPolicy: {{ .Values.image.sedaiPodInterceptor.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: "{{ .Values.resources.sedaiPodInterceptor.cpu.requests }}"
+            memory: "{{ .Values.resources.sedaiPodInterceptor.memory.requests }}"
+          limits:
+            cpu: "{{ .Values.resources.sedaiPodInterceptor.cpu.limits }}"
+            memory: "{{ .Values.resources.sedaiPodInterceptor.memory.limits }}"
+        ports:
+          - containerPort: {{ .Values.sedaiPodInterceptor.port }}
+        env:
+        - name: CONFIG_PATH
+          value: "/etc/sedai/config"
+        - name: CONFIG_NAME
+          value: "app-config"
+        - name: CONFIG_TYPE
+          value: "yaml"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
+          value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/ca.crt"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CERT_PATH
+          value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/tls.crt"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_KEY_PATH
+          value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/tls.key"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PORT
+          value: "{{ .Values.sedaiPodInterceptor.port }}"
+        # Postgres store (pgx backend). "pgx" is the exact driver name the controller maps to a
+        # Postgres DSN; any other value falls back to SQLite.
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME
+          value: "pgx"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_HOST
+          value: "{{ .Values.workload.kubeSpecController.name }}-db"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PORT
+          value: "5432"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: username
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: password
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: dbname
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_MAX_OPEN_CONNS
+          value: "{{ .Values.sedaiPodInterceptor.db.maxOpenConns }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_MAX_IDLE_CONNS
+          value: "{{ .Values.sedaiPodInterceptor.db.maxIdleConns }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_PGSQL_CONN_MAX_LIFETIME_MINS
+          value: "{{ .Values.sedaiPodInterceptor.db.connMaxLifetimeMins }}"
+        - name: ENCODE_LOGS_AS_JSON
+          value: "{{ .Values.sedaiPodInterceptor.encodeLogsAsJson }}"
+        - name: CONTAINER_NAME
+          value: "sedai-kube-spec-controller"
+        - name: AGENT_ACCOUNT_ID
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_ACCOUNTID"
+        - name: AGENT_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_TENANT"
+        volumeMounts:
+          - name: certs
+            mountPath: "{{ .Values.sedaiPodInterceptor.tlsPath }}"
+            readOnly: true
+          - name: dynamic-config-vol
+            mountPath: "/etc/sedai/config"
+            readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+      volumes:
+        - name: certs
+          secret:
+            secretName: "{{ .Values.workload.kubeSpecController.name }}-tls"
+        - name: dynamic-config-vol
+          configMap:
+            name: "{{ .Values.workload.kubeSpecController.name }}-config"
+{{- end }}

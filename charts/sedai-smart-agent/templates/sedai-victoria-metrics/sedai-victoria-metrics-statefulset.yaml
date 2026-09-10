@@ -63,10 +63,22 @@ spec:
       priorityClassName: {{ . }}
       {{- end }}
 
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
         - name: vmsingle
-          securityContext: {}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.victoriaMetrics.repository) }}:{{ .Values.image.victoriaMetrics.imageTag }}"
           imagePullPolicy: {{ .Values.image.victoriaMetrics.imagePullPolicy }}
           args:

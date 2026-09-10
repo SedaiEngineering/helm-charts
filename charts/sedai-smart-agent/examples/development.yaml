@@ -37,7 +37,7 @@ sedaiKSM:
   enabled: true
 
 # Enable optimization for testing
-sedaiSync:
+sedaiPodInterceptor:
   enabled: true
   logLevel: "debug"  # More verbose logging for development
 
@@ -68,7 +68,7 @@ resources:
       requests: "256Mi"
       limits: "512Mi"
   
-  sedaiSync:
+  sedaiPodInterceptor:
     cpu:
       requests: "200m"
       limits: "500m"
@@ -105,5 +105,5 @@ sedaiPrometheus:
 sedaiKSM:
   priorityClassName: ""  # Use default or "dev-low-priority"
 
-sedaiSync:
+sedaiPodInterceptor:
   priorityClassName: ""  # Use default or "dev-low-priority"

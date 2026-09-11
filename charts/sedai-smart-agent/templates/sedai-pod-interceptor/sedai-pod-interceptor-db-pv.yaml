@@ -1,0 +1,10 @@
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- $dbName := printf "%s-db" .Values.workload.kubeSpecController.name }}
+{{ include "sedai-smart-agent.persistentVolume" (dict
+     "root" .
+     "name" (printf "%s-pv-%s" $dbName .Release.Namespace)
+     "pv" .Values.sedaiPodInterceptor.db.persistentVolume
+     "storageClass" .Values.sedaiPodInterceptor.db.storageClass
+     "defaultCapacity" (.Values.resources.sedaiPodInterceptorDB.storage | default "2Gi")
+   ) }}
+{{- end }}

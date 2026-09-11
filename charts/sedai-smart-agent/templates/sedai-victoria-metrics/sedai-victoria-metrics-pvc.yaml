@@ -21,6 +21,9 @@ spec:
   {{- if .Values.sedaiVictoriaMetrics.storageClass }}
   storageClassName: {{ .Values.sedaiVictoriaMetrics.storageClass }}
   {{- end }}
+  {{- if .Values.sedaiVictoriaMetrics.persistentVolume.enabled }}
+  volumeName: {{ printf "%s-pv-%s" .Values.workload.victoriaMetrics.name .Release.Namespace }}
+  {{- end }}
   resources:
     requests:
       storage: "{{ .Values.resources.victoriaMetrics.storage }}"

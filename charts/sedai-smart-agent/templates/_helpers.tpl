@@ -83,6 +83,49 @@ Usage: {{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Va
 {{- end -}}
 
 {{/*
+Optional statically-provisioned PersistentVolume, for clusters without dynamic PVC allocation.
+Shared by Prometheus/VictoriaMetrics/kube-spec-controller-DB so customers configure everything
+from values.yaml instead of hand-authoring a separate PV manifest. volumeSource/nodeAffinity are
+raw passthroughs (same unvalidated-toYaml pattern already used by
+sedai-smart-scheduler/deployment.yaml's podSecurityContext/resources/affinity) since PV volume
+sources (EBS via CSI, legacy in-tree EBS, NFS, local, hostPath, ...) vary too much to enumerate.
+Usage: {{ include "sedai-smart-agent.persistentVolume" (dict "root" . "name" "<pv-name>" "pv" .Values.sedaiPrometheus.persistentVolume "storageClass" .Values.sedaiPrometheus.storageClass "defaultCapacity" .Values.resources.prometheus.storage) }}
+*/}}
+{{- define "sedai-smart-agent.persistentVolume" -}}
+{{- if .pv.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "sedai-smart-agent.labels" .root | nindent 4 }}
+    {{- with .root.Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .root.Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  capacity:
+    storage: {{ .pv.capacity | default .defaultCapacity }}
+  accessModes:
+    {{- toYaml (.pv.accessModes | default (list "ReadWriteOnce")) | nindent 4 }}
+  persistentVolumeReclaimPolicy: {{ .pv.reclaimPolicy | default "Retain" }}
+  volumeMode: {{ .pv.volumeMode | default "Filesystem" }}
+  storageClassName: {{ .storageClass | default "" | quote }}
+  {{- with .pv.nodeAffinity }}
+  nodeAffinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .pv.volumeSource }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
 sedai-smart-scheduler helpers — used by templates/sedai-smart-scheduler/*
 */}}
 {{- define "smart-scheduler.name" -}}

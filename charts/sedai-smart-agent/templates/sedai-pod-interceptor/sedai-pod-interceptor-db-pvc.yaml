@@ -25,6 +25,9 @@ spec:
   {{- if .Values.sedaiPodInterceptor.db.storageClass }}
   storageClassName: {{ .Values.sedaiPodInterceptor.db.storageClass }}
   {{- end }}
+  {{- if .Values.sedaiPodInterceptor.db.persistentVolume.enabled }}
+  volumeName: {{ printf "%s-pv-%s" $dbName .Release.Namespace }}
+  {{- end }}
   resources:
     requests:
       storage: {{ .Values.resources.sedaiPodInterceptorDB.storage | default "2Gi" }}

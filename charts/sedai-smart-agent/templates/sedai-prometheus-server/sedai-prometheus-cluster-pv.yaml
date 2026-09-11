@@ -1,0 +1,9 @@
+{{- if .Values.sedaiPrometheus.enabled }}
+{{ include "sedai-smart-agent.persistentVolume" (dict
+     "root" .
+     "name" (printf "%s-pv-%s" .Values.workload.prometheus.name .Release.Namespace)
+     "pv" .Values.sedaiPrometheus.persistentVolume
+     "storageClass" .Values.sedaiPrometheus.storageClass
+     "defaultCapacity" .Values.resources.prometheus.storage
+   ) }}
+{{- end }}

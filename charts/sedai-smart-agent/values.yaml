@@ -59,6 +59,25 @@ sedaiPrometheus:
     gogc: 75                        # Go GC target percentage (default 100). Lower = more frequent GC, lower peak memory.
     autoMemLimitRatio: "0.85"       # automemlimit ratio: GOMEMLIMIT = ratio × cgroup memory limit. Default is 0.9; 0.85 gives more headroom before hard OOM.
   storageClass: ""                  # StorageClass for Prometheus PVC; empty = cluster default
+  persistentVolume:
+    enabled: false                  # Create a PersistentVolume for the Prometheus PVC to bind to — for clusters without dynamic provisioning
+    capacity: ""                    # PV size; defaults to resources.prometheus.storage when empty
+    accessModes: []                 # Defaults to ["ReadWriteOnce"] when empty
+    reclaimPolicy: ""               # Defaults to "Retain" when empty (never auto-delete a customer-managed volume)
+    volumeMode: ""                  # Defaults to "Filesystem" when empty
+    # Raw PV source. Examples:
+    #   EBS (CSI, current EKS):  csi: {driver: ebs.csi.aws.com, volumeHandle: vol-0123456789abcdef0, fsType: ext4}
+    #   EBS (legacy in-tree):    awsElasticBlockStore: {volumeID: vol-0123456789abcdef0, fsType: ext4}
+    #   NFS:                     nfs: {server: 10.0.0.5, path: /exports/prometheus}
+    #   Local disk:              local: {path: /mnt/disks/ssd1}
+    #   hostPath (single node):  hostPath: {path: /mnt/data/prometheus}
+    volumeSource: {}
+    # Raw nodeAffinity block. Required for EBS (zone-pinned) and `local` volumes, e.g. for EBS:
+    #   required:
+    #     nodeSelectorTerms:
+    #       - matchExpressions:
+    #           - {key: topology.ebs.csi.aws.com/zone, operator: In, values: [us-east-1a]}
+    nodeAffinity: {}
   nodeSelector: {}                  # Node selector for Prometheus deployment
   tolerations: []                   # Tolerations for Prometheus deployment
   priorityClassName: ""             # Priority class name for Prometheus deployment
@@ -93,6 +112,25 @@ sedaiPodInterceptor:
     maxIdleConns: 5
     connMaxLifetimeMins: 30
     storageClass: ""                 # StorageClass for the spec-controller DB PVC; empty = cluster default
+    persistentVolume:
+      enabled: false                 # Create a PersistentVolume for the spec-controller DB PVC to bind to — for clusters without dynamic provisioning
+      capacity: ""                   # PV size; defaults to resources.sedaiPodInterceptorDB.storage when empty
+      accessModes: []                # Defaults to ["ReadWriteOnce"] when empty
+      reclaimPolicy: ""              # Defaults to "Retain" when empty (never auto-delete a customer-managed volume)
+      volumeMode: ""                 # Defaults to "Filesystem" when empty
+      # Raw PV source. Examples:
+      #   EBS (CSI, current EKS):  csi: {driver: ebs.csi.aws.com, volumeHandle: vol-0123456789abcdef0, fsType: ext4}
+      #   EBS (legacy in-tree):    awsElasticBlockStore: {volumeID: vol-0123456789abcdef0, fsType: ext4}
+      #   NFS:                     nfs: {server: 10.0.0.5, path: /exports/sedai-kube-spec-controller-db}
+      #   Local disk:              local: {path: /mnt/disks/ssd1}
+      #   hostPath (single node):  hostPath: {path: /mnt/data/sedai-kube-spec-controller-db}
+      volumeSource: {}
+      # Raw nodeAffinity block. Required for EBS (zone-pinned) and `local` volumes, e.g. for EBS:
+      #   required:
+      #     nodeSelectorTerms:
+      #       - matchExpressions:
+      #           - {key: topology.ebs.csi.aws.com/zone, operator: In, values: [us-east-1a]}
+      nodeAffinity: {}
 
 sedaiNodeExporter:
   enabled: false
@@ -176,6 +214,25 @@ sedaiDcgmExporter:
 sedaiVictoriaMetrics:
   retentionPeriod: "1d"                # Retention period for Victoria Metrics (e.g., '1', '7d', '1y')
   storageClass: ""                  # StorageClass for Victoria Metrics PVC; empty = cluster default
+  persistentVolume:
+    enabled: false                  # Create a PersistentVolume for the Victoria Metrics PVC to bind to — for clusters without dynamic provisioning
+    capacity: ""                    # PV size; defaults to resources.victoriaMetrics.storage when empty
+    accessModes: []                 # Defaults to ["ReadWriteOnce"] when empty
+    reclaimPolicy: ""               # Defaults to "Retain" when empty (never auto-delete a customer-managed volume)
+    volumeMode: ""                  # Defaults to "Filesystem" when empty
+    # Raw PV source. Examples:
+    #   EBS (CSI, current EKS):  csi: {driver: ebs.csi.aws.com, volumeHandle: vol-0123456789abcdef0, fsType: ext4}
+    #   EBS (legacy in-tree):    awsElasticBlockStore: {volumeID: vol-0123456789abcdef0, fsType: ext4}
+    #   NFS:                     nfs: {server: 10.0.0.5, path: /exports/victoria-metrics}
+    #   Local disk:              local: {path: /mnt/disks/ssd1}
+    #   hostPath (single node):  hostPath: {path: /mnt/data/victoria-metrics}
+    volumeSource: {}
+    # Raw nodeAffinity block. Required for EBS (zone-pinned) and `local` volumes, e.g. for EBS:
+    #   required:
+    #     nodeSelectorTerms:
+    #       - matchExpressions:
+    #           - {key: topology.ebs.csi.aws.com/zone, operator: In, values: [us-east-1a]}
+    nodeAffinity: {}
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet

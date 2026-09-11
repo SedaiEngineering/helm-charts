@@ -22,6 +22,9 @@ spec:
   {{- if .Values.sedaiPrometheus.storageClass }}
   storageClassName: {{ .Values.sedaiPrometheus.storageClass }}
   {{- end }}
+  {{- if .Values.sedaiPrometheus.persistentVolume.enabled }}
+  volumeName: {{ printf "%s-pv-%s" .Values.workload.prometheus.name .Release.Namespace }}
+  {{- end }}
   resources:
     requests:
       storage: "{{ .Values.resources.prometheus.storage }}"

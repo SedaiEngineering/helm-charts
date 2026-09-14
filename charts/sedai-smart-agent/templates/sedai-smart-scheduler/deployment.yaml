@@ -61,7 +61,6 @@ spec:
             - name: config
               mountPath: /etc/kubernetes
               readOnly: true
-        {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
         - name: log-forwarder
           image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.logForwarder.repository) }}:{{ .Values.image.logForwarder.imageTag }}"
           imagePullPolicy: {{ .Values.image.logForwarder.imagePullPolicy }}
@@ -87,15 +86,12 @@ spec:
           volumeMounts:
             - name: sidecar-tmp
               mountPath: /tmp
-        {{- end }}
       volumes:
         - name: config
           configMap:
             name: {{ include "smart-scheduler.fullname" . }}-config
-        {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
         - name: sidecar-tmp
           emptyDir: {}
-        {{- end }}
       {{- with .Values.sedaiSmartScheduler.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}

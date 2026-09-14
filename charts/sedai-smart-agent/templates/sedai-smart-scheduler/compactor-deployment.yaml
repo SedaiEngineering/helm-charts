@@ -73,7 +73,6 @@ spec:
             - name: policy
               mountPath: /policy-dir
               readOnly: true
-        {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
         - name: log-forwarder
           image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.logForwarder.repository) }}:{{ .Values.image.logForwarder.imageTag }}"
           imagePullPolicy: {{ .Values.image.logForwarder.imagePullPolicy }}
@@ -102,7 +101,6 @@ spec:
           volumeMounts:
             - name: sidecar-tmp
               mountPath: /tmp
-        {{- end }}
       {{- with .Values.sedaiSmartScheduler.compactor.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
@@ -110,8 +108,6 @@ spec:
         - name: policy
           configMap:
             name: {{ .Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}-config
-        {{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
         - name: sidecar-tmp
           emptyDir: {}
-        {{- end }}
 {{- end }}

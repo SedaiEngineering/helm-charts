@@ -162,9 +162,6 @@ sedaiSmartScheduler:
       enabled: false
       leaseName: sedai-smart-compactor
 
-  logForwarder:
-    enabled: false                  # Ships kube-scheduler/compactor container logs to Loki via a sidecar
-
 sedaiDcgmExporter:
   enabled: false
   port: 9400                        # Port for DCGM exporter metrics endpoint

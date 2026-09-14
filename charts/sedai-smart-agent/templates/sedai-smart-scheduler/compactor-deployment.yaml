@@ -90,9 +90,17 @@ spec:
             - name: CONTAINER_LABEL
               value: sedai-smart-compactor
             - name: AGENT_TENANT
-              value: "{{ .Values.sedaiIntegrationSettings.clusterName | default .Values.sedaiIntegrationSettings.nickName | default .Release.Name }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.workload.smartAgent.secret }}
+                  key: AGENT_TENANT
+                  optional: true
             - name: AGENT_ACCOUNTID
-              value: "{{ .Release.Namespace }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.workload.smartAgent.secret }}
+                  key: AGENT_ACCOUNTID
+                  optional: true
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

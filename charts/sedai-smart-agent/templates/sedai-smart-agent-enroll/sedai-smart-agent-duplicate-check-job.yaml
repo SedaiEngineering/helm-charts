@@ -76,6 +76,16 @@ spec:
               value: {{ .Values.smartAgentEnroll.clearDuplicateAgents.namespaces | default (list "sedai" "sedai-smart-agent") | join "," | quote }}
             - name: RELEASE_NAME
               value: {{ .Release.Name | quote }}
+            {{- if and .Values.sedaiIntegrationSettings.sedaiApiTokenSecret .Values.sedaiIntegrationSettings.sedaiApiTokenSecretKey }}
+            - name: SEDAI_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecret }}
+                  key: {{ .Values.sedaiIntegrationSettings.sedaiApiTokenSecretKey }}
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: "{{ .Values.workload.smartAgentEnroll.name }}-duplicate-check-secret"
           securityContext:
             runAsNonRoot: true
             runAsUser: 1001

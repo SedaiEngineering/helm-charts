@@ -13,7 +13,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: "{{ .Values.workload.victoriaMetrics.name }}-cluster-role"
+  name: "{{ .Values.workload.victoriaMetrics.name }}-cr"
 rules:
   - apiGroups:
       - ""
@@ -67,7 +67,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: "{{ .Values.workload.victoriaMetrics.name }}-cluster-role-binding"
+  name: "{{ .Values.workload.victoriaMetrics.name }}-crb"
 subjects:
   - kind: ServiceAccount
     name: "{{ .Values.workload.victoriaMetrics.name }}"
@@ -75,5 +75,5 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: "{{ .Values.workload.victoriaMetrics.name }}-cluster-role"
+  name: "{{ .Values.workload.victoriaMetrics.name }}-cr"
 {{- end }}

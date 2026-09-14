@@ -1,4 +1,4 @@
-name: PR Check - No Beta Version
+name: PR Check - No Pre-release Version
 
 on:
   pull_request:
@@ -7,18 +7,22 @@ on:
 
 jobs:
   check-version:
-    name: Verify chart version has no beta tag
+    name: Verify chart version has no pre-release tag
     runs-on: sedai-arc-helm-charts
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Check version is not beta
+      - name: Check version has no pre-release tag
         run: |
           VERSION=$(grep -E "^version:" charts/sedai-smart-agent/Chart.yaml | awk '{print $2}')
           echo "Chart version: $VERSION"
           if [[ "$VERSION" == *"beta"* ]]; then
             echo "Error: Chart version '$VERSION' contains a beta tag. Remove the pre-release suffix before merging to main."
+            exit 1
+          fi
+          if [[ "$VERSION" == *"edge"* ]]; then
+            echo "Error: Chart version '$VERSION' contains an edge tag. Remove the pre-release suffix before merging to main."
             exit 1
           fi
           echo "Version check passed: $VERSION"

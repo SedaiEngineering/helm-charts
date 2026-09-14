@@ -162,6 +162,9 @@ sedaiSmartScheduler:
       enabled: false
       leaseName: sedai-smart-compactor
 
+  logForwarder:
+    enabled: false                  # Ships kube-scheduler/compactor container logs to Loki via a sidecar
+
 sedaiDcgmExporter:
   enabled: false
   port: 9400                        # Port for DCGM exporter metrics endpoint
@@ -288,7 +291,12 @@ image:
     repository: sedai_io/prometheus/node-exporter
     imageTag: v1.10.2
     imagePullPolicy: IfNotPresent
-  
+
+  logForwarder:
+    repository: sedai_io/sedai-kube-scheduler-log-forwader
+    imageTag: latest
+    imagePullPolicy: IfNotPresent
+
   beyla:
     repository: sedai_io/grafana/beyla
     imageTag: 3.6.0

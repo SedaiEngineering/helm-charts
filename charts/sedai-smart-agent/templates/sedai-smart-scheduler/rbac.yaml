@@ -1,6 +1,37 @@
 # Scheduler RBAC: binds the smart-agent SA to the K8s built-in scheduler roles
 # (system:kube-scheduler, system:volume-scheduler, extension-apiserver-authn).
 {{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create }}
+{{- if .Values.sedaiSmartScheduler.logForwarder.enabled }}
+# Allows the log-forwarder sidecar to stream pod logs via the Kubernetes API.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-log-reader
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-log-reader
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "smart-scheduler.fullname" . }}-log-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "smart-scheduler.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+---
+{{- end }}
 # Adds pods/binding create, pods/status patch, events create.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

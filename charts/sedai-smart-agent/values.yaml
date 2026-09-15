@@ -79,6 +79,17 @@ sedaiSync:
   priorityClassName: ""             # Priority class name for Sedai Sync deployment
   encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
 
+sedaiAgentClient:
+  enabled: false                    # Enables the Sedai Agent Client + Metrics Gateway two-container deployment (agent-v3 data path)
+  nodeSelector: {}                  # Node selector for the Agent Client pod (both containers)
+  tolerations: []                   # Tolerations for the Agent Client pod
+  priorityClassName: ""             # Priority class name for the Agent Client pod
+  agentClient:
+    baseAgentUrl: ""                # env BASE_AGENT_URL - the agent-v3 server for this tenant. Defaults to "<sedaiIntegrationSettings.sedaiBaseUrl>/agent" (the same platform gateway every other Sedai endpoint for this tenant is proxied through - see sedai-saas-deployment's gateway configmap); override only if this tenant's agent server lives behind a different host.
+    skipCertCheck: false            
+  metricsGateway:
+    storeProvider: "victoriametrics"  # env METRICS_SIDECAR_STORE_PROVIDER: victoriametrics | prometheus | mimir
+    storeUpstream: ""                 # env METRICS_SIDECAR_STORE_UPSTREAM - defaults to this chart's Victoria Metrics service when sedaiVictoriaMetrics.enabled is true; REQUIRED placeholder otherwise (e.g. for prometheus/mimir)
 sedaiNodeExporter:
   enabled: false
   port: 19100                       # Non-standard port (outside the 9100-9999 Prometheus exporter port block) to avoid hostNetwork conflicts with customer's own node-exporter
@@ -132,6 +143,11 @@ workload:
     nodeSelector: {}                        # Node selector for Smart Agent deployment
     tolerations: []                         # Tolerations for Smart Agent deployment
     priorityClassName: ""                   # Priority class name for Smart Agent deployment
+  agentClient:
+    name: sedai-agent-client                # Name of the Agent Client + Metrics Gateway deployment
+    replicaCount: 1                         # Number of replicas
+    revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
+    secret: "sedai-smart-agent"             # name of a pre-existing Secret with an AUTH_TOKEN key (agent-v3 tunnel auth) - confirm the exact key name with the agent-v3 team before enabling. AGENT_ID does not need a value here - it's read from workload.smartAgent.secret (key AGENT_ACCOUNTID), the same account id sedai-sync already uses
   prometheus:
     name: sedai-prometheus-server
     replicaCount: 1
@@ -191,11 +207,23 @@ image:
     imageTag: v2.0.0
     imagePullPolicy: IfNotPresent
 
+  agentClient:
+    name: sedai-agent-client
+    repository: "sedai_io/sedai-agent-client"    
+    imageTag: "v1.0.8"                         
+    imagePullPolicy: IfNotPresent
+
+  metricsGateway:
+    name: sedai-metrics-gateway
+    repository: "sedai_io/sedai-metrics-gateway"
+    imageTag: "PLACEHOLDER"
+    imagePullPolicy: IfNotPresent
+
   busyBox:
     repository: sedai_io/busybox
     imageTag: 1.37.0
     imagePullPolicy: IfNotPresent
-  
+
   nodeExporter:
     repository: sedai_io/prometheus/node-exporter
     imageTag: v1.10.2
@@ -266,6 +294,22 @@ resources:
       limits: "1024Mi"
     storage: "2Gi"                      # Persistent volume storage for SQLite database
   
+  agentClient:
+    cpu:
+      requests: "100m"         
+      limits: "500m"            
+    memory:
+      requests: "64Mi"          
+      limits: "256Mi"           
+
+  metricsGateway:
+    cpu:
+      requests: "50m"           
+      limits: "500m"           
+    memory:
+      requests: "64Mi"          
+      limits: "128Mi"            
+
   sedaiBeyla:
     cpu:
       requests: "500m"

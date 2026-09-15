@@ -304,7 +304,7 @@ image:
   metricsGateway:
     name: sedai-metrics-gateway
     repository: "sedai_io/sedai-metrics-gateway"
-    imageTag: "PLACEHOLDER"
+    imageTag: "v0.0.1"
     imagePullPolicy: IfNotPresent
 
   busyBox:

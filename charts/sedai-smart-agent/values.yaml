@@ -85,8 +85,10 @@ sedaiPodInterceptor:
   db:
     user: "sedai"
     name: "sedai_kube_spec_controller_db"
-    # Leave blank: the chart generates a password once and preserves it across upgrades via lookup.
-    # Set explicitly only to adopt an externally-managed credential.
+    # Leave blank: a pre-install/pre-upgrade hook Job generates a random password and creates the
+    # DB Secret exactly once, then leaves it untouched on every later install/upgrade (see
+    # sedai-pod-interceptor-db-secret-job.yaml). Set explicitly only to adopt an externally-managed
+    # credential.
     password: ""
     # Client pool bounds. Invariant: replicas x maxOpenConns <= PG max_connections (100) - 20.
     maxOpenConns: 20

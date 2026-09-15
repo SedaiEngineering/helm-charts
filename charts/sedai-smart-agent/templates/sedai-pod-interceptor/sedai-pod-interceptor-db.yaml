@@ -1,40 +1,12 @@
 {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
 # ── Spec-controller store: in-namespace Postgres ─────────────────────────────────────────────
-# Chart-managed credentials. The password is generated once and preserved across upgrades via
-# lookup (same pattern as the TLS secret), unless an explicit password is set in values.
+# Credentials Secret is created by a pre-install/pre-upgrade hook Job (see
+# sedai-pod-interceptor-db-secret-job.yaml), not rendered here. A `lookup`-based generate-once
+# Secret is not GitOps-safe: tools like ArgoCD re-render manifests without reliable live-cluster
+# read access, so `lookup` can silently miss the existing Secret and mint a fresh random password
+# on every sync -- which then no longer matches the password Postgres actually initialized with.
+# The hook Job creates the Secret exactly once, using its own in-cluster RBAC to check first.
 {{- $dbName := printf "%s-db" .Values.workload.kubeSpecController.name }}
-{{- $existingDbSecret := lookup "v1" "Secret" .Release.Namespace $dbName }}
-{{- $dbUser := .Values.sedaiPodInterceptor.db.user | default "sedai" }}
-{{- $dbDatabase := .Values.sedaiPodInterceptor.db.name | default "sedai_kube_spec_controller_db" }}
-{{- $dbPassword := "" }}
-{{- if and $existingDbSecret (index $existingDbSecret.data "password") }}
-{{- $dbPassword = index $existingDbSecret.data "password" | b64dec }}
-{{- else if .Values.sedaiPodInterceptor.db.password }}
-{{- $dbPassword = .Values.sedaiPodInterceptor.db.password }}
-{{- else }}
-{{- $dbPassword = randAlphaNum 24 }}
-{{- end }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ $dbName }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
-    app: {{ $dbName | quote }}
-    {{- with .Values.globalLabels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-  {{- with .Values.globalAnnotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-type: Opaque
-data:
-  username: {{ $dbUser | b64enc }}
-  password: {{ $dbPassword | b64enc }}
-  dbname: {{ $dbDatabase | b64enc }}
----
 apiVersion: v1
 kind: Service
 metadata:

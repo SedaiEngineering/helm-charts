@@ -288,7 +288,12 @@ image:
     repository: sedai_io/prometheus/node-exporter
     imageTag: v1.10.2
     imagePullPolicy: IfNotPresent
-  
+
+  logForwarder:
+    repository: sedai_io/sedai-kube-scheduler-log-forwader
+    imageTag: latest
+    imagePullPolicy: IfNotPresent
+
   beyla:
     repository: sedai_io/grafana/beyla
     imageTag: 3.6.0

@@ -142,7 +142,7 @@ spec:
             memory: "{{ .Values.resources.metricsGateway.memory.limits }}"
         env:
         - name: METRICS_SIDECAR_STORE_UPSTREAM
-          value: {{ required "sedaiAgentClient.metricsGateway.storeUpstream is required (METRICS_SIDECAR_STORE_UPSTREAM) when sedaiVictoriaMetrics.enabled is false - set it to the in-cluster metric store URL, e.g. http://<service>:<port>" $storeUpstream | quote }}
+          value: {{ $storeUpstream | quote }}
         - name: METRICS_SIDECAR_STORE_PROVIDER
           value: "{{ .Values.sedaiAgentClient.metricsGateway.storeProvider }}"
         - name: METRICS_SIDECAR_VERSION

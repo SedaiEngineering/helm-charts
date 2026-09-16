@@ -104,7 +104,7 @@ sedaiAgentClient:
     skipCertCheck: false            
   metricsGateway:
     storeProvider: "victoriametrics"  # env METRICS_SIDECAR_STORE_PROVIDER: victoriametrics | prometheus | mimir
-    storeUpstream: ""                 # env METRICS_SIDECAR_STORE_UPSTREAM - defaults to this chart's Victoria Metrics service when sedaiVictoriaMetrics.enabled is true; REQUIRED placeholder otherwise (e.g. for prometheus/mimir)
+    storeUpstream: ""                 # env METRICS_SIDECAR_STORE_UPSTREAM - defaults to this chart's Victoria Metrics service when sedaiVictoriaMetrics.enabled is true; otherwise stays "" unless set explicitly (e.g. for prometheus/mimir)
 sedaiNodeExporter:
   enabled: false
   port: 19100                       # Non-standard port (outside the 9100-9999 Prometheus exporter port block) to avoid hostNetwork conflicts with customer's own node-exporter

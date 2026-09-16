@@ -220,7 +220,7 @@ workload:
     name: sedai-agent-client                # Name of the Agent Client + Metrics Gateway deployment
     replicaCount: 1                         # Number of replicas
     revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
-    secret: "sedai-smart-agent"             # name of a pre-existing Secret with an AUTH_TOKEN key (agent-v3 tunnel auth) - confirm the exact key name with the agent-v3 team before enabling. AGENT_ID does not need a value here - it's read from workload.smartAgent.secret (key AGENT_ACCOUNTID), the same account id sedai-sync already uses
+    secret: "sedai-smart-agent"             # name of a pre-existing Secret; AUTH_TOKEN (agent-v3 tunnel auth) is read from its SERVER_ACCESSKEY key - the same long-lived agent token the legacy sedai-smart-agent Java deployment authenticates to core with (see sedai-smart-agent-gitops-secrets.yaml). AGENT_ID does not need a value here - it's read from workload.smartAgent.secret (key AGENT_ACCOUNTID), the same account id sedai-sync already uses
   prometheus:
     name: sedai-prometheus-server
     replicaCount: 1

@@ -118,7 +118,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: "{{ .Values.workload.agentClient.secret }}"
-              key: "AUTH_TOKEN"
+              key: "SERVER_ACCESSKEY"
         {{- end }}
         securityContext:
           allowPrivilegeEscalation: false

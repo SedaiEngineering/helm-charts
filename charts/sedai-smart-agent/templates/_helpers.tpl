@@ -1,4 +1,15 @@
 {{/*
+Suffix to append after ".svc" when referencing an in-cluster Service by DNS name, e.g.
+".cluster.local", or an empty string to use the short <svc>.<namespace>.svc form. Controlled by
+.Values.clusterDomain (see values.yaml) -- most clusters resolve the short form fine via the
+pod's search-domain expansion, but a cluster whose kubelet/CoreDNS domain configuration has
+drifted apart needs the fully-qualified form instead.
+*/}}
+{{- define "sedai-smart-agent.svcDomainSuffix" -}}
+{{- if .Values.clusterDomain }}.{{ .Values.clusterDomain }}{{- end -}}
+{{- end -}}
+
+{{/*
 Expand the name of the chart.
 */}}
 {{- define "sedai-smart-agent.name" -}}

@@ -102,7 +102,7 @@ spec:
 
         {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
         - name: KUBESPECCONTROLLER_BASEURL
-          value: "https://{{ .Values.workload.kubeSpecController.name }}-svc.{{ .Release.Namespace }}.svc:{{ .Values.sedaiPodInterceptor.port }}"
+          value: "https://{{ .Values.workload.kubeSpecController.name }}-svc.{{ .Release.Namespace }}.svc{{ include "sedai-smart-agent.svcDomainSuffix" . }}:{{ .Values.sedaiPodInterceptor.port }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
           value: "{{ or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH

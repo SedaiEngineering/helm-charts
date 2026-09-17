@@ -32,6 +32,16 @@ globalRegistry: "public.ecr.aws"
 #     operator: "Exists"
 #     effect: "NoSchedule"
 
+# clusterDomain: leave empty (default) to reference in-cluster Services by their short DNS name
+# (<svc>.<namespace>.svc), which relies on the pod's search-domain expansion and works on
+# virtually all clusters. Set explicitly to force fully-qualified Service DNS names instead -
+# use this only if a cluster's kubelet/CoreDNS domain configuration has drifted apart and
+# search-domain expansion is failing (symptom: a Java/JVM "Name does not resolve" error on a
+# *.svc address that otherwise resolves fine with the full FQDN appended).
+# Example:
+#   clusterDomain: "cluster.local"   -> sedai-kube-spec-controller-svc.<namespace>.svc.cluster.local
+clusterDomain: ""
+
 # -------------------------------------------------------------------
 # Sedai Component Toggles
 # -------------------------------------------------------------------

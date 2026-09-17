@@ -1,0 +1,159 @@
+{{- if .Values.sedaiAgentClient.enabled }}
+{{/*
+Two-container pod: sedai-agent-client (the agent-v3 tunnel client) + sedai-metrics-gateway (a loopback-only
+sidecar the client forwards metric queries to). Modeled after templates/sedai-sync's single-component
+layout. The gateway is never a Service - it binds 127.0.0.1 and is reached only by its sibling container
+over the pod's shared network namespace.
+*/}}
+{{- $storeUpstream := .Values.sedaiAgentClient.metricsGateway.storeUpstream }}
+{{- if not $storeUpstream }}
+{{- if .Values.sedaiVictoriaMetrics.enabled }}
+{{- $storeUpstream = printf "http://%s:8428" .Values.workload.victoriaMetrics.name }}
+{{- end }}
+{{- end }}
+{{/*
+The agent-v3 server for this tenant sits behind the same platform gateway as everything else, reached
+at <sedaiBaseUrl>/agent (the gateway proxies AGENT_ENDPOINT there the same way it proxies /pricing to the
+pricing microservice - see sedai-saas-deployment/helm/sedai/templates/sedai-gateway-deployment.yaml and
+that tenant's hostName in its values file, e.g. test.sedai.cloud -> https://test.sedai.cloud/agent, which
+matches sedai-agent-v3/set_dev_env.sh's BASE_AGENT_URL example). sedaiIntegrationSettings.sedaiBaseUrl is
+that same per-tenant platform URL already required by this chart, so default to it and only fall back to
+an explicit override for a topology where the agent server isn't behind that gateway.
+*/}}
+{{- $baseAgentUrl := .Values.sedaiAgentClient.agentClient.baseAgentUrl }}
+{{- if not $baseAgentUrl }}
+{{- $sedaiBaseUrl := required "sedaiIntegrationSettings.sedaiBaseUrl is required to derive BASE_AGENT_URL - set it (e.g. \"https://app.sedai.io\") or set sedaiAgentClient.agentClient.baseAgentUrl directly" .Values.sedaiIntegrationSettings.sedaiBaseUrl }}
+{{- $baseAgentUrl = printf "%s/agent" ($sedaiBaseUrl | trimSuffix "/") }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.workload.agentClient.name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+    app: "{{ .Values.workload.agentClient.name }}"
+spec:
+  replicas: {{ .Values.workload.agentClient.replicaCount }}
+  revisionHistoryLimit: {{ .Values.workload.agentClient.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: "{{ .Values.workload.agentClient.name }}"
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.workload.agentClient.name }}"
+        {{- with .Values.globalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.globalAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccount: "{{ .Values.workload.agentClient.name }}-sa"
+      serviceAccountName: "{{ .Values.workload.agentClient.name }}-sa"
+
+      automountServiceAccountToken: false
+
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+
+      {{- with .Values.sedaiAgentClient.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if or .Values.globalTolerations .Values.sedaiAgentClient.tolerations }}
+      tolerations:
+        {{- with .Values.globalTolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.sedaiAgentClient.tolerations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+
+      {{- with .Values.sedaiAgentClient.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+
+      containers:
+      - name: "{{ .Values.image.agentClient.name }}"
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.agentClient.repository) }}:{{ .Values.image.agentClient.imageTag }}"
+        imagePullPolicy: {{ .Values.image.agentClient.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: "{{ .Values.resources.agentClient.cpu.requests }}"
+            memory: "{{ .Values.resources.agentClient.memory.requests }}"
+          limits:
+            cpu: "{{ .Values.resources.agentClient.cpu.limits }}"
+            memory: "{{ .Values.resources.agentClient.memory.limits }}"
+        env:
+        - name: BASE_AGENT_URL
+          value: {{ $baseAgentUrl | quote }}
+        - name: AUTO_UPDATE_CONFIG
+          value: "true"
+        - name: SKIP_CERT_CHECK
+          value: "{{ .Values.sedaiAgentClient.agentClient.skipCertCheck }}"
+        - name: METRICS_GATEWAY_HEALTH_URL
+          value: "http://127.0.0.1:8080/health"
+        - name: AGENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_ACCOUNTID"
+        {{- if .Values.workload.agentClient.secret }}
+        - name: AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.agentClient.secret }}"
+              key: "SERVER_ACCESSKEY"
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true 
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+
+      - name: "{{ .Values.image.metricsGateway.name }}"
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.metricsGateway.repository) }}:{{ .Values.image.metricsGateway.imageTag }}"
+        imagePullPolicy: {{ .Values.image.metricsGateway.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: "{{ .Values.resources.metricsGateway.cpu.requests }}"
+            memory: "{{ .Values.resources.metricsGateway.memory.requests }}"
+          limits:
+            cpu: "{{ .Values.resources.metricsGateway.cpu.limits }}"
+            memory: "{{ .Values.resources.metricsGateway.memory.limits }}"
+        env:
+        - name: METRICS_SIDECAR_STORE_UPSTREAM
+          value: {{ $storeUpstream | quote }}
+        - name: METRICS_SIDECAR_STORE_PROVIDER
+          value: "{{ .Values.sedaiAgentClient.metricsGateway.storeProvider }}"
+        - name: METRICS_SIDECAR_VERSION
+          value: "{{ .Values.image.metricsGateway.imageTag }}"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          privileged: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+{{- end }}

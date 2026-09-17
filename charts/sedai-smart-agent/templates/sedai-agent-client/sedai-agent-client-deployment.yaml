@@ -66,6 +66,7 @@ spec:
 
       securityContext:
         runAsNonRoot: true
+        runAsUser: 65532
         seccompProfile:
           type: RuntimeDefault
 
@@ -122,13 +123,16 @@ spec:
         {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true 
+          readOnlyRootFilesystem: true
           privileged: false
           capabilities:
             drop:
               - ALL
           seccompProfile:
             type: RuntimeDefault
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
 
       - name: "{{ .Values.image.metricsGateway.name }}"
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.metricsGateway.repository) }}:{{ .Values.image.metricsGateway.imageTag }}"
@@ -156,4 +160,8 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
 {{- end }}

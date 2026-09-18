@@ -308,7 +308,7 @@ image:
   agentClient:
     name: sedai-agent-client
     repository: "sedai_io/sedai-agent-client"    
-    imageTag: "v1.0.8"                         
+    imageTag: "v1.0.9"                         
     imagePullPolicy: IfNotPresent
 
   metricsGateway:

@@ -112,9 +112,7 @@ sedaiAgentClient:
   agentClient:
     baseAgentUrl: ""                # env BASE_AGENT_URL - the agent-v3 server for this tenant. Defaults to "<sedaiIntegrationSettings.sedaiBaseUrl>/agent" (the same platform gateway every other Sedai endpoint for this tenant is proxied through - see sedai-saas-deployment's gateway configmap); override only if this tenant's agent server lives behind a different host.
     skipCertCheck: false            
-  metricsGateway:
-    storeProvider: "victoriametrics"  # env METRICS_SIDECAR_STORE_PROVIDER: victoriametrics | prometheus | mimir
-    storeUpstream: ""                 # env METRICS_SIDECAR_STORE_UPSTREAM - defaults to this chart's Victoria Metrics service when sedaiVictoriaMetrics.enabled is true; otherwise stays "" unless set explicitly (e.g. for prometheus/mimir)
+
 sedaiNodeExporter:
   enabled: false
   port: 19100                       # Non-standard port (outside the 9100-9999 Prometheus exporter port block) to avoid hostNetwork conflicts with customer's own node-exporter
@@ -307,14 +305,14 @@ image:
 
   agentClient:
     name: sedai-agent-client
-    repository: "sedai_io/sedai-agent-client"    
-    imageTag: "v1.0.8"                         
+    repository: "751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-agent-client"    
+    imageTag: "dev-latest"                         
     imagePullPolicy: IfNotPresent
 
   metricsGateway:
     name: sedai-metrics-gateway
-    repository: "sedai_io/sedai-metrics-gateway"
-    imageTag: "v0.0.1"
+    repository: "751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-metrics-gateway"
+    imageTag: "dev-latest"
     imagePullPolicy: IfNotPresent
 
   busyBox:

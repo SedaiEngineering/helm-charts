@@ -5,12 +5,6 @@ sidecar the client forwards metric queries to). Modeled after templates/sedai-sy
 layout. The gateway is never a Service - it binds 127.0.0.1 and is reached only by its sibling container
 over the pod's shared network namespace.
 */}}
-{{- $storeUpstream := .Values.sedaiAgentClient.metricsGateway.storeUpstream }}
-{{- if not $storeUpstream }}
-{{- if .Values.sedaiVictoriaMetrics.enabled }}
-{{- $storeUpstream = printf "http://%s:8428" .Values.workload.victoriaMetrics.name }}
-{{- end }}
-{{- end }}
 {{/*
 The agent-v3 server for this tenant sits behind the same platform gateway as everything else, reached
 at <sedaiBaseUrl>/agent (the gateway proxies AGENT_ENDPOINT there the same way it proxies /pricing to the
@@ -145,10 +139,6 @@ spec:
             cpu: "{{ .Values.resources.metricsGateway.cpu.limits }}"
             memory: "{{ .Values.resources.metricsGateway.memory.limits }}"
         env:
-        - name: METRICS_SIDECAR_STORE_UPSTREAM
-          value: {{ $storeUpstream | quote }}
-        - name: METRICS_SIDECAR_STORE_PROVIDER
-          value: "{{ .Values.sedaiAgentClient.metricsGateway.storeProvider }}"
         - name: METRICS_SIDECAR_VERSION
           value: "{{ .Values.image.metricsGateway.imageTag }}"
         securityContext:

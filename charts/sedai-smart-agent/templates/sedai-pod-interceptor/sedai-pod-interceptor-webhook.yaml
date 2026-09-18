@@ -14,6 +14,7 @@
 {{- $tlsCrt = $cert.Cert | b64enc }}
 {{- $tlsKey = $cert.Key | b64enc }}
 {{- end }}
+{{- $excludedNamespaces := concat (list .Release.Namespace "istio-system" "karpenter" "sedai" "kube-system" "sedai-karpenter-installer") (.Values.sedaiPodInterceptor.excludedNamespaces | default list) | uniq }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -66,7 +67,8 @@ webhooks:
       matchExpressions:
         - key: "kubernetes.io/metadata.name"  # Use the `metadata.name` of the namespace
           operator: NotIn
-          values: ["{{ .Release.Namespace }}"]
+          values:
+          {{- toYaml $excludedNamespaces | nindent 10 }}
     admissionReviewVersions: ["v1"]
     sideEffects: NoneOnDryRun
     timeoutSeconds: 1
@@ -138,7 +140,8 @@ webhooks:
       matchExpressions:
         - key: "kubernetes.io/metadata.name"  # Use the `metadata.name` of the namespace
           operator: NotIn
-          values: ["{{ .Release.Namespace }}"]
+          values:
+          {{- toYaml $excludedNamespaces | nindent 10 }}
     admissionReviewVersions: ["v1"]
     sideEffects: NoneOnDryRun
     timeoutSeconds: 5
@@ -180,7 +183,8 @@ webhooks:
       matchExpressions:
         - key: "kubernetes.io/metadata.name"
           operator: NotIn
-          values: ["{{ .Release.Namespace }}"]
+          values:
+          {{- toYaml $excludedNamespaces | nindent 10 }}
     admissionReviewVersions: ["v1"]
     sideEffects: NoneOnDryRun
     timeoutSeconds: 1

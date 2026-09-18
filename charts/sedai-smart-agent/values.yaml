@@ -89,6 +89,8 @@ sedaiPodInterceptor:
   encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
   port: "8443"
   isHostAddress: false
+  # Extra namespaces to exclude from webhook interception (release/Sedai/system namespaces are always excluded).
+  excludedNamespaces: []
   # Shared in-namespace Postgres store (replaces the embedded SQLite file). The controller
   # connects via its pgx backend; core remains the source of truth and re-pushes WISBs, so this
   # store is rebuildable and runs as a single replica (see shared-db-ha/postgres-devops-requirements.md).

@@ -91,6 +91,15 @@ sedaiPodInterceptor:
   isHostAddress: false
   # Extra namespaces to exclude from webhook interception (release/Sedai/system namespaces are always excluded).
   excludedNamespaces: []
+  # Both the controller and its DB are single-replica by design, so a Karpenter node
+  # consolidation/expiration that evicts either one flaps the controller's health. When true,
+  # adds the karpenter.sh/do-not-disrupt annotation to both, so Karpenter skips proactively
+  # consolidating nodes hosting either pod. Set false to let Karpenter churn these nodes freely.
+  # No PDB here - a single-replica pod's only correct PDB shape (minAvailable:1) would also block
+  # a graceful `kubectl drain` of that node with no way to scale around it, which isn't worth the
+  # drain-blocking cost given failurePolicy:Ignore already treats a down controller as a soft
+  # degradation, not an outage.
+  disruptionProtection: true
   # Shared in-namespace Postgres store (replaces the embedded SQLite file). The controller
   # connects via its pgx backend; core remains the source of truth and re-pushes WISBs, so this
   # store is rebuildable and runs as a single replica (see shared-db-ha/postgres-devops-requirements.md).
@@ -155,6 +164,12 @@ sedaiSmartScheduler:
   tolerations: []
   affinity: {}
 
+  # When true, adds the karpenter.sh/do-not-disrupt annotation to the scheduler pod(s), so
+  # Karpenter skips proactively consolidating nodes hosting them. Set false to let Karpenter
+  # churn these nodes freely. Doesn't affect the PDB (see pdb.yaml), which is governed purely by
+  # replicaCount.
+  disruptionProtection: true
+
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 65532
@@ -179,6 +194,7 @@ sedaiSmartScheduler:
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
     priorityClassName: "system-cluster-critical"  # Priority class for the compactor pod
+    disruptionProtection: true      # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
     leaderElection:
       enabled: false
       leaseName: sedai-smart-compactor
@@ -225,7 +241,13 @@ workload:
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
     nodeSelector: {}                        # Node selector for Smart Agent deployment
     tolerations: []                         # Tolerations for Smart Agent deployment
-    priorityClassName: ""                   # Priority class name for Smart Agent deployment
+    priorityClassName: "system-cluster-critical"  # Priority class for the Smart Agent deployment
+    # When true, adds the karpenter.sh/do-not-disrupt annotation to the Smart Agent pod, so
+    # Karpenter skips proactively consolidating nodes hosting it. Set false to let Karpenter
+    # churn these nodes freely. Doesn't affect the PDB, which is governed purely by
+    # replicaCount (only created above 1, same as sedaiSmartScheduler) - scale to 2+ if you want
+    # PDB coverage too.
+    disruptionProtection: true
   agentClient:
     name: sedai-agent-client                # Name of the Agent Client + Metrics Gateway deployment
     replicaCount: 1                         # Number of replicas

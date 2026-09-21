@@ -93,11 +93,12 @@ sedaiPodInterceptor:
   excludedNamespaces: []
   # Both the controller and its DB are single-replica by design, so a Karpenter node
   # consolidation/expiration that evicts either one flaps the controller's health. When true,
-  # adds the karpenter.sh/do-not-disrupt annotation (keeps Karpenter from proactively
-  # consolidating nodes hosting either pod) plus a PodDisruptionBudget (minAvailable: 1, blocks
-  # any voluntary eviction outright) to both. Set false to let Karpenter churn these nodes
-  # freely. Note: minAvailable:1 on a singleton also blocks a graceful `kubectl drain` of that
-  # node - a genuinely mandatory node replacement needs the PDB deleted or the pod force-deleted.
+  # adds the karpenter.sh/do-not-disrupt annotation to both, so Karpenter skips proactively
+  # consolidating nodes hosting either pod. Set false to let Karpenter churn these nodes freely.
+  # No PDB here - a single-replica pod's only correct PDB shape (minAvailable:1) would also block
+  # a graceful `kubectl drain` of that node with no way to scale around it, which isn't worth the
+  # drain-blocking cost given failurePolicy:Ignore already treats a down controller as a soft
+  # degradation, not an outage.
   disruptionProtection: true
   # Shared in-namespace Postgres store (replaces the embedded SQLite file). The controller
   # connects via its pgx backend; core remains the source of truth and re-pushes WISBs, so this

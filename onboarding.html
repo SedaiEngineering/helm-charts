@@ -401,6 +401,7 @@
       <p class="num">Step 3</p>
       <h3>Create a custom-values file</h3>
       <p>Deploy this chart across all your Kubernetes clusters — use a cluster-specific values-override file for each. Below are examples for the major providers; see the <a href="#faq">FAQ</a> for more.</p>
+      <p>In your override file, make sure to explicitly enable the <strong>Pod Interceptor</strong> (<code class="inline">sedaiPodInterceptor.enabled: true</code>) and the <strong>Smart Scheduler</strong> (<code class="inline">sedaiSmartScheduler.enabled: true</code> and <code class="inline">sedaiSmartScheduler.compactor.enabled: true</code>) — both are off by default, and we strongly recommend enabling them for every cluster (see <a href="#overview">Deployment Overview</a> above for what each does). All four sample files below already turn them on.</p>
 
       <figure>
         <figcaption>values-override.yaml — EKS with Prometheus</figcaption>
@@ -525,6 +526,33 @@ sedaiBeyla:
 
     <div class="step-card">
       <p class="num">Step 4</p>
+      <h3>Additional settings to avoid disruption</h3>
+      <p>Before deploying, review these three settings and add whichever apply to your environment — each addresses an issue that otherwise only shows up <em>after</em> the cluster is already onboarded.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">DNS resolution — <code class="inline">clusterDomain</code></p>
+      <p>If a cluster's kubelet/CoreDNS domain configuration is non-standard, the Smart Agent can fail to reach the Pod Interceptor with a <code class="inline">Name does not resolve</code> error. Set this up front if you know your cluster is affected (see <a href="#faq-14">FAQ #14</a> for the full symptom):</p>
+      <pre>clusterDomain: "cluster.local"</pre>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Deploying via ArgoCD — <code class="inline">ignoreDifferences</code></p>
+      <p>If you're deploying via ArgoCD, you <strong>must</strong> include <code class="inline">ignoreDifferences</code> in your Application manifest — without it, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops. This is not optional; see <a href="#faq-13">FAQ #13</a> for the complete <code class="inline">ignoreDifferences</code> block to copy into your Application manifest.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Karpenter clusters — <code class="inline">disruptionProtection</code></p>
+      <p>If your cluster runs Karpenter, its node consolidation/expiration can evict the Smart Agent, Pod Interceptor (+ its DB), Smart Scheduler, or compactor as it churns nodes — which shows up as their health flapping. This is on by default, but confirm it's set for each component you've enabled (see <a href="#faq-15">FAQ #15</a> for what it does):</p>
+      <pre>workload:
+  smartAgent:
+    disruptionProtection: true
+
+sedaiPodInterceptor:
+  disruptionProtection: true
+
+sedaiSmartScheduler:
+  disruptionProtection: true
+  compactor:
+    disruptionProtection: true</pre>
+    </div>
+
+    <div class="step-card">
+      <p class="num">Step 5</p>
       <h3>Deploy Sedai Smart Agent</h3>
       <p>Deploy the chart to your cluster, overriding cluster-specific details with your values-override file.</p>
       <pre>cd sedai-smart-agent
@@ -683,7 +711,7 @@ helm pull sedai/sedai-smart-agent --untar</pre>
       <p>From the Sedai Administration UI directly — or automatically, if <code class="inline">sedaiIntegrationSettings.enableDeRegisterJob: true</code> and you uninstall the chart. Deleting an integration permanently removes all collected data; re-adding the same cluster later starts as a new integration with no history retained.</p>
     </div>
 
-    <div class="qa">
+    <div class="qa" id="faq-13">
       <p class="num">13</p>
       <h3>Can I deploy via ArgoCD?</h3>
       <p>Yes — via ArgoCD or any GitOps provider.</p>
@@ -756,7 +784,7 @@ spec:
         - '.webhooks[].clientConfig.caBundle'</pre>
     </div>
 
-    <div class="qa">
+    <div class="qa" id="faq-14">
       <p class="num">14</p>
       <h3>My cluster's DNS resolution is misconfigured — the Pod Interceptor can't reach its Service</h3>
       <p>The Smart Agent reaches the Pod Interceptor over the short-form Service DNS name (<code class="inline">&lt;svc&gt;.&lt;namespace&gt;.svc</code>), relying on the pod's search-domain expansion to append the cluster's real domain (normally <code class="inline">cluster.local</code>). This works on virtually all clusters. If a cluster's kubelet/CoreDNS domain configuration has drifted apart and that expansion is failing — symptom: a Java/JVM <code class="inline">Name does not resolve</code> error on a <code class="inline">*.svc</code> address that otherwise resolves fine with the full FQDN appended — set <code class="inline">clusterDomain</code> to force fully-qualified Service DNS names instead:</p>

@@ -224,7 +224,7 @@ clusterDomain: "cluster.local"
 
 **Deploying via ArgoCD — `ignoreDifferences`**
 
-If you're deploying via ArgoCD, you **must** include `ignoreDifferences` in your Application manifest — without it, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops. This is not optional; see FAQ #13 for the complete `ignoreDifferences` block to copy into your Application manifest.
+If you're deploying via ArgoCD, you **must** include `ignoreDifferences` **and** `syncOptions: [RespectIgnoreDifferences=true]` in your Application manifest — without both, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops (or, with `selfHeal` on, get reset back to a fresh value on every sync). This is not optional; see FAQ #13 for the complete block to copy into your Application manifest.
 
 **Karpenter clusters — `disruptionProtection`**
 
@@ -460,7 +460,7 @@ If you re-add the same cluster in the future, Sedai will treat it as a new Kuber
 
 Yes. You can deploy the Sedai Smart Agent using ArgoCD or any other GitOps provider. Below is a sample ArgoCD Application manifest for deploying the Smart Agent via Helm:
 
-> **Note:** It is critical to include `ignoreDifferences` in your ArgoCD Application manifest. This prevents sync loops caused by dynamically generated secrets and mutated webhook configurations created during runtime.
+> **Note:** It is critical to include `ignoreDifferences` in your ArgoCD Application manifest. This prevents sync loops caused by dynamically generated secrets and mutated webhook configurations created during runtime. `ignoreDifferences` alone only suppresses the diff/OutOfSync status, though — it does **not** stop an actual sync from overwriting those fields. Pair it with `syncOptions: [RespectIgnoreDifferences=true]` (included below) so a sync never resets them back to a fresh value.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -508,6 +508,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 
   ignoreDifferences:
     - group: ""

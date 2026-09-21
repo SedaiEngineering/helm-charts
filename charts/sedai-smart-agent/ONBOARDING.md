@@ -81,6 +81,8 @@ Review the `values.yaml` file carefully and prepare your cluster-specific config
 
 You can deploy this Helm chart across all Kubernetes clusters. Please use a cluster-specific custom values file to override the default settings. Below is an example snippet of some settings you may need to modify. For additional details, check the [FAQ](#sedai-smart-agent---faq) section in this document.
 
+In your override file, make sure to explicitly enable the **Pod Interceptor** (`sedaiPodInterceptor.enabled: true`) and the **Smart Scheduler** (`sedaiSmartScheduler.enabled: true` and `sedaiSmartScheduler.compactor.enabled: true`) — both are off by default; we strongly recommend enabling Pod Interceptor for every cluster (see [Deployment Overview](#sedai-smart-agent---deployment-overview) above for what each does). All four sample files below already turn them on.
+
 #### Sample values-override.yaml - EKS Cluster with Prometheus Monitoring Provider
 
 ```yaml
@@ -208,7 +210,41 @@ sedaiBeyla:
 
 > **Note:** `sedaiPrometheus` and `sedaiVictoriaMetrics` keys are used for monitoring tools that are fully managed and deployed by Sedai. If you prefer to connect your own self-hosted monitoring setup, use the options under `monitoringProvider` instead. Ex: `monitoringProvider.prometheus`
 
-### 4. Deploy Sedai Smart Agent
+### 4. Additional settings to avoid disruption
+
+Before deploying, review these three settings and add whichever apply to your environment — each addresses an issue that otherwise only shows up *after* the cluster is already onboarded.
+
+**DNS resolution — `clusterDomain`**
+
+If a cluster's kubelet/CoreDNS domain configuration is non-standard, the Smart Agent can fail to reach the Pod Interceptor with a `Name does not resolve` error. Set this up front if you know your cluster is affected (see FAQ #14 for the full symptom):
+
+```yaml
+clusterDomain: "cluster.local"
+```
+
+**Deploying via ArgoCD — `ignoreDifferences`**
+
+If you're deploying via ArgoCD, you **must** include `ignoreDifferences` **and** `syncOptions: [RespectIgnoreDifferences=true]` in your Application manifest — without both, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops (or, with `selfHeal` on, get reset back to a fresh value on every sync). This is not optional; see FAQ #13 for the complete block to copy into your Application manifest.
+
+**Karpenter clusters — `disruptionProtection`**
+
+If your cluster runs Karpenter, its node consolidation/expiration can evict the Smart Agent, Pod Interceptor (+ its DB), Smart Scheduler, or compactor as it churns nodes — which shows up as their health flapping. This is on by default, but confirm it's set for each component you've enabled (see FAQ #15 for what it does):
+
+```yaml
+workload:
+  smartAgent:
+    disruptionProtection: true
+
+sedaiPodInterceptor:
+  disruptionProtection: true
+
+sedaiSmartScheduler:
+  disruptionProtection: true
+  compactor:
+    disruptionProtection: true
+```
+
+### 5. Deploy Sedai Smart Agent
 
 Deploy Smart Agent Helm Chart in your Kubernetes Clusters. Make sure to over-ride cluster specific details using the over-ride values file.
 
@@ -424,7 +460,7 @@ If you re-add the same cluster in the future, Sedai will treat it as a new Kuber
 
 Yes. You can deploy the Sedai Smart Agent using ArgoCD or any other GitOps provider. Below is a sample ArgoCD Application manifest for deploying the Smart Agent via Helm:
 
-> **Note:** It is critical to include `ignoreDifferences` in your ArgoCD Application manifest. This prevents sync loops caused by dynamically generated secrets and mutated webhook configurations created during runtime.
+> **Note:** It is critical to include `ignoreDifferences` in your ArgoCD Application manifest. This prevents sync loops caused by dynamically generated secrets and mutated webhook configurations created during runtime. `ignoreDifferences` alone only suppresses the diff/OutOfSync status, though — it does **not** stop an actual sync from overwriting those fields. Pair it with `syncOptions: [RespectIgnoreDifferences=true]` (included below) so a sync never resets them back to a fresh value.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -472,6 +508,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 
   ignoreDifferences:
     - group: ""

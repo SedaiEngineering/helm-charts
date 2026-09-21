@@ -81,7 +81,7 @@ spec:
 
         env:
         - name: _JAVA_OPTIONS
-          value: "-XX:InitialRAMPercentage=25.0 -XX:MaxRAMPercentage=47.0 -XX:+UseContainerSupport"
+          value: "-XX:InitialRAMPercentage=25.0 -XX:MaxRAMPercentage=47.0 -XX:+UseContainerSupport -XX:MaxMetaspaceSize=256M"
         - name: FLAGS_AUTOUPDATE_DISABLED
           value: "true"
 

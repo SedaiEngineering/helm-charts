@@ -1,4 +1,4 @@
-{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.compactor.enabled .Values.sedaiSmartScheduler.compactor.disruptionProtection -}}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.compactor.enabled (gt (int .Values.sedaiSmartScheduler.compactor.replicas) 1) -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -7,12 +7,7 @@ metadata:
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}
 spec:
-  # See sedai-smart-scheduler/pdb.yaml for why the shape depends on replica count.
-  {{- if le (int .Values.sedaiSmartScheduler.compactor.replicas) 1 }}
-  minAvailable: 1
-  {{- else }}
   maxUnavailable: 1
-  {{- end }}
   selector:
     matchLabels:
       app: sedai-smart-compactor

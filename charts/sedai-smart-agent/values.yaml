@@ -163,15 +163,6 @@ sedaiSmartScheduler:
   tolerations: []
   affinity: {}
 
-  # When true, adds the karpenter.sh/do-not-disrupt annotation to the scheduler pod(s) and a
-  # PodDisruptionBudget sized for the current replicaCount (minAvailable:1 at replicaCount<=1,
-  # else maxUnavailable:1) - so Karpenter churn never takes down every scheduler replica at once,
-  # and (at replicaCount:1) can't evict the only one at all. Set false to let Karpenter churn
-  # these nodes freely. Note: this trades some Karpenter bin-packing efficiency for availability -
-  # nodes hosting a protected pod won't be proactively consolidated. See the equivalent note under
-  # sedaiPodInterceptor.disruptionProtection for the node-drain caveat at replicaCount:1.
-  disruptionProtection: true
-
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 65532
@@ -196,7 +187,6 @@ sedaiSmartScheduler:
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
     priorityClassName: "system-cluster-critical"  # Priority class for the compactor pod
-    disruptionProtection: true      # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
     leaderElection:
       enabled: false
       leaseName: sedai-smart-compactor

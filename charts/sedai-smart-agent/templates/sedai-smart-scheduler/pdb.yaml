@@ -1,4 +1,4 @@
-{{- if and (eq (include "smart-scheduler.installOk" .) "true") (gt (int .Values.sedaiSmartScheduler.replicaCount) 1) -}}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.disruptionProtection -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -7,7 +7,14 @@ metadata:
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}
 spec:
+  # minAvailable:1 is the only shape that protects a single replica (maxUnavailable:1 allows
+  # evicting the sole replica outright); maxUnavailable:1 caps concurrent disruption at exactly
+  # one pod once there's more than one to spare.
+  {{- if le (int .Values.sedaiSmartScheduler.replicaCount) 1 }}
+  minAvailable: 1
+  {{- else }}
   maxUnavailable: 1
+  {{- end }}
   selector:
     matchLabels:
       app: sedai-smart-scheduler

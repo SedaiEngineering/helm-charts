@@ -91,6 +91,14 @@ sedaiPodInterceptor:
   isHostAddress: false
   # Extra namespaces to exclude from webhook interception (release/Sedai/system namespaces are always excluded).
   excludedNamespaces: []
+  # Both the controller and its DB are single-replica by design, so a Karpenter node
+  # consolidation/expiration that evicts either one flaps the controller's health. When true,
+  # adds the karpenter.sh/do-not-disrupt annotation (keeps Karpenter from proactively
+  # consolidating nodes hosting either pod) plus a PodDisruptionBudget (minAvailable: 1, blocks
+  # any voluntary eviction outright) to both. Set false to let Karpenter churn these nodes
+  # freely. Note: minAvailable:1 on a singleton also blocks a graceful `kubectl drain` of that
+  # node - a genuinely mandatory node replacement needs the PDB deleted or the pod force-deleted.
+  disruptionProtection: true
   # Shared in-namespace Postgres store (replaces the embedded SQLite file). The controller
   # connects via its pgx backend; core remains the source of truth and re-pushes WISBs, so this
   # store is rebuildable and runs as a single replica (see shared-db-ha/postgres-devops-requirements.md).
@@ -146,6 +154,15 @@ sedaiSmartScheduler:
   tolerations: []
   affinity: {}
 
+  # When true, adds the karpenter.sh/do-not-disrupt annotation to the scheduler pod(s) and a
+  # PodDisruptionBudget sized for the current replicaCount (minAvailable:1 at replicaCount<=1,
+  # else maxUnavailable:1) - so Karpenter churn never takes down every scheduler replica at once,
+  # and (at replicaCount:1) can't evict the only one at all. Set false to let Karpenter churn
+  # these nodes freely. Note: this trades some Karpenter bin-packing efficiency for availability -
+  # nodes hosting a protected pod won't be proactively consolidated. See the equivalent note under
+  # sedaiPodInterceptor.disruptionProtection for the node-drain caveat at replicaCount:1.
+  disruptionProtection: true
+
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 65532
@@ -170,6 +187,7 @@ sedaiSmartScheduler:
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
     priorityClassName: "system-cluster-critical"  # Priority class for the compactor pod
+    disruptionProtection: true      # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
     leaderElection:
       enabled: false
       leaseName: sedai-smart-compactor
@@ -216,7 +234,12 @@ workload:
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
     nodeSelector: {}                        # Node selector for Smart Agent deployment
     tolerations: []                         # Tolerations for Smart Agent deployment
-    priorityClassName: ""                   # Priority class name for Smart Agent deployment
+    priorityClassName: "system-cluster-critical"  # Priority class for the Smart Agent deployment
+  agentClient:
+    name: sedai-agent-client                # Name of the Agent Client + Metrics Gateway deployment
+    replicaCount: 1                         # Number of replicas
+    revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
+    secret: "sedai-smart-agent"             # name of a pre-existing Secret; AUTH_TOKEN (agent-v3 tunnel auth) is read from its SERVER_ACCESSKEY key - the same long-lived agent token the legacy sedai-smart-agent Java deployment authenticates to core with (see sedai-smart-agent-gitops-secrets.yaml). AGENT_ID does not need a value here - it's read from workload.smartAgent.secret (key AGENT_ACCOUNTID), the same account id sedai-sync already uses
   prometheus:
     name: sedai-prometheus-server
     replicaCount: 1

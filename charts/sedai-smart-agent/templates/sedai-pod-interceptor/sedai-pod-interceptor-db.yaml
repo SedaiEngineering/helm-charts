@@ -91,9 +91,14 @@ spec:
         {{- with .Values.globalLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.globalAnnotations }}
+      {{- if or .Values.globalAnnotations .Values.sedaiPodInterceptor.disruptionProtection }}
       annotations:
+        {{- with .Values.globalAnnotations }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.sedaiPodInterceptor.disruptionProtection }}
+        karpenter.sh/do-not-disrupt: "true"
+        {{- end }}
       {{- end }}
     spec:
       {{- with .Values.sedaiPodInterceptor.nodeSelector }}

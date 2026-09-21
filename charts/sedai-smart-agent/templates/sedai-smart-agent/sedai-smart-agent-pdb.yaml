@@ -1,0 +1,14 @@
+{{- if gt (int .Values.workload.smartAgent.replicaCount) 1 -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: "{{ .Values.workload.smartAgent.name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "sedai-smart-agent.selectorLabels" . | nindent 6 }}
+{{- end }}

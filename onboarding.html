@@ -534,7 +534,7 @@ sedaiBeyla:
       <pre>clusterDomain: "cluster.local"</pre>
 
       <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Deploying via ArgoCD — <code class="inline">ignoreDifferences</code></p>
-      <p>If you're deploying via ArgoCD, you <strong>must</strong> include <code class="inline">ignoreDifferences</code> in your Application manifest — without it, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops. This is not optional; see <a href="#faq-13">FAQ #13</a> for the complete <code class="inline">ignoreDifferences</code> block to copy into your Application manifest.</p>
+      <p>If you're deploying via ArgoCD, you <strong>must</strong> include <code class="inline">ignoreDifferences</code> <strong>and</strong> <code class="inline">syncOptions: [RespectIgnoreDifferences=true]</code> in your Application manifest — without both, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops (or, with <code class="inline">selfHeal</code> on, get reset back to a fresh value on every sync). This is not optional; see <a href="#faq-13">FAQ #13</a> for the complete block to copy into your Application manifest.</p>
 
       <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Karpenter clusters — <code class="inline">disruptionProtection</code></p>
       <p>If your cluster runs Karpenter, its node consolidation/expiration can evict the Smart Agent, Pod Interceptor (+ its DB), Smart Scheduler, or compactor as it churns nodes — which shows up as their health flapping. This is on by default, but confirm it's set for each component you've enabled (see <a href="#faq-15">FAQ #15</a> for what it does):</p>
@@ -715,7 +715,7 @@ helm pull sedai/sedai-smart-agent --untar</pre>
       <p class="num">13</p>
       <h3>Can I deploy via ArgoCD?</h3>
       <p>Yes — via ArgoCD or any GitOps provider.</p>
-      <blockquote><strong>Critical:</strong> include <code class="inline">ignoreDifferences</code> in your Application manifest. Without it, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops.</blockquote>
+      <blockquote><strong>Critical:</strong> include <code class="inline">ignoreDifferences</code> in your Application manifest. Without it, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops. <code class="inline">ignoreDifferences</code> alone only suppresses the diff/OutOfSync status, though — it does <strong>not</strong> stop an actual sync from overwriting those fields. Pair it with <code class="inline">syncOptions: [RespectIgnoreDifferences=true]</code> (included below) so a sync never resets them back to a fresh value.</blockquote>
       <pre>apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -761,6 +761,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 
   ignoreDifferences:
     - group: ""

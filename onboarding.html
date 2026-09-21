@@ -401,7 +401,7 @@
       <p class="num">Step 3</p>
       <h3>Create a custom-values file</h3>
       <p>Deploy this chart across all your Kubernetes clusters — use a cluster-specific values-override file for each. Below are examples for the major providers; see the <a href="#faq">FAQ</a> for more.</p>
-      <p>In your override file, make sure to explicitly enable the <strong>Pod Interceptor</strong> (<code class="inline">sedaiPodInterceptor.enabled: true</code>) and the <strong>Smart Scheduler</strong> (<code class="inline">sedaiSmartScheduler.enabled: true</code> and <code class="inline">sedaiSmartScheduler.compactor.enabled: true</code>) — both are off by default, and we strongly recommend enabling them for every cluster (see <a href="#overview">Deployment Overview</a> above for what each does). All four sample files below already turn them on.</p>
+      <p>In your override file, make sure to explicitly enable the <strong>Pod Interceptor</strong> (<code class="inline">sedaiPodInterceptor.enabled: true</code>) and the <strong>Smart Scheduler</strong> (<code class="inline">sedaiSmartScheduler.enabled: true</code> and <code class="inline">sedaiSmartScheduler.compactor.enabled: true</code>) — both are off by default; we strongly recommend enabling Pod Interceptor for every cluster (see <a href="#overview">Deployment Overview</a> above for what each does). All four sample files below already turn them on.</p>
 
       <figure>
         <figcaption>values-override.yaml — EKS with Prometheus</figcaption>

@@ -241,6 +241,12 @@ workload:
     nodeSelector: {}                        # Node selector for Smart Agent deployment
     tolerations: []                         # Tolerations for Smart Agent deployment
     priorityClassName: "system-cluster-critical"  # Priority class for the Smart Agent deployment
+    # When true, adds the karpenter.sh/do-not-disrupt annotation to the Smart Agent pod, so
+    # Karpenter skips proactively consolidating nodes hosting it. Set false to let Karpenter
+    # churn these nodes freely. Doesn't affect the PDB, which is governed purely by
+    # replicaCount (only created above 1, same as sedaiSmartScheduler) - scale to 2+ if you want
+    # PDB coverage too.
+    disruptionProtection: true
   agentClient:
     name: sedai-agent-client                # Name of the Agent Client + Metrics Gateway deployment
     replicaCount: 1                         # Number of replicas

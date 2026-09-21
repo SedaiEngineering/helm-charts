@@ -154,6 +154,12 @@ sedaiSmartScheduler:
   tolerations: []
   affinity: {}
 
+  # When true, adds the karpenter.sh/do-not-disrupt annotation to the scheduler pod(s), so
+  # Karpenter skips proactively consolidating nodes hosting them. Set false to let Karpenter
+  # churn these nodes freely. Doesn't affect the PDB (see pdb.yaml), which is governed purely by
+  # replicaCount.
+  disruptionProtection: true
+
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 65532
@@ -178,6 +184,7 @@ sedaiSmartScheduler:
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
     priorityClassName: "system-cluster-critical"  # Priority class for the compactor pod
+    disruptionProtection: true      # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
     leaderElection:
       enabled: false
       leaseName: sedai-smart-compactor

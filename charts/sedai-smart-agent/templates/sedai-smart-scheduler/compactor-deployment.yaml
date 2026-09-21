@@ -20,7 +20,9 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/sedai-smart-scheduler/compactor-configmap.yaml") . | sha256sum }}
+        {{- if .Values.sedaiSmartScheduler.compactor.disruptionProtection }}
         karpenter.sh/do-not-disrupt: "true"
+        {{- end }}
     spec:
       serviceAccountName: {{ include "smart-scheduler.serviceAccountName" . }}
       securityContext:

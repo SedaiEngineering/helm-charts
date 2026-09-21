@@ -2,6 +2,8 @@
 
 The Sedai Smart Agent Helm Chart deploys the complete Sedai platform components for Kubernetes cluster monitoring, optimization, and autonomous operations.
 
+> New to Sedai's self-provisioning workflow? See [ONBOARDING.md](./ONBOARDING.md) for a full step-by-step walkthrough (API key generation, values-override examples per cloud provider, ArgoCD deployment, and FAQ).
+
 ## Quick Start
 
 ```bash

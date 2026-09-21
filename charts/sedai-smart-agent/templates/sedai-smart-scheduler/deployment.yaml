@@ -20,7 +20,9 @@ spec:
         app: sedai-smart-scheduler
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/sedai-smart-scheduler/configmap.yaml") . | sha256sum }}
+        {{- if .Values.sedaiSmartScheduler.disruptionProtection }}
         karpenter.sh/do-not-disrupt: "true"
+        {{- end }}
     spec:
       serviceAccountName: {{ include "smart-scheduler.serviceAccountName" . }}
       securityContext:

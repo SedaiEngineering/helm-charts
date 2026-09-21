@@ -2,6 +2,8 @@
 
 The Sedai Smart Agent Helm Chart deploys the complete Sedai platform components for Kubernetes cluster monitoring, optimization, and autonomous operations.
 
+> New to Sedai's self-provisioning workflow? See [ONBOARDING.md](./ONBOARDING.md) for a full step-by-step walkthrough (API key generation, values-override examples per cloud provider, ArgoCD deployment, and FAQ).
+
 ## Quick Start
 
 ```bash
@@ -74,6 +76,8 @@ workload:
     replicaCount: 1
     nodeSelector: {}
     tolerations: []
+    priorityClassName: "system-cluster-critical"  # Priority class for the Smart Agent pod
+    disruptionProtection: true  # Adds karpenter.sh/do-not-disrupt; see Karpenter Disruption Protection below
 
 resources:
   smartAgent:
@@ -84,6 +88,8 @@ resources:
       requests: "1024Mi"
       limits: "1024Mi"
 ```
+
+A PodDisruptionBudget (`maxUnavailable: 1`) is created automatically whenever `replicaCount` is above 1 — same rule as the Smart Scheduler below.
 
 ### Monitoring Components
 
@@ -163,7 +169,10 @@ sedaiPodInterceptor:
   logLevel: "error"  # trace, debug, info, warn, error
   nodeSelector: {}
   tolerations: []
+  disruptionProtection: true  # Adds karpenter.sh/do-not-disrupt; see Karpenter Disruption Protection below
 ```
+
+The controller and its DB are both single-replica by design (no leader election, no scale-up path), so `disruptionProtection` is the only lever here — there's no PDB, since blocking eviction outright on a true singleton would also block a graceful `kubectl drain` of its node with no way around it.
 
 #### Kubeflow Spark Optimization
 
@@ -201,6 +210,7 @@ A workload-aware bin-packing scheduler that improves node utilization:
 sedaiSmartScheduler:
   enabled: true
   replicaCount: 2
+  disruptionProtection: true  # Adds karpenter.sh/do-not-disrupt; see Karpenter Disruption Protection below
 ```
 
 Optionally enable the compactor, which evicts pods from underutilized nodes so cluster-autoscaler can drain them (off by default; the Smart Agent enables it when policy permits):
@@ -210,7 +220,10 @@ sedaiSmartScheduler:
   compactor:
     enabled: true
     reconcileInterval: 4h
+    disruptionProtection: true  # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
 ```
+
+A PodDisruptionBudget (`maxUnavailable: 1`) is created automatically for the scheduler and, separately, the compactor whenever their respective `replicaCount`/`replicas` is above 1 — no value controls this directly; scale up if you want PDB coverage on top of `disruptionProtection`.
 
 ### Karpenter Integration
 
@@ -220,6 +233,12 @@ Opts the cluster in to Sedai-managed Karpenter installation and integration. Ena
 sedaiKarpenter:
   enabled: true
 ```
+
+### Karpenter Disruption Protection
+
+Separate from the integration above — this applies whenever Karpenter is managing your cluster's nodes, whether or not Sedai deployed it. Karpenter's node consolidation/expiration can evict any pod as it churns nodes; for the Smart Agent, the Pod Interceptor (+ its DB), the Smart Scheduler, and the compactor, that shows up as their health flapping. Each has its own `disruptionProtection` value (default `true`, shown above with each component) that adds the `karpenter.sh/do-not-disrupt: "true"` annotation to the pod, so Karpenter skips proactively consolidating any node hosting it. Set it to `false` per-component to let Karpenter churn those nodes freely.
+
+Where a component also supports multiple replicas (Smart Agent, Smart Scheduler, compactor), a PodDisruptionBudget (`maxUnavailable: 1`) is created automatically once `replicaCount`/`replicas` is above 1 — this isn't controlled by `disruptionProtection` and has no toggle; scale to 2+ replicas if you want PDB coverage as well as the annotation. The Pod Interceptor and its DB are single-replica by design with no scale-up option, so they only get the annotation, never a PDB — a PDB there would permanently block a graceful `kubectl drain` of that node with no way around it.
 
 ## Global Labels and Annotations
 
@@ -301,6 +320,16 @@ imagePullSecret:
   enabled: true
   secretName: "sedai-registry-secret"
 ```
+
+### Cluster DNS Domain
+
+In-cluster Services (e.g. the Pod Interceptor) are referenced by their short DNS name (`<svc>.<namespace>.svc`), which relies on the pod's search-domain expansion and works on virtually all clusters. If a cluster's kubelet/CoreDNS domain configuration has drifted apart and that expansion is failing — symptom: a Java/JVM `Name does not resolve` error on a `*.svc` address that otherwise resolves fine with the full FQDN appended — set `clusterDomain` to force fully-qualified Service DNS names instead:
+
+```yaml
+clusterDomain: "cluster.local"   # -> sedai-kube-spec-controller-svc.<namespace>.svc.cluster.local
+```
+
+Leave empty (the default) unless you're hitting that specific symptom.
 
 ## Advanced Configuration
 

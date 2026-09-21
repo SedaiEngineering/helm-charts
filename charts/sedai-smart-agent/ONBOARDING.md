@@ -527,8 +527,6 @@ sedaiSmartScheduler:
 
 Set any of these to `false` to let Karpenter churn that component's nodes freely.
 
-Where a component also supports multiple replicas (Smart Agent, Smart Scheduler, compactor), a PodDisruptionBudget (`maxUnavailable: 1`) is created automatically once `replicaCount`/`replicas` is above 1 — this isn't controlled by `disruptionProtection` and has no toggle of its own; scale to 2+ replicas if you want PDB coverage as well as the annotation. The Pod Interceptor and its DB are single-replica by design with no scale-up option, so they only get the annotation, never a PDB — a PDB there would permanently block a graceful `kubectl drain` of that node with no way around it.
-
 ## Sedai Smart Agent - Help?
 
 Reach out to [support@sedai.io](mailto:support@sedai.io) for any assistance.

@@ -81,7 +81,7 @@ Review the `values.yaml` file carefully and prepare your cluster-specific config
 
 You can deploy this Helm chart across all Kubernetes clusters. Please use a cluster-specific custom values file to override the default settings. Below is an example snippet of some settings you may need to modify. For additional details, check the [FAQ](#sedai-smart-agent---faq) section in this document.
 
-In your override file, make sure to explicitly enable the **Pod Interceptor** (`sedaiPodInterceptor.enabled: true`) and the **Smart Scheduler** (`sedaiSmartScheduler.enabled: true` and `sedaiSmartScheduler.compactor.enabled: true`) — both are off by default, and we strongly recommend enabling them for every cluster (see [Deployment Overview](#sedai-smart-agent---deployment-overview) above for what each does). All four sample files below already turn them on.
+In your override file, make sure to explicitly enable the **Pod Interceptor** (`sedaiPodInterceptor.enabled: true`) and the **Smart Scheduler** (`sedaiSmartScheduler.enabled: true` and `sedaiSmartScheduler.compactor.enabled: true`) — both are off by default; we strongly recommend enabling Pod Interceptor for every cluster (see [Deployment Overview](#sedai-smart-agent---deployment-overview) above for what each does). All four sample files below already turn them on.
 
 #### Sample values-override.yaml - EKS Cluster with Prometheus Monitoring Provider
 

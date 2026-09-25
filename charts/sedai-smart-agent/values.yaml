@@ -567,6 +567,9 @@ sedaiIntegrationSettings:
   forceCreate: true              # When an account with this name already exists on Sedai, import it and create the local Secret for it (used for reinstalls and legacy-method migrations)
   recreateExistingSecret: false  # Force-refresh the enroll Secret even when it already exists locally. Rare; off by default to avoid unnecessary Sedai API calls on every sync/upgrade
   enableDeRegisterJob: false      # Enable Sedai de-registration helm pre-delete hook
+  connectionType: ""              # WS or REST. Empty = agent default (WS). REST is required if your
+                                   # proxy setup only routes REST/HTTP traffic — the WS channel does
+                                   # not honor proxySettings (see WebSocketClientConfig.java).
   correctClusterName:
     enabled: false                 # Detect (and log) a GKE clusterName mismatch on the already-onboarded account for this cluster
     write: false                   # Actually apply the correction; requires enabled=true. Off by default — dry-run only

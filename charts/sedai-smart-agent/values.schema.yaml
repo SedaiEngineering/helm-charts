@@ -39,6 +39,11 @@ properties:
         enum: ["AWS", "AZURE", "GCP", "SELF_MANAGED"]
         description: "Cloud provider"
         default: "AWS"
+      connectionType:
+        type: string
+        enum: ["", "WS", "REST"]
+        description: "Agent-to-server connection type. Empty uses the agent's own default (WS)."
+        default: ""
   
   sedaiPrometheus:
     type: object

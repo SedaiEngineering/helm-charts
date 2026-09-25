@@ -291,7 +291,7 @@ image:
   smartAgent:
     name: sedai-agent
     repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent
-    imageTag: v2.1.0-stage
+    imageTag: v2.1.1-stage
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  

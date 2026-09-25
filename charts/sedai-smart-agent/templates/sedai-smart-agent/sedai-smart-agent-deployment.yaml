@@ -85,6 +85,12 @@ spec:
         - name: FLAGS_AUTOUPDATE_DISABLED
           value: "true"
 
+        # Optional Connection Type Override (defaults to WS if unset)
+        {{- if .Values.sedaiIntegrationSettings.connectionType }}
+        - name: AGENT_CONNECTIONTYPE
+          value: "{{ .Values.sedaiIntegrationSettings.connectionType }}"
+        {{- end }}
+
         # Optional Proxy Settings
         {{- if .Values.proxySettings.enabled }}
         - name: PROXY_HOST

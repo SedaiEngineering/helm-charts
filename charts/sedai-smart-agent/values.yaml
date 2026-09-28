@@ -123,6 +123,9 @@ sedaiAgentClient:
   agentClient:
     baseAgentUrl: ""                # env BASE_AGENT_URL - the agent-v3 server for this tenant. Defaults to "<sedaiIntegrationSettings.sedaiBaseUrl>/agent" (the same platform gateway every other Sedai endpoint for this tenant is proxied through - see sedai-saas-deployment's gateway configmap); override only if this tenant's agent server lives behind a different host.
     skipCertCheck: false            
+  logShipping:
+    credentialsSecret: ""           # Secret (in this namespace) holding LOKI_USERNAME and LOKI_PASSWORD. When set, both containers push their logs to Loki labelled with the smart-agent secret's AGENT_TENANT / AGENT_ACCOUNTID; empty keeps them stdout-only.
+    url: ""                         # env LOKI_URL - full push URL; empty uses the binaries' default https://gw.sedai.cloud:443/loki/api/v1/push
 
 sedaiNodeExporter:
   enabled: false

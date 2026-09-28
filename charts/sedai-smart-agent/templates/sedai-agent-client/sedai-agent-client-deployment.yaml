@@ -19,6 +19,7 @@ an explicit override for a topology where the agent server isn't behind that gat
 {{- $sedaiBaseUrl := required "sedaiIntegrationSettings.sedaiBaseUrl is required to derive BASE_AGENT_URL - set it (e.g. \"https://app.sedai.io\") or set sedaiAgentClient.agentClient.baseAgentUrl directly" .Values.sedaiIntegrationSettings.sedaiBaseUrl }}
 {{- $baseAgentUrl = printf "%s/agent" ($sedaiBaseUrl | trimSuffix "/") }}
 {{- end }}
+{{- $logShipping := .Values.sedaiAgentClient.logShipping | default dict }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -115,6 +116,28 @@ spec:
               name: "{{ .Values.workload.agentClient.secret }}"
               key: "SERVER_ACCESSKEY"
         {{- end }}
+        {{- if $logShipping.credentialsSecret }}
+        - name: AGENT_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_TENANT"
+              optional: true
+        - name: LOKI_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ $logShipping.credentialsSecret | quote }}
+              key: "LOKI_USERNAME"
+        - name: LOKI_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $logShipping.credentialsSecret | quote }}
+              key: "LOKI_PASSWORD"
+        {{- with $logShipping.url }}
+        - name: LOKI_URL
+          value: {{ . | quote }}
+        {{- end }}
+        {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -141,6 +164,35 @@ spec:
         env:
         - name: METRICS_SIDECAR_VERSION
           value: "{{ .Values.image.metricsGateway.imageTag }}"
+        {{- if $logShipping.credentialsSecret }}
+        - name: AGENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_ACCOUNTID"
+        {{- end }}
+        {{- if $logShipping.credentialsSecret }}
+        - name: AGENT_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.smartAgent.secret }}"
+              key: "AGENT_TENANT"
+              optional: true
+        - name: LOKI_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ $logShipping.credentialsSecret | quote }}
+              key: "LOKI_USERNAME"
+        - name: LOKI_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $logShipping.credentialsSecret | quote }}
+              key: "LOKI_PASSWORD"
+        {{- with $logShipping.url }}
+        - name: LOKI_URL
+          value: {{ . | quote }}
+        {{- end }}
+        {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true

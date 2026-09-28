@@ -210,3 +210,37 @@ Single flag every sedai-smart-scheduler/* template gates on: enabled AND version
 {{- define "smart-scheduler.installOk" -}}
 {{- if and .Values.sedaiSmartScheduler.enabled (eq (include "smart-scheduler.versionCompatible" .) "true") -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+Env the agent-client pod's containers need to push their logs to Loki (SM-1439); agentId adds AGENT_ID for the gateway, which lacks it.
+*/}}
+{{- define "sedai-smart-agent.agentClientLokiEnv" -}}
+{{- $logShipping := .root.Values.sedaiAgentClient.logShipping | default dict -}}
+{{- if .agentId }}
+- name: AGENT_ID
+  valueFrom:
+    secretKeyRef:
+      name: "{{ .root.Values.workload.smartAgent.secret }}"
+      key: "AGENT_ACCOUNTID"
+{{- end }}
+- name: AGENT_TENANT
+  valueFrom:
+    secretKeyRef:
+      name: "{{ .root.Values.workload.smartAgent.secret }}"
+      key: "AGENT_TENANT"
+      optional: true
+- name: LOKI_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ $logShipping.credentialsSecret | quote }}
+      key: "LOKI_USERNAME"
+- name: LOKI_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $logShipping.credentialsSecret | quote }}
+      key: "LOKI_PASSWORD"
+{{- with $logShipping.url }}
+- name: LOKI_URL
+  value: {{ . | quote }}
+{{- end }}
+{{- end -}}

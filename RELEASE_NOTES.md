@@ -1,7 +1,5 @@
 # Release Notes — sedai-smart-agent
 
-Generated from the git history of `main` on the first-parent line. A release is the first commit that changes `version` in `charts/sedai-smart-agent/Chart.yaml`; each release lists the commits since the previous bump, up to and including that bump. Merge commits are omitted.
-
 ## 2.0.15 — 2026-09-25
 
 Version bumped in `c717f67`.

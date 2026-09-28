@@ -292,7 +292,7 @@ image:
     name: sedai-agent
     repository: 751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-smart-agent
     imageTag: v2.1.1-stage
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
 
   smartagentEnroll:  
     name: sedai-enroll
@@ -331,13 +331,13 @@ image:
     name: sedai-agent-client
     repository: "751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-agent-client"    
     imageTag: "dev-latest"                         
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
 
   metricsGateway:
     name: sedai-metrics-gateway
     repository: "751579645657.dkr.ecr.us-east-1.amazonaws.com/sedai/sedai-metrics-gateway"
     imageTag: "dev-latest"
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
 
   busyBox:
     repository: sedai_io/busybox

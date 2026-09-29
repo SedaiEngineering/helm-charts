@@ -103,6 +103,8 @@ spec:
           value: "{{ .Values.sedaiAgentClient.agentClient.skipCertCheck }}"
         - name: METRICS_GATEWAY_HEALTH_URL
           value: "http://127.0.0.1:8080/health"
+        - name: METRICS_GATEWAY_URL
+          value: "http://127.0.0.1:8080"
         - name: AGENT_ID
           valueFrom:
             secretKeyRef:

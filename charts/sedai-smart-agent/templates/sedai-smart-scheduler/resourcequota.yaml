@@ -1,4 +1,4 @@
-{{- if .Values.sedaiSmartScheduler.enabled }}
+{{- if and .Values.sedaiSmartScheduler.enabled (or .Values.sedaiSmartScheduler.priorityClassName .Values.sedaiSmartScheduler.compactor.priorityClassName) }}
 ---
 apiVersion: v1
 kind: ResourceQuota

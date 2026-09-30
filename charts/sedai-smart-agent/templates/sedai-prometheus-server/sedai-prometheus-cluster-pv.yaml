@@ -1,0 +1,38 @@
+{{- if and .Values.sedaiPrometheus.enabled .Values.sedaiPrometheus.persistentVolume.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ printf "%s-pv-%s" .Values.workload.prometheus.name .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  capacity:
+    storage: {{ .Values.sedaiPrometheus.persistentVolume.capacity | default .Values.resources.prometheus.storage | quote }}
+  accessModes:
+    {{- toYaml (.Values.sedaiPrometheus.persistentVolume.accessModes | default (list "ReadWriteOnce")) | nindent 4 }}
+  persistentVolumeReclaimPolicy: {{ .Values.sedaiPrometheus.persistentVolume.reclaimPolicy | default "Retain" }}
+  volumeMode: {{ .Values.sedaiPrometheus.persistentVolume.volumeMode | default "Filesystem" }}
+  {{- if .Values.sedaiPrometheus.storageClass }}
+  storageClassName: {{ .Values.sedaiPrometheus.storageClass }}
+  {{- end }}
+  # Reserves this PV for our own PVC specifically, so no unrelated PVC elsewhere on the cluster
+  # (one that doesn't set its own volumeName/storageClassName) can bind to it first.
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: "{{ .Values.workload.prometheus.name }}-pvc"
+  {{- with .Values.sedaiPrometheus.persistentVolume.volumeSource }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- with .Values.sedaiPrometheus.persistentVolume.nodeAffinity }}
+  nodeAffinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

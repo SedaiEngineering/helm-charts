@@ -1,0 +1,39 @@
+{{- if and (or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled) .Values.sedaiPodInterceptor.db.persistentVolume.enabled }}
+{{- $dbName := printf "%s-db" .Values.workload.kubeSpecController.name }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ printf "%s-pv-%s" $dbName .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  capacity:
+    storage: {{ .Values.sedaiPodInterceptor.db.persistentVolume.capacity | default (.Values.resources.sedaiPodInterceptorDB.storage | default "2Gi") | quote }}
+  accessModes:
+    {{- toYaml (.Values.sedaiPodInterceptor.db.persistentVolume.accessModes | default (list "ReadWriteOnce")) | nindent 4 }}
+  persistentVolumeReclaimPolicy: {{ .Values.sedaiPodInterceptor.db.persistentVolume.reclaimPolicy | default "Retain" }}
+  volumeMode: {{ .Values.sedaiPodInterceptor.db.persistentVolume.volumeMode | default "Filesystem" }}
+  {{- if .Values.sedaiPodInterceptor.db.storageClass }}
+  storageClassName: {{ .Values.sedaiPodInterceptor.db.storageClass }}
+  {{- end }}
+  # Reserves this PV for our own PVC specifically, so no unrelated PVC elsewhere on the cluster
+  # (one that doesn't set its own volumeName/storageClassName) can bind to it first.
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: {{ $dbName }}-pvc
+  {{- with .Values.sedaiPodInterceptor.db.persistentVolume.volumeSource }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- with .Values.sedaiPodInterceptor.db.persistentVolume.nodeAffinity }}
+  nodeAffinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

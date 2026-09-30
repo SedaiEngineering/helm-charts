@@ -19,7 +19,14 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  {{- if .Values.sedaiPrometheus.storageClass }}
+  {{- if .Values.sedaiPrometheus.persistentVolume.enabled }}
+  # Explicit empty string, not an omitted field: an omitted storageClassName lets the API server
+  # auto-apply the cluster's default StorageClass (common on EKS Auto Mode/GKE/AKS), which fights
+  # with the static volumeName binding below. storageClass is ignored here on purpose - dynamic
+  # provisioning and static PV binding are mutually exclusive intents.
+  storageClassName: ""
+  volumeName: {{ printf "%s-pv-%s" .Values.workload.prometheus.name .Release.Namespace }}
+  {{- else if .Values.sedaiPrometheus.storageClass }}
   storageClassName: {{ .Values.sedaiPrometheus.storageClass }}
   {{- end }}
   resources:

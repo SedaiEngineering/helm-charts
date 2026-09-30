@@ -1,10 +1,11 @@
 # Some clusters (e.g. GKE with a LimitedResources admission policy) reject any pod using
 # system-cluster-critical/system-node-critical unless a matching ResourceQuota already exists in
 # the namespace, regardless of that quota's remaining capacity. The core smart-agent Deployment
-# is unconditional (see sedai-smart-agent-deployment.yaml) and defaults to system-cluster-critical
-# (values.yaml priorityClassName), so this quota must be equally unconditional - unlike the
-# sedai-pod-interceptor/sedai-smart-scheduler/sedai-dcgm-exporter quotas, which only need to exist
-# when their own optional component is enabled.
+# is unconditional (see sedai-smart-agent-deployment.yaml), but only actually needs this quota
+# when workload.smartAgent.priorityClassName is set to one of those two classes - if it's left
+# empty (see sedai-smart-agent-deployment.yaml's `with`), the Deployment carries no
+# priorityClassName at all and this quota would just be dead weight in the namespace.
+{{- if .Values.workload.smartAgent.priorityClassName }}
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -29,3 +30,4 @@ spec:
       - system-node-critical
   hard:
     pods: "50"
+{{- end }}

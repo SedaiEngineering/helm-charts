@@ -18,7 +18,14 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  {{- if .Values.sedaiVictoriaMetrics.storageClass }}
+  {{- if .Values.sedaiVictoriaMetrics.persistentVolume.enabled }}
+  # Explicit empty string, not an omitted field: an omitted storageClassName lets the API server
+  # auto-apply the cluster's default StorageClass (common on EKS Auto Mode/GKE/AKS), which fights
+  # with the static volumeName binding below. storageClass is ignored here on purpose - dynamic
+  # provisioning and static PV binding are mutually exclusive intents.
+  storageClassName: ""
+  volumeName: {{ printf "sedai-victoria-metrics-pv-%s" .Release.Namespace }}
+  {{- else if .Values.sedaiVictoriaMetrics.storageClass }}
   storageClassName: {{ .Values.sedaiVictoriaMetrics.storageClass }}
   {{- end }}
   resources:

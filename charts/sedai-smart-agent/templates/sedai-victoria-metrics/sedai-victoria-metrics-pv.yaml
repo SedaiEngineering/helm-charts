@@ -1,0 +1,38 @@
+{{- if and .Values.sedaiVictoriaMetrics.enabled .Values.sedaiVictoriaMetrics.persistentVolume.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ printf "sedai-victoria-metrics-pv-%s" .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  capacity:
+    storage: {{ .Values.sedaiVictoriaMetrics.persistentVolume.capacity | default .Values.resources.victoriaMetrics.storage | quote }}
+  accessModes:
+    {{- toYaml (.Values.sedaiVictoriaMetrics.persistentVolume.accessModes | default (list "ReadWriteOnce")) | nindent 4 }}
+  persistentVolumeReclaimPolicy: {{ .Values.sedaiVictoriaMetrics.persistentVolume.reclaimPolicy | default "Retain" }}
+  volumeMode: {{ .Values.sedaiVictoriaMetrics.persistentVolume.volumeMode | default "Filesystem" }}
+  {{- if .Values.sedaiVictoriaMetrics.storageClass }}
+  storageClassName: {{ .Values.sedaiVictoriaMetrics.storageClass }}
+  {{- end }}
+  # Reserves this PV for our own PVC specifically, so no unrelated PVC elsewhere on the cluster
+  # (one that doesn't set its own volumeName/storageClassName) can bind to it first.
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: server-volume
+  {{- with .Values.sedaiVictoriaMetrics.persistentVolume.volumeSource }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- with .Values.sedaiVictoriaMetrics.persistentVolume.nodeAffinity }}
+  nodeAffinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

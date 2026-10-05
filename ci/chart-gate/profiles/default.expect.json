@@ -1,0 +1,13 @@
+{
+  "account_flags": {
+    "prometheusEnabled": false,
+    "kubeSpecControllerEnabled": false,
+    "nodeExporterEnabled": false,
+    "beylaEnabled": false,
+    "dcgmEnabled": false,
+    "optedEnableKarpenter": false,
+    "smartSchedulerInstalled": false
+  },
+  "monitoring_providers": [],
+  "deregister": false
+}

@@ -1,0 +1,19 @@
+# Values every gate install uses on top of the profile under test. They point the chart's enroll
+# hooks at the in-cluster mock Sedai API (mock-core/) so the real enroll path runs end to end:
+# reachability check -> account create -> fetch + apply the agent Secret -> monitoring providers.
+# The API token is generated per run and passed with --set by gate.py.
+sedaiIntegrationSettings:
+  clusterName: chart-gate
+  # Different from clusterName on purpose: enroll names the Sedai account after the nickName, so
+  # every hook that looks the account up again has to use the same name.
+  nickName: chart-gate-nick
+  clusterProvider: SELF_MANAGED
+  sedaiBaseUrl: http://mock-core.chart-gate-mock.svc.cluster.local:8080
+  # REST: the mock serves the REST action poll; there is no STOMP endpoint to connect to.
+  connectionType: REST
+
+# Console logging, so agent output lands in kubectl logs and the gate artifacts.
+enableAgentDebugLogs:
+  enabled: true
+  agentLogLevel: INFO
+  loggingConfig: classpath:log4j2-dev.xml

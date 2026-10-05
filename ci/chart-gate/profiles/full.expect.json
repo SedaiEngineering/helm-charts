@@ -1,0 +1,16 @@
+{
+  "account_flags": {
+    "prometheusEnabled": true,
+    "kubeSpecControllerEnabled": true,
+    "nodeExporterEnabled": true,
+    "beylaEnabled": true,
+    "dcgmEnabled": false,
+    "optedEnableKarpenter": true,
+    "smartSchedulerInstalled": true
+  },
+  "monitoring_providers": [
+    {"monitoringProvider": "FEDERATEDPROMETHEUS", "endpoint": "http://sedai-prometheus-server-service"},
+    {"monitoringProvider": "VICTORIAMETRICS", "endpoint": "http://sedai-victoria-metrics-server:8428"}
+  ],
+  "deregister": true
+}

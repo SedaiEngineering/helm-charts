@@ -958,14 +958,47 @@ class Install:
                                      check=False, timeout=60)
                     if proc.stdout:
                         (out / f"{ns}--{name}{suffix}.log").write_text(proc.stdout)
-        server = run(["docker", "logs", f"k3d-{self.cluster}-server-0"], check=False, timeout=120)
+        node = f"k3d-{self.cluster}-server-0"
+        server = run(["docker", "logs", node], check=False, timeout=120)
         (out / "k3s-server.log").write_text(server.stdout + server.stderr)
+        # Kernel log: the host's own on a Linux runner (passwordless sudo on CI), else via the node.
+        kernel = run(["sudo", "-n", "dmesg", "-T"], check=False, timeout=60) if sys.platform.startswith("linux") else None
+        if kernel is None or kernel.returncode != 0:
+            kernel = run(["docker", "exec", node, "sh", "-c", "timeout 3 cat /dev/kmsg"], check=False, timeout=60)
+        (out / "kernel-log.txt").write_text("\n".join((kernel.stdout + kernel.stderr).splitlines()[-400:]))
+        self.restart_forensics(out, node)
         # Per-pod memory as the kubelet sees it, to set against the host's commit accounting.
         nodes = k.get_json("nodes")["items"]
         for node in nodes:
             name = node["metadata"]["name"]
             proc = k.kubectl("get", "--raw", f"/api/v1/nodes/{name}/proxy/stats/summary", check=False, timeout=60)
             (out / f"stats-summary-{name}.json").write_text(proc.stdout or proc.stderr)
+
+    def restart_forensics(self, out, node):
+        """For every pod with a restarted container: the pod's memory cgroup as the kernel sees it
+        and the rlimits a running container of that pod got. A process the kernel refuses memory
+        to at startup (ENOMEM, not an OOM kill) leaves its reason here, not in kubectl."""
+        proc = self.kube.kubectl("get", "pods", "-n", NAMESPACE, "-o", "json", check=False, timeout=60)
+        if proc.returncode != 0:
+            return
+        for pod in json.loads(proc.stdout)["items"]:
+            statuses = pod["status"].get("containerStatuses", []) + pod["status"].get("initContainerStatuses", [])
+            if not any(cs.get("restartCount", 0) for cs in statuses):
+                continue
+            uid = pod["metadata"]["uid"]
+            files = ("memory.max memory.high memory.current memory.peak memory.events memory.swap.max "
+                     "pids.max pids.current")
+            # The pod cgroup and one child cgroup per container (named by container id); the pid of
+            # any running container gives the rlimits the runtime applied to this pod's containers.
+            script = (
+                f"for p in $(find /sys/fs/cgroup -type d \\( -name 'pod{uid}' -o -name '*pod{uid.replace('-', '_')}.slice' \\)); do "
+                f"for d in $p $p/*/; do [ -f $d/memory.max ] || continue; echo \"### $d\"; "
+                f"for f in {files}; do [ -f $d/$f ] && echo \"$f: $(tr '\\n' ' ' < $d/$f)\"; done; "
+                "[ -f $d/memory.stat ] && head -12 $d/memory.stat; done; "
+                "pid=$(cat $p/*/cgroup.procs 2>/dev/null | head -1); "
+                "[ -n \"$pid\" ] && echo \"### rlimits of pid $pid in this pod\" && cat /proc/$pid/limits; done")
+            res = run(["docker", "exec", node, "sh", "-c", script], check=False, timeout=60)
+            (out / f"restart-forensics-{pod['metadata']['name']}.txt").write_text(res.stdout + res.stderr)
 
     def save_mock_state(self):
         try:

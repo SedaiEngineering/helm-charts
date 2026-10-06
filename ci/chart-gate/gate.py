@@ -479,6 +479,49 @@ class HookLogCollector(threading.Thread):
         return {p.stem: p.read_text() for p in self.out_dir.glob("*.log")}
 
 
+class MemorySampler(threading.Thread):
+    """Samples the host's memory and commit accounting every 10s, so a process the kernel refuses
+    memory to (as opposed to one the kubelet OOM-kills) can be tied to what the host had left. On a
+    Linux runner that is this machine's /proc; elsewhere (Docker Desktop) it is read via the node."""
+
+    FIELDS = ("MemTotal", "MemAvailable", "SwapTotal", "SwapFree", "CommitLimit", "Committed_AS")
+
+    def __init__(self, node, out_file):
+        super().__init__(daemon=True)
+        self.node, self.out_file = node, out_file
+        self.stop_event = threading.Event()
+
+    def read(self):
+        script = ("cat /proc/sys/vm/overcommit_memory /proc/sys/vm/overcommit_ratio; "
+                  "grep -E '^(" + "|".join(self.FIELDS) + "):' /proc/meminfo")
+        cmd = ["sh", "-c", script] if Path("/proc/meminfo").exists() else ["docker", "exec", self.node, "sh", "-c", script]
+        lines = run(cmd, check=False, timeout=30).stdout.split("\n")
+        values = dict(re.findall(r"^(\w+):\s+(\d+)", "\n".join(lines[2:]), re.MULTILINE))
+        return lines[0].strip(), lines[1].strip(), values
+
+    def run(self):
+        with open(self.out_file, "w") as fh:
+            first = True
+            while True:
+                try:
+                    mode, ratio, values = self.read()
+                    if first:
+                        fh.write(f"# vm.overcommit_memory={mode} vm.overcommit_ratio={ratio}; values in MiB\n")
+                        fh.write("time\t" + "\t".join(self.FIELDS) + "\n")
+                        first = False
+                    fh.write(time.strftime("%H:%M:%S") + "\t" +
+                             "\t".join(str(int(values.get(f, 0)) // 1024) for f in self.FIELDS) + "\n")
+                    fh.flush()
+                except Exception as err:
+                    fh.write(f"# sample failed: {err}\n")
+                if self.stop_event.wait(10):
+                    return
+
+    def stop(self):
+        self.stop_event.set()
+        self.join(timeout=30)
+
+
 class Install:
     def __init__(self, args):
         self.profile = args.profile
@@ -917,6 +960,12 @@ class Install:
                         (out / f"{ns}--{name}{suffix}.log").write_text(proc.stdout)
         server = run(["docker", "logs", f"k3d-{self.cluster}-server-0"], check=False, timeout=120)
         (out / "k3s-server.log").write_text(server.stdout + server.stderr)
+        # Per-pod memory as the kubelet sees it, to set against the host's commit accounting.
+        nodes = k.get_json("nodes")["items"]
+        for node in nodes:
+            name = node["metadata"]["name"]
+            proc = k.kubectl("get", "--raw", f"/api/v1/nodes/{name}/proxy/stats/summary", check=False, timeout=60)
+            (out / f"stats-summary-{name}.json").write_text(proc.stdout or proc.stderr)
 
     def save_mock_state(self):
         try:
@@ -926,8 +975,11 @@ class Install:
 
     # -- flow -------------------------------------------------------------------------------
     def run(self):
+        sampler = None
         try:
             self.cluster_up()
+            sampler = MemorySampler(f"k3d-{self.cluster}-server-0", self.art / "host-memory.tsv")
+            sampler.start()
             self.deploy_mock()
             self.apply_fixtures()
             self.helm_install()
@@ -956,6 +1008,8 @@ class Install:
             except Exception as diag_err:
                 log(f"diagnostics failed: {diag_err}")
         finally:
+            if sampler:
+                sampler.stop()
             self.save_mock_state()
             self.cluster_down()
             print(self.report.write_summary())

@@ -950,24 +950,35 @@ class Install:
             detail += f"; no longer denied (remove from expected/{baseline_file.name}): {fixed}"
         self.report.add("no new RBAC denials for the agent", not new, detail)
 
-    def check_restart_survival(self):
-        """Restart every workload the release rendered and require it to come back. Pods restart all
-        the time in a real cluster; a component that only fails on a start after the rest of the
-        chart is running (e.g. once the eBPF instrumenters have attached to its binary) is caught
-        here on every run instead of only when a pod happens to restart during the test."""
-        log("restarting every workload the release rendered")
-        workloads = self.workloads()
-        for doc in workloads:
+    def _restart(self, docs):
+        for doc in docs:
             self.kube.kubectl("rollout", "restart", f"{doc['kind'].lower()}/{doc['metadata']['name']}",
                               "-n", NAMESPACE, check=False)
-        for doc in workloads:
+        for doc in docs:
             ref = f"{doc['kind'].lower()}/{doc['metadata']['name']}"
             proc = self.kube.kubectl("rollout", "status", ref, "-n", NAMESPACE, "--timeout=300s",
                                      check=False, timeout=330)
             self.report.add(f"{doc['kind']}/{doc['metadata']['name']} comes back after a restart",
                             proc.returncode == 0, "" if proc.returncode == 0 else (proc.stdout + proc.stderr).strip()[-400:])
+
+    def check_restart_survival(self):
+        """Restart every workload the release rendered and require it to come back. Pods restart all
+        the time in a real cluster; a component that only fails on a start after the rest of the
+        chart is running (e.g. once the eBPF instrumenters have attached to its binary) is caught
+        here on every run instead of only when a pod happens to restart during the test.
+
+        Deployments and StatefulSets restart first while every DaemonSet — including the eBPF
+        instrumenters — keeps running, so each one restarts under live instrumentation, as it would
+        in a customer cluster. Restarting the instrumenters at the same time would leave a window in
+        which nothing is attached and a broken start goes unnoticed. The DaemonSets restart after."""
+        workloads = self.workloads()
+        log("restarting every Deployment and StatefulSet while the DaemonSets keep running")
+        self._restart([d for d in workloads if d["kind"] != "DaemonSet"])
+        self.check_pods("after restarting Deployments and StatefulSets")
+        log("restarting every DaemonSet")
+        self._restart([d for d in workloads if d["kind"] == "DaemonSet"])
         self.check_workloads()
-        self.check_pods("after restart")
+        self.check_pods("after restarting DaemonSets")
 
     # -- diagnostics ------------------------------------------------------------------------
     def diagnostics(self):

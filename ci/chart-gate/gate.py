@@ -566,7 +566,15 @@ class Install:
         if self.keep:
             log(f"keeping cluster {self.cluster}; KUBECONFIG={self.kubeconfig}")
             return
-        run(["k3d", "cluster", "delete", self.cluster], check=False, timeout=300)
+        # k3d can report success while the node container is still stopping; delete until it is gone.
+        left = ""
+        for _ in range(5):
+            run(["k3d", "cluster", "delete", self.cluster], check=False, timeout=300)
+            left = run(["docker", "ps", "-a", "--filter", f"name=^k3d-{self.cluster}-", "-q"], check=False).stdout.strip()
+            if not left:
+                return
+            time.sleep(3)
+        log(f"cluster {self.cluster} still has containers after delete: {left.split()}")
 
     # -- mock Sedai API + fixtures ---------------------------------------------------------
     def deploy_mock(self):
@@ -1042,7 +1050,7 @@ class Install:
                                 ["docker", "exec", node, "sh", "-c",
                                  f"b=$(ls /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/{cid}/rootfs/usr/local/bin/{binary} "
                                  f"/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/{cid}/rootfs/{binary} 2>/dev/null | head -1); "
-                                 f"[ -n \"$b\" ] && $b --version || echo 'binary not found in sibling rootfs'"]))
+                                 "if [ -z \"$b\" ]; then echo 'binary not found in sibling rootfs'; exit 127; fi; $b --version"]))
                 for variant, with_security in (("plain", False), ("chart-security-context", True)):
                     for i in range(3):
                         probe = f"gate-probe-{variant[:5]}-{i}"

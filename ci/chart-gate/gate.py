@@ -494,6 +494,11 @@ class MemorySampler(threading.Thread):
     def read(self):
         script = ("cat /proc/sys/vm/overcommit_memory /proc/sys/vm/overcommit_ratio; "
                   "grep -E '^(" + "|".join(self.FIELDS) + "):' /proc/meminfo")
+        host = ("echo \"kernel=$(uname -r) cpu=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs)"
+                " cpus=$(grep -c ^processor /proc/cpuinfo) flags=$(grep -m1 -o -w -E 'avx512f|la57|pku' /proc/cpuinfo"
+                " | sort -u | tr '\\n' ,)\"")
+        self.host_cmd = ["sh", "-c", host] if Path("/proc/meminfo").exists() else \
+            ["docker", "exec", self.node, "sh", "-c", host]
         cmd = ["sh", "-c", script] if Path("/proc/meminfo").exists() else ["docker", "exec", self.node, "sh", "-c", script]
         lines = run(cmd, check=False, timeout=30).stdout.split("\n")
         values = dict(re.findall(r"^(\w+):\s+(\d+)", "\n".join(lines[2:]), re.MULTILINE))
@@ -506,6 +511,7 @@ class MemorySampler(threading.Thread):
                 try:
                     mode, ratio, values = self.read()
                     if first:
+                        fh.write(f"# {run(self.host_cmd, check=False, timeout=30).stdout.strip()}\n")
                         fh.write(f"# vm.overcommit_memory={mode} vm.overcommit_ratio={ratio}; values in MiB\n")
                         fh.write("time\t" + "\t".join(self.FIELDS) + "\n")
                         first = False
@@ -974,31 +980,92 @@ class Install:
             proc = k.kubectl("get", "--raw", f"/api/v1/nodes/{name}/proxy/stats/summary", check=False, timeout=60)
             (out / f"stats-summary-{name}.json").write_text(proc.stdout or proc.stderr)
 
+    def _cgroup_dump(self, node, uid):
+        """The pod's memory cgroup and each container's, plus the rlimits of every process in it."""
+        files = "memory.max memory.high memory.current memory.peak memory.events memory.swap.max pids.max pids.current"
+        script = (
+            f"for p in $(find /sys/fs/cgroup -type d \\( -name 'pod{uid}' -o -name '*pod{uid.replace('-', '_')}.slice' \\)); do "
+            f"for d in $p $p/*/; do [ -f $d/memory.max ] || continue; echo \"### $d\"; "
+            f"for f in {files}; do [ -f $d/$f ] && echo \"$f: $(tr '\\n' ' ' < $d/$f)\"; done; "
+            "[ -f $d/memory.stat ] && head -12 $d/memory.stat; "
+            "for pid in $(cat $d/cgroup.procs 2>/dev/null); do echo \"--- pid $pid $(cat /proc/$pid/comm 2>/dev/null)\"; "
+            "grep -E 'data size|address space|locked memory|stack size' /proc/$pid/limits 2>/dev/null; done; done; done")
+        res = run(["docker", "exec", node, "sh", "-c", script], check=False, timeout=60)
+        return res.stdout + res.stderr
+
+    def _probe(self, label, cmd, timeout=60):
+        proc = run(cmd, check=False, timeout=timeout, env=self.kube.env)
+        head = " | ".join((proc.stdout + proc.stderr).strip().splitlines()[:2])[:300]
+        return f"{label}: exit {proc.returncode}: {head}"
+
     def restart_forensics(self, out, node):
-        """For every pod with a restarted container: the pod's memory cgroup as the kernel sees it
-        and the rlimits a running container of that pod got. A process the kernel refuses memory
-        to at startup (ENOMEM, not an OOM kill) leaves its reason here, not in kubectl."""
+        """For every pod with a restarted container: its memory cgroups and rlimits, the same for its
+        healthy sibling pods, and fresh starts of the restarted binary in three places — inside a
+        healthy sibling container, in brand-new pods (with and without the chart's security context)
+        and directly on the node outside any pod. Where a fresh start fails or succeeds tells whether
+        the failure is node-wide, specific to that pod, or specific to the security context."""
         proc = self.kube.kubectl("get", "pods", "-n", NAMESPACE, "-o", "json", check=False, timeout=60)
         if proc.returncode != 0:
             return
-        for pod in json.loads(proc.stdout)["items"]:
+        pods = json.loads(proc.stdout)["items"]
+        for pod in pods:
             statuses = pod["status"].get("containerStatuses", []) + pod["status"].get("initContainerStatuses", [])
-            if not any(cs.get("restartCount", 0) for cs in statuses):
+            restarted = [cs["name"] for cs in statuses if cs.get("restartCount", 0)]
+            if not restarted:
                 continue
-            uid = pod["metadata"]["uid"]
-            files = ("memory.max memory.high memory.current memory.peak memory.events memory.swap.max "
-                     "pids.max pids.current")
-            # The pod cgroup and one child cgroup per container (named by container id); the pid of
-            # any running container gives the rlimits the runtime applied to this pod's containers.
-            script = (
-                f"for p in $(find /sys/fs/cgroup -type d \\( -name 'pod{uid}' -o -name '*pod{uid.replace('-', '_')}.slice' \\)); do "
-                f"for d in $p $p/*/; do [ -f $d/memory.max ] || continue; echo \"### $d\"; "
-                f"for f in {files}; do [ -f $d/$f ] && echo \"$f: $(tr '\\n' ' ' < $d/$f)\"; done; "
-                "[ -f $d/memory.stat ] && head -12 $d/memory.stat; done; "
-                "pid=$(cat $p/*/cgroup.procs 2>/dev/null | head -1); "
-                "[ -n \"$pid\" ] && echo \"### rlimits of pid $pid in this pod\" && cat /proc/$pid/limits; done")
-            res = run(["docker", "exec", node, "sh", "-c", script], check=False, timeout=60)
-            (out / f"restart-forensics-{pod['metadata']['name']}.txt").write_text(res.stdout + res.stderr)
+            name = pod["metadata"]["name"]
+            owner = (pod["metadata"].get("ownerReferences") or [{}])[0].get("uid")
+            siblings = [s for s in pods if s["metadata"]["name"] != name and owner
+                        and (s["metadata"].get("ownerReferences") or [{}])[0].get("uid") == owner]
+            lines = [f"# restarted containers: {restarted}", self._cgroup_dump(node, pod["metadata"]["uid"])]
+            for sib in siblings:
+                lines += [f"# sibling pod {sib['metadata']['name']}", self._cgroup_dump(node, sib["metadata"]["uid"])]
+            for cname in restarted:
+                spec = next(c for c in pod["spec"]["containers"] + pod["spec"].get("initContainers", [])
+                            if c["name"] == cname)
+                binary = (spec.get("command") or [None])[0]
+                if not binary:
+                    lines.append(f"# {cname}: no command in the pod spec; skipping fresh-start probes")
+                    continue
+                lines.append(f"# fresh starts of {binary} ({spec['image']})")
+                for sib in siblings:
+                    for i in range(3):
+                        lines.append(self._probe(f"exec in healthy sibling {sib['metadata']['name']} #{i + 1}",
+                                                 ["kubectl", "exec", "-n", NAMESPACE, sib["metadata"]["name"], "-c", cname,
+                                                  "--", binary, "--version"]))
+                    cid = next((cs.get("containerID", "").split("://")[-1] for cs in sib["status"].get("containerStatuses", [])
+                                if cs["name"] == cname and "running" in (cs.get("state") or {})), "")
+                    if cid:
+                        for i in range(3):
+                            lines.append(self._probe(
+                                f"on the node, outside any pod #{i + 1}",
+                                ["docker", "exec", node, "sh", "-c",
+                                 f"b=$(ls /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/{cid}/rootfs/usr/local/bin/{binary} "
+                                 f"/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/{cid}/rootfs/{binary} 2>/dev/null | head -1); "
+                                 f"[ -n \"$b\" ] && $b --version || echo 'binary not found in sibling rootfs'"]))
+                for variant, with_security in (("plain", False), ("chart-security-context", True)):
+                    for i in range(3):
+                        probe = f"gate-probe-{variant[:5]}-{i}"
+                        container = {"name": "probe", "image": spec["image"], "command": [binary, "--version"]}
+                        pod_spec = {"restartPolicy": "Never", "containers": [container]}
+                        if with_security:
+                            container["securityContext"] = spec.get("securityContext") or {}
+                            pod_spec["securityContext"] = pod["spec"].get("securityContext") or {}
+                        manifest = {"apiVersion": "v1", "kind": "Pod",
+                                    "metadata": {"name": probe, "namespace": FIXTURE_NS}, "spec": pod_spec}
+                        self.kube.kubectl("apply", "-f", "-", input_text=json.dumps(manifest), check=False)
+                        try:
+                            wait_for(f"{probe} to finish", lambda: (self.kube.get_json("pod", probe, "-n", FIXTURE_NS)
+                                                                    ["status"].get("phase") in ("Succeeded", "Failed")), 90, 3)
+                        except GateError:
+                            pass
+                        phase = (self.kube.get_json("pod", probe, "-n", FIXTURE_NS, missing_ok=True) or {}).get("status", {}).get("phase")
+                        logs = self.kube.kubectl("logs", "-n", FIXTURE_NS, probe, check=False, timeout=30)
+                        head = " | ".join((logs.stdout + logs.stderr).strip().splitlines()[:2])[:300]
+                        lines.append(f"new pod ({variant}) #{i + 1}: phase {phase}: {head}")
+                        self.kube.kubectl("delete", "pod", probe, "-n", FIXTURE_NS, "--wait=false", check=False)
+            (out / f"restart-forensics-{name}.txt").write_text("\n".join(lines) + "\n")
+            log(f"restart forensics for {name}: " + "; ".join(l for l in lines if l.startswith(("exec", "on the node", "new pod")))[:1500])
 
     def save_mock_state(self):
         try:

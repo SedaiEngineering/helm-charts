@@ -950,6 +950,25 @@ class Install:
             detail += f"; no longer denied (remove from expected/{baseline_file.name}): {fixed}"
         self.report.add("no new RBAC denials for the agent", not new, detail)
 
+    def check_restart_survival(self):
+        """Restart every workload the release rendered and require it to come back. Pods restart all
+        the time in a real cluster; a component that only fails on a start after the rest of the
+        chart is running (e.g. once the eBPF instrumenters have attached to its binary) is caught
+        here on every run instead of only when a pod happens to restart during the test."""
+        log("restarting every workload the release rendered")
+        workloads = self.workloads()
+        for doc in workloads:
+            self.kube.kubectl("rollout", "restart", f"{doc['kind'].lower()}/{doc['metadata']['name']}",
+                              "-n", NAMESPACE, check=False)
+        for doc in workloads:
+            ref = f"{doc['kind'].lower()}/{doc['metadata']['name']}"
+            proc = self.kube.kubectl("rollout", "status", ref, "-n", NAMESPACE, "--timeout=300s",
+                                     check=False, timeout=330)
+            self.report.add(f"{doc['kind']}/{doc['metadata']['name']} comes back after a restart",
+                            proc.returncode == 0, "" if proc.returncode == 0 else (proc.stdout + proc.stderr).strip()[-400:])
+        self.check_workloads()
+        self.check_pods("after restart")
+
     # -- diagnostics ------------------------------------------------------------------------
     def diagnostics(self):
         out = self.art / "diagnostics"
@@ -1103,6 +1122,7 @@ class Install:
             # once it was running, not just at startup.
             self.check_workloads()
             self.check_pods("after discovery")
+            self.check_restart_survival()
             self.diagnostics()
             self.save_mock_state()
             self.helm_uninstall()

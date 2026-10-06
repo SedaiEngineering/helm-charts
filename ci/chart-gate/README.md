@@ -42,6 +42,9 @@ It needs no secrets: the Sedai API is mocked inside the cluster, so fork PRs get
    - **discovery**: the agent pushes a topology round containing the fixture workloads and every
      workload in the release (matched by resource id) and finalizes exactly the ids it pushed;
    - the agent hits no **RBAC denial** beyond `expected/<profile>.rbac-denials.txt`;
+   - **restart survival**: every workload is restarted once the rest of the chart (including the
+     eBPF instrumenters) is running, and must come back Ready with no restarts — a component that
+     only fails on a later start is caught on every run, not only when a pod happens to restart;
    - **uninstall**: the post-delete hook deletes the agent Secret; with `enableDeRegisterJob`
      (profile `full`) it also deletes the Sedai account, otherwise it leaves it alone; no pods remain.
 

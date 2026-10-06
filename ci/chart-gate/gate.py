@@ -750,8 +750,14 @@ class Install:
             for cs in statuses:
                 if cs.get("restartCount", 0) > 0:
                     last = (cs.get("lastState") or {}).get("terminated") or {}
-                    prev = self.kube.kubectl("logs", "-n", NAMESPACE, name, "-c", cs["name"], "--previous",
-                                             "--tail", "3", check=False, timeout=60).stdout.strip().splitlines()
+                    # Keep the whole crash log now: a later restart phase can replace the pod and
+                    # take its previous log with it.
+                    full = self.kube.kubectl("logs", "-n", NAMESPACE, name, "-c", cs["name"], "--previous",
+                                             "--timestamps", check=False, timeout=60).stdout
+                    crash_dir = self.art / "crashes"
+                    crash_dir.mkdir(exist_ok=True)
+                    (crash_dir / f"{name}--{cs['name']}--x{cs['restartCount']}.log").write_text(full)
+                    prev = full.strip().splitlines()[-3:]
                     restarts.append(f"{name}/{cs['name']} x{cs['restartCount']} "
                                     f"(last: {last.get('reason', '?')} exit {last.get('exitCode', '?')}; "
                                     f"last log line: {prev[-1][:200] if prev else 'n/a'})")

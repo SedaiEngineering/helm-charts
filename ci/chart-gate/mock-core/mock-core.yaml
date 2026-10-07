@@ -1,0 +1,48 @@
+# The mock Sedai API, deployed before the chart. gate.py creates the namespace, the
+# mock-core-script ConfigMap (mock_core.py) and the mock-core-config Secret (per-run tokens).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-core
+  namespace: chart-gate-mock
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: mock-core}
+  template:
+    metadata:
+      labels: {app: mock-core}
+    spec:
+      containers:
+        - name: mock-core
+          image: public.ecr.aws/docker/library/python:3.12-alpine
+          command: ["python", "-u", "/opt/mock-core/mock_core.py"]
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: mock-core-config
+          readinessProbe:
+            httpGet: {path: /, port: 8080}
+            periodSeconds: 2
+          resources:
+            requests: {cpu: 20m, memory: 32Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          volumeMounts:
+            - name: script
+              mountPath: /opt/mock-core
+      volumes:
+        - name: script
+          configMap:
+            name: mock-core-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-core
+  namespace: chart-gate-mock
+spec:
+  selector: {app: mock-core}
+  ports:
+    - port: 8080
+      targetPort: 8080

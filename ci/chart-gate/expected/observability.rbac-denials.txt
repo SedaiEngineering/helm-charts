@@ -1,0 +1,15 @@
+# RBAC denials the smart agent logs during discovery with profiles/observability.yaml — the accepted
+# baseline. The gate fails on any denial not listed here. Remove a line once the chart grants it.
+# One line per "<verb> <apiGroup>/<resource>" or "discover <Kind>".
+#
+# The agent's kube client lists IaC guardrail configs (sedaiiacconfigs.sedai.iac) for the cluster
+# and for every workload; the chart grants no sedai.iac rules, so these are denied.
+list sedai.iac/sedaiiacconfigs
+#
+# The agent discovers DRA ResourceSlices/ResourceClaims (resource.k8s.io, served from k8s 1.34).
+# The only resource.k8s.io rule in the chart is the smart-scheduler's DRA ClusterRole, so without
+# the scheduler (not in this profile) the agent's own ClusterRole has no access.
+list resource.k8s.io/resourceslices
+list resource.k8s.io/resourceclaims
+discover resourceslice
+discover resourceclaim

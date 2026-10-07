@@ -1,0 +1,27 @@
+# Permissions per ServiceAccount (account | scope | apiGroups resources | verbs) that charts/sedai-smart-agent renders for ci/chart-gate/profiles/gpu.yaml (k8s 1.36).
+# Regenerate after an intended chart change: python3 ci/chart-gate/gate.py golden
+sedai/sedai-dcgm-exporter-sa | namespace sedai | core configmaps names=sedai-dcgm-exporter-metrics-config-map | get
+sedai/sedai-smart-agent-enroll-job-cleanup-sa | namespace sedai | core secrets names=sedai-smart-agent | delete,get
+sedai/sedai-smart-agent-enroll-job-duplicate-check-sa | cluster | admissionregistration.k8s.io mutatingwebhookconfigurations | delete,get,list
+sedai/sedai-smart-agent-enroll-job-duplicate-check-sa | cluster | apps daemonsets,deployments,statefulsets | delete,get,list
+sedai/sedai-smart-agent-enroll-job-duplicate-check-sa | cluster | core configmaps,persistentvolumeclaims,resourcequotas,secrets,serviceaccounts,services | delete,get,list
+sedai/sedai-smart-agent-enroll-job-duplicate-check-sa | cluster | policy poddisruptionbudgets | delete,get,list
+sedai/sedai-smart-agent-enroll-job-duplicate-check-sa | cluster | rbac.authorization.k8s.io clusterrolebindings,clusterroles,rolebindings,roles | delete,get,list
+sedai/sedai-smart-agent-enroll-job-post-upgrade-sa | namespace sedai | core secrets | create,delete,get,update
+sedai/sedai-smart-agent-enroll-job-sa | namespace sedai | core secrets | create,delete,get,update
+sedai/sedai-smart-agent-sa | cluster | admissionregistration.k8s.io mutatingwebhookconfigurations | create,delete,get,list
+sedai/sedai-smart-agent-sa | cluster | apiextensions.k8s.io customresourcedefinitions | get,list,watch
+sedai/sedai-smart-agent-sa | cluster | apps controllerrevisions,daemonsets,deployments,deployments/scale,replicasets,statefulsets,statefulsets/scale | get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | argoproj.io rollouts | get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | autoscaling,autoscaling.k8s.io horizontalpodautoscalers,verticalpodautoscalers | create,delete,get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | batch cronjobs,jobs | get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | core configmaps,endpoints,namespaces,nodes,persistentvolumeclaims,persistentvolumes,pods,pods/resize,replicationcontrollers,services | get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | extensions * | get,list,watch
+sedai/sedai-smart-agent-sa | cluster | karpenter.k8s.aws,karpenter.sh * | create,delete,get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | keda.sh * | get,list,watch
+sedai/sedai-smart-agent-sa | cluster | kubeflow.org * | get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | metrics.k8s.io nodes,pods | get,list,watch
+sedai/sedai-smart-agent-sa | cluster | networking.k8s.io ingressclasses,ingresses,networkpolicies | get,list,watch
+sedai/sedai-smart-agent-sa | cluster | policy poddisruptionbudgets | get,list,patch,update,watch
+sedai/sedai-smart-agent-sa | cluster | storage.k8s.io csidrivers,csinodes,csistoragecapacities,storageclasses,volumeattachments | get,list,watch
+sedai/sedai-smart-agent-sa | cluster | urls /metrics | get

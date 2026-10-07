@@ -1,0 +1,101 @@
+name: Chart Gate
+
+# Installs the sedai-smart-agent chart from this checkout into a throwaway k3d cluster and proves
+# it comes up: enroll hooks run against an in-cluster mock of the Sedai API, every workload is
+# Ready, the agent is healthy on the chart's image version, and it completes a discovery round.
+# The render job checks every supported k8s minor, the expected resource list and that every
+# image resolves. No secrets: everything runs inside the job, so fork PRs get the same gate.
+# Pushes are gated on main only for now: the dev line pulls private-ECR images, which an
+# anonymous cluster cannot.
+# Details: ci/chart-gate/README.md
+
+on:
+  # Any base branch, so PRs stacked on another branch are gated too. A PR only runs workflows that
+  # exist in its merge result, so this does not reach dev/edge until the gate is ported there.
+  pull_request:
+    paths:
+      - 'charts/**'
+      - 'ci/chart-gate/**'
+      - '.github/workflows/chart-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'charts/**'
+      - 'ci/chart-gate/**'
+      - '.github/workflows/chart-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chart-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  HELM_VERSION: v4.1.4
+  K3D_VERSION: v5.8.3
+
+jobs:
+  render:
+    name: Render checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python deps
+        run: python -m pip install pyyaml==6.0.3
+
+      - name: Render, resource list, images
+        run: python ci/chart-gate/gate.py static
+
+  install:
+    name: Install (${{ matrix.profile }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [default, full, observability]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Install k3d
+        run: |
+          curl -fsSL -o /tmp/k3d "https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64"
+          sudo install -m 0755 /tmp/k3d /usr/local/bin/k3d
+          k3d version
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python deps
+        run: python -m pip install pyyaml==6.0.3
+
+      - name: Install and verify
+        run: python ci/chart-gate/gate.py install --profile ${{ matrix.profile }} --artifacts chart-gate-artifacts
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chart-gate-${{ matrix.profile }}
+          path: |
+            chart-gate-artifacts
+            !chart-gate-artifacts/**/kubeconfig
+          retention-days: 7
+          if-no-files-found: warn

@@ -5,20 +5,19 @@ name: Chart Gate
 # Ready, the agent is healthy on the chart's image version, and it completes a discovery round.
 # The render job checks every supported k8s minor, the expected resource list and that every
 # image resolves. No secrets: everything runs inside the job, so fork PRs get the same gate.
-# Pushes are gated on main only for now: the dev line pulls private-ECR images, which an
-# anonymous cluster cannot.
+# Runs on the main and edge channels; the same file is cherry-picked to both branches.
 # Details: ci/chart-gate/README.md
 
 on:
   # Any base branch, so PRs stacked on another branch are gated too. A PR only runs workflows that
-  # exist in its merge result, so this does not reach dev/edge until the gate is ported there.
+  # exist in its merge result, so it runs on PRs to main and edge, where this file is committed.
   pull_request:
     paths:
       - 'charts/**'
       - 'ci/chart-gate/**'
       - '.github/workflows/chart-gate.yml'
   push:
-    branches: [main]
+    branches: [main, edge]
     paths:
       - 'charts/**'
       - 'ci/chart-gate/**'

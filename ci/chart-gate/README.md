@@ -1,6 +1,6 @@
 # Chart gate
 
-`.github/workflows/chart-gate.yml` runs this on every PR and push to `main` that
+`.github/workflows/chart-gate.yml` runs this on every PR and push to `main` and `edge` that
 touches `charts/**`. It installs the chart **from the PR checkout** (a PR's chart is never
 published, so nothing else can test it before merge) and fails if any component does not come up.
 It needs no secrets: the Sedai API is mocked inside the cluster, so fork PRs get the same gate.

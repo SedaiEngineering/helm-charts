@@ -14,8 +14,10 @@ on:
   # Every PR, with no path filter: a required check whose workflow never starts stays pending and
   # blocks the merge, so the `changes` job decides instead. Any base branch, so PRs stacked on
   # another branch are gated too. A PR only runs workflows that exist in its merge result, so it
-  # runs on PRs to main and edge, where this file is committed.
+  # runs on PRs to main and edge, where this file is committed. `edited` includes a change of base
+  # branch, which changes what the PR merges; title and body edits re-run it too.
   pull_request:
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [main, edge]
     paths:
@@ -29,7 +31,10 @@ permissions:
 
 concurrency:
   group: chart-gate-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # A new commit cancels the run for the old one. Another trigger on the same commit (edited,
+  # reopened) queues behind the running one instead, so the newest Chart Gate result on a commit
+  # always comes from the newest run.
+  cancel-in-progress: ${{ github.event_name != 'pull_request' || github.event.action == 'synchronize' }}
 
 env:
   HELM_VERSION: v4.1.4
@@ -56,15 +61,24 @@ jobs:
             echo "chart=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # A PR checks out its merge commit, whose first parent is the base branch tip.
-          # --no-renames: a file moved out of the chart counts as a chart change.
-          changed=$(git diff --no-renames --name-only HEAD^1 HEAD)
-          echo "$changed"
-          if grep -qE '^(charts/|ci/chart-gate/|\.github/workflows/chart-gate\.yml$)' <<< "$changed"; then
-            echo "chart=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "chart=false" >> "$GITHUB_OUTPUT"
+          # A PR checks out its merge commit, whose first parent is the base branch tip. git matches
+          # the paths itself, so a name git would quote in its output still counts. --no-renames: a
+          # file moved out of the chart counts. .gitattributes anywhere can change how the chart's
+          # files are checked out.
+          git diff --no-renames --name-only HEAD^1 HEAD
+          rc=0
+          git diff --no-renames --quiet HEAD^1 HEAD -- charts ci/chart-gate .github/workflows/chart-gate.yml \
+            ':(glob)**/.gitattributes' || rc=$?
+          case $rc in
+            0) chart=false ;;
+            1) chart=true ;;
+            *) exit "$rc" ;;
+          esac
+          # A symlink in the chart or the gate can point at a file outside the paths above.
+          if [ -n "$(git ls-files -s charts ci/chart-gate | awk '$1 == "120000"')" ]; then
+            chart=true
           fi
+          echo "chart=$chart" >> "$GITHUB_OUTPUT"
 
   render:
     name: Render checks

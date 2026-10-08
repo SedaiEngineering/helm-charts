@@ -59,7 +59,15 @@ Require the **`Chart Gate`** check, not the render or install jobs. The workflow
 so `Chart Gate` always reports: it fails if render or any install profile fails or is cancelled, and
 passes without a cluster when the PR changes nothing under `charts/`, `ci/chart-gate/` or the
 workflow. Requiring a path-filtered job instead would leave every other PR waiting on a check that
-never runs.
+never runs. It also re-runs when a PR's base branch is changed, since that changes what the PR merges.
+
+Ruleset settings for `main` and `edge` that the check relies on:
+
+- require `Chart Gate` from GitHub Actions;
+- require branches to be up to date before merging. The check tests the PR merged into the base as
+  it was when the check ran, and a later change to the base does not re-run it;
+- require code-owner review for `.github/workflows/` and `ci/chart-gate/`. A PR runs its own copy of
+  this workflow, so a PR that edits the gate decides its own result.
 
 ## Running it locally
 

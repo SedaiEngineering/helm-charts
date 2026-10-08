@@ -179,6 +179,16 @@ jobs:
       - name: Python deps
         run: python -m pip install pyyaml==6.0.3
 
+      # The kernel modules k3s loads while it brings up pod networking. On a fresh runner they
+      # otherwise load while the gate's first pods start, and creating a pod's network namespace can
+      # then stall for minutes (the pod stays ContainerCreating). Loading them first keeps module
+      # loading out of the cluster's startup.
+      - name: Load the kernel modules k3s uses
+        run: >-
+          sudo modprobe -a br_netfilter veth nf_conntrack_netlink nf_reject_ipv4 ipt_REJECT
+          nfnetlink_acct nfnetlink_log nft_limit nft_log xt_comment xt_limit xt_mark xt_multiport
+          xt_nat xt_nfacct xt_NFLOG xt_physdev
+
       - name: Install and verify
         run: python ci/chart-gate/gate.py install --profile ${{ matrix.profile }} --artifacts chart-gate-artifacts
 

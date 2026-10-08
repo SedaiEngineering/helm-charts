@@ -1,7 +1,7 @@
 # Chart gate
 
-`.github/workflows/chart-gate.yml` runs this on every PR and push to `main` and `edge` that
-touches `charts/**`. It installs the chart **from the PR checkout** (a PR's chart is never
+`.github/workflows/chart-gate.yml` runs this on every PR, and on every push to `main` and `edge`,
+that touches `charts/**` or the gate itself. It installs the chart **from the PR checkout** (a PR's chart is never
 published, so nothing else can test it before merge) and fails if any component does not come up.
 It needs no secrets: the Sedai API is mocked inside the cluster, so fork PRs get the same gate.
 
@@ -52,6 +52,14 @@ It needs no secrets: the Sedai API is mocked inside the cluster, so fork PRs get
 | `observability` | yes | the eBPF instrumenters — Beyla and Grafana Alloy — with the VictoriaMetrics store they feed |
 | `gpu` | render only | DCGM exporter (needs a GPU node) |
 | `readonly` | render only | `rbacReadOnly` (the read-only agent ClusterRole) |
+
+## Required check
+
+Require the **`Chart Gate`** check, not the render or install jobs. The workflow starts on every PR,
+so `Chart Gate` always reports: it fails if render or any install profile fails or is cancelled, and
+passes without a cluster when the PR changes nothing under `charts/`, `ci/chart-gate/` or the
+workflow. Requiring a path-filtered job instead would leave every other PR waiting on a check that
+never runs.
 
 ## Running it locally
 

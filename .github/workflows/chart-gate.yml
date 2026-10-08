@@ -6,16 +6,16 @@ name: Chart Gate
 # The render job checks every supported k8s minor, the expected resource list and that every
 # image resolves. No secrets: everything runs inside the job, so fork PRs get the same gate.
 # Runs on the main and edge channels; the same file is cherry-picked to both branches.
+# `Chart Gate` is the one check to require: it reports on every PR, passing when the PR touches
+# neither the chart nor the gate (render and install are then skipped).
 # Details: ci/chart-gate/README.md
 
 on:
-  # Any base branch, so PRs stacked on another branch are gated too. A PR only runs workflows that
-  # exist in its merge result, so it runs on PRs to main and edge, where this file is committed.
+  # Every PR, with no path filter: a required check whose workflow never starts stays pending and
+  # blocks the merge, so the `changes` job decides instead. Any base branch, so PRs stacked on
+  # another branch are gated too. A PR only runs workflows that exist in its merge result, so it
+  # runs on PRs to main and edge, where this file is committed.
   pull_request:
-    paths:
-      - 'charts/**'
-      - 'ci/chart-gate/**'
-      - '.github/workflows/chart-gate.yml'
   push:
     branches: [main, edge]
     paths:
@@ -36,8 +36,39 @@ env:
   K3D_VERSION: v5.8.3
 
 jobs:
+  changes:
+    name: Chart or gate changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      chart: ${{ steps.diff.outputs.chart }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Diff against the base branch
+        id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then
+            echo "chart=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # A PR checks out its merge commit, whose first parent is the base branch tip.
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          echo "$changed"
+          if grep -qE '^(charts/|ci/chart-gate/|\.github/workflows/chart-gate\.yml$)' <<< "$changed"; then
+            echo "chart=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "chart=false" >> "$GITHUB_OUTPUT"
+          fi
+
   render:
     name: Render checks
+    needs: changes
+    if: needs.changes.outputs.chart == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -59,6 +90,8 @@ jobs:
 
   install:
     name: Install (${{ matrix.profile }})
+    needs: changes
+    if: needs.changes.outputs.chart == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -98,3 +131,38 @@ jobs:
             !chart-gate-artifacts/**/kubeconfig
           retention-days: 7
           if-no-files-found: warn
+
+  # The required check. always(): it must report even when a job above fails or is cancelled, since
+  # a skipped job counts as passing for a required check.
+  gate:
+    name: Chart Gate
+    needs: [changes, render, install]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Result
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          CHART: ${{ needs.changes.outputs.chart }}
+          RENDER: ${{ needs.render.result }}
+          INSTALL: ${{ needs.install.result }}
+        run: |
+          echo "changes=$CHANGES chart=$CHART render=$RENDER install=$INSTALL"
+          if [ "$CHANGES" != success ]; then
+            echo "::error::could not tell whether the chart changed ($CHANGES)"
+            exit 1
+          fi
+          if [ "$CHART" = true ]; then
+            if [ "$RENDER" = success ] && [ "$INSTALL" = success ]; then
+              exit 0
+            fi
+            echo "::error::render: $RENDER, install: $INSTALL"
+            exit 1
+          fi
+          if [ "$RENDER" = skipped ] && [ "$INSTALL" = skipped ]; then
+            echo "No chart or gate files changed; render and install skipped."
+            exit 0
+          fi
+          echo "::error::render: $RENDER, install: $INSTALL with no chart change"
+          exit 1

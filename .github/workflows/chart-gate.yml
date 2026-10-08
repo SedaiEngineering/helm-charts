@@ -28,6 +28,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: chart-gate-${{ github.event.pull_request.number || github.ref }}
@@ -46,10 +47,52 @@ jobs:
     timeout-minutes: 5
     outputs:
       chart: ${{ steps.diff.outputs.chart }}
+      ref: ${{ steps.merge.outputs.ref }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 2
+
+      # A run can start with a stale merge commit: the run for a change of base branch checks out
+      # the PR merged into its previous base. Test the merge commit GitHub has for the PR now, and
+      # hand the same commit to render and install.
+      - name: Current merge commit
+        id: merge
+        env:
+          EVENT: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then
+            echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # mergeable is null while GitHub recomputes the merge commit.
+          state=null
+          for _ in $(seq 1 30); do
+            read -r state merge head base <<< "$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" \
+              --jq '"\(.mergeable) \(.merge_commit_sha) \(.head.sha) \(.base.ref)"')"
+            [ "$state" != null ] && break
+            sleep 5
+          done
+          echo "PR #$PR into $base: mergeable=$state merge=$merge head=$head (this run: $HEAD_SHA, $GITHUB_SHA)"
+          if [ "$head" != "$HEAD_SHA" ]; then
+            # A newer commit was pushed; its own run decides. This result only lands on the old one.
+            echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$state" != true ]; then
+            echo "::error::GitHub has no merge commit for this PR into $base (mergeable=$state)"
+            exit 1
+          fi
+          git fetch --no-tags --depth=2 origin "$merge"
+          git checkout --quiet --detach "$merge"
+          if [ "$(git rev-parse HEAD^2)" != "$HEAD_SHA" ]; then
+            echo "::error::merge commit $merge does not merge this PR's head $HEAD_SHA"
+            exit 1
+          fi
+          echo "ref=$merge" >> "$GITHUB_OUTPUT"
 
       - name: Diff against the base branch
         id: diff
@@ -60,7 +103,7 @@ jobs:
             echo "chart=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # A PR checks out its merge commit, whose first parent is the base branch tip. git matches
+          # HEAD is the PR's merge commit, whose first parent is the base branch tip. git matches
           # the paths itself, so a name git would quote in its output still counts. --no-renames: a
           # file moved out of the chart counts. .gitattributes anywhere can change how the chart's
           # files are checked out.
@@ -87,6 +130,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.changes.outputs.ref }}
 
       - uses: azure/setup-helm@v4.3.0
         with:
@@ -114,6 +159,8 @@ jobs:
         profile: [default, full, observability]
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.changes.outputs.ref }}
 
       - uses: azure/setup-helm@v4.3.0
         with:

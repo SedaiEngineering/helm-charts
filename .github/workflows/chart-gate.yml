@@ -31,10 +31,9 @@ permissions:
 
 concurrency:
   group: chart-gate-${{ github.event.pull_request.number || github.ref }}
-  # A new commit cancels the run for the old one. Another trigger on the same commit (edited,
-  # reopened) queues behind the running one instead, so the newest Chart Gate result on a commit
-  # always comes from the newest run.
-  cancel-in-progress: ${{ github.event_name != 'pull_request' || github.event.action == 'synchronize' }}
+  # A new trigger cancels the running one. On the same commit (edited, reopened) the cancelled run's
+  # Chart Gate failure is posted first and the new run's result after it, so the newest result wins.
+  cancel-in-progress: true
 
 env:
   HELM_VERSION: v4.1.4

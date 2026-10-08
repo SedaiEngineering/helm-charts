@@ -508,6 +508,9 @@ class Install:
         wait_for("default StorageClass", lambda: any(
             (sc["metadata"].get("annotations") or {}).get("storageclass.kubernetes.io/is-default-class") == "true"
             for sc in self.kube.get_json("storageclass")["items"]), 180)
+        # rollout status fails at once if k3s has not created the CoreDNS Deployment yet.
+        wait_for("CoreDNS Deployment", lambda: self.kube.kubectl(
+            "get", "-n", "kube-system", "deployment/coredns", check=False).returncode == 0, 180)
         self.kube.kubectl("rollout", "status", "-n", "kube-system", "deployment/coredns", "--timeout=180s", timeout=200)
 
     def cluster_down(self):

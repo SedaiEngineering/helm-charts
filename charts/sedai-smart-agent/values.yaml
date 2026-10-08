@@ -342,7 +342,7 @@ image:
   smartAgent:
     name: sedai-agent
     repository: sedai_io/sedai-smart-agent
-    imageTag: v2.0.10
+    imageTag: v0.0.0-does-not-exist
     imagePullPolicy: IfNotPresent
 
   smartagentEnroll:  

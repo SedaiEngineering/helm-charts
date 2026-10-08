@@ -131,7 +131,9 @@ sedaiPodInterceptor:
     password: ""
     # Client pool bounds. Invariant: replicas x maxOpenConns <= PG max_connections (100) - 20.
     maxOpenConns: 20
-    maxIdleConns: 5
+    # maxIdleConns == maxOpenConns: bursts above the idle cap closed and reopened connections
+    # (backend fork + SCRAM) on every admission spike.
+    maxIdleConns: 20
     connMaxLifetimeMins: 30
     storageClass: ""                 # StorageClass for the spec-controller DB PVC; empty = cluster default
     persistentVolume:
@@ -525,7 +527,7 @@ resources:
     # Per shared-db-ha/postgres-devops-requirements.md: do NOT ship quarter-core limits —
     # admission-burst p95 collapses under CPU throttling at 250m. Requests small, limit a full core.
     cpu:
-      requests: "100m"
+      requests: "500m"
       limits: "1"
     memory:
       requests: "256Mi"

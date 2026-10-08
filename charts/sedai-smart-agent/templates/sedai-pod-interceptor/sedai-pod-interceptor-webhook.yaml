@@ -144,7 +144,7 @@ webhooks:
           {{- toYaml $excludedNamespaces | nindent 10 }}
     admissionReviewVersions: ["v1"]
     sideEffects: NoneOnDryRun
-    timeoutSeconds: 5
+    timeoutSeconds: 1
 {{- end }}
 
 {{- if .Values.kubeflowSparkOptimization.enabled }}

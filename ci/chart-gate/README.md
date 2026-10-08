@@ -76,7 +76,8 @@ python3 ci/chart-gate/gate.py static
 python3 ci/chart-gate/gate.py install --profile full --keep-cluster
 ```
 
-Needs helm 4, kubectl, openssl, k3d, Docker and python3 with PyYAML. The install uses its own
+Needs helm 4, kubectl, openssl, k3d, Docker and python3 with PyYAML. On a fresh Linux host, load the
+kernel modules listed in the workflow's "Load the kernel modules k3s uses" step first. The install uses its own
 kubeconfig under `chart-gate-artifacts/<profile>/` and never touches your current context.
 `--keep-cluster` leaves the cluster up for inspection; delete it with
 `k3d cluster delete chart-gate-<profile>`.

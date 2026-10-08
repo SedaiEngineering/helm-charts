@@ -57,7 +57,8 @@ jobs:
             exit 0
           fi
           # A PR checks out its merge commit, whose first parent is the base branch tip.
-          changed=$(git diff --name-only HEAD^1 HEAD)
+          # --no-renames: a file moved out of the chart counts as a chart change.
+          changed=$(git diff --no-renames --name-only HEAD^1 HEAD)
           echo "$changed"
           if grep -qE '^(charts/|ci/chart-gate/|\.github/workflows/chart-gate\.yml$)' <<< "$changed"; then
             echo "chart=true" >> "$GITHUB_OUTPUT"

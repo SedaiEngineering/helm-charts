@@ -1,0 +1,17 @@
+# The eBPF instrumenters — Beyla and Grafana Alloy (with its embedded beyla.ebpf) — with the
+# VictoriaMetrics store they feed. They are kept out of profiles/full.yaml: with the smart-scheduler
+# on k8s 1.36, their uprobes make kube-scheduler v1.36.4 (Go 1.26) fail to start again once they
+# have attached to it, a known issue outside this gate.
+sedaiBeyla:
+  enabled: true
+sedaiGrafanaAlloy:
+  enabled: true
+sedaiVictoriaMetrics:
+  enabled: true
+
+resources:
+  smartAgent: {cpu: {requests: 250m}, memory: {requests: 512Mi}}
+  ksm: {cpu: {requests: 50m}, memory: {requests: 64Mi}}
+  sedaiBeyla: {cpu: {requests: 50m}, memory: {requests: 256Mi}}
+  grafanaAlloy: {cpu: {requests: 50m}, memory: {requests: 256Mi}}
+  victoriaMetrics: {cpu: {requests: 100m}, memory: {requests: 256Mi}, storage: 1Gi}

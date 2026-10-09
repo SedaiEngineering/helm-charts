@@ -1,0 +1,281 @@
+name: Chart Gate
+
+# Installs the sedai-smart-agent chart from this checkout into a throwaway k3d cluster and proves
+# it comes up: enroll hooks run against an in-cluster mock of the Sedai API, every workload is
+# Ready, the agent is healthy on the chart's image version, and it completes a discovery round.
+# The render job checks every supported k8s minor, the expected resource list and that every
+# image resolves. The gate's code lives in SedaiEngineering/sedai-tests (chart-gate/) and is checked
+# out from its main with secrets.GHPAT, as the exporters integration tests are; the chart's own gate
+# data (profiles, expected lists) is ci/chart-gate/ here. PRs from forks get no secrets and fail.
+# Runs on the main and edge channels; the same file is cherry-picked to both branches.
+# `Chart Gate` is the one check to require: it reports on every PR, passing when the PR touches
+# neither the chart nor the gate (render and install are then skipped).
+# Details: ci/chart-gate/README.md
+
+on:
+  # Every PR, with no path filter: a required check whose workflow never starts stays pending and
+  # blocks the merge, so the `changes` job decides instead. Any base branch, so PRs stacked on
+  # another branch are gated too. A PR only runs workflows that exist in its merge result, so it
+  # runs on PRs to main and edge, where this file is committed. `edited` includes a change of base
+  # branch, which changes what the PR merges; title and body edits re-run it too.
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main, edge]
+    paths:
+      - 'charts/**'
+      - 'ci/chart-gate/**'
+      - '.github/workflows/chart-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: chart-gate-${{ github.event.pull_request.number || github.ref }}
+  # A new trigger cancels the running one. On the same commit (edited, reopened) the cancelled run's
+  # Chart Gate failure is posted first and the new run's result after it, so the newest result wins.
+  cancel-in-progress: true
+
+env:
+  HELM_VERSION: v4.1.4
+  K3D_VERSION: v5.8.3
+
+jobs:
+  changes:
+    name: Chart or gate changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      chart: ${{ steps.diff.outputs.chart }}
+      ref: ${{ steps.merge.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      # A run can start with a stale merge commit: the run for a change of base branch checks out
+      # the PR merged into its previous base. Test the merge commit GitHub has for the PR now, and
+      # hand the same commit to render and install.
+      - name: Current merge commit
+        id: merge
+        env:
+          EVENT: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then
+            echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # mergeable is null while GitHub recomputes the merge commit.
+          state=null
+          for _ in $(seq 1 30); do
+            read -r state merge head base <<< "$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" \
+              --jq '"\(.mergeable) \(.merge_commit_sha) \(.head.sha) \(.base.ref)"')"
+            [ "$state" != null ] && break
+            sleep 5
+          done
+          echo "PR #$PR into $base: mergeable=$state merge=$merge head=$head (this run: $HEAD_SHA, $GITHUB_SHA)"
+          if [ "$head" != "$HEAD_SHA" ]; then
+            # A newer commit was pushed; its own run decides. This result only lands on the old one.
+            echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$state" != true ]; then
+            echo "::error::GitHub has no merge commit for this PR into $base (mergeable=$state)"
+            exit 1
+          fi
+          git fetch --no-tags --depth=2 origin "$merge"
+          git checkout --quiet --detach "$merge"
+          if [ "$(git rev-parse HEAD^2)" != "$HEAD_SHA" ]; then
+            echo "::error::merge commit $merge does not merge this PR's head $HEAD_SHA"
+            exit 1
+          fi
+          echo "ref=$merge" >> "$GITHUB_OUTPUT"
+
+      - name: Diff against the base branch
+        id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then
+            echo "chart=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # HEAD is the PR's merge commit, whose first parent is the base branch tip. git matches
+          # the paths itself, so a name git would quote in its output still counts. --no-renames: a
+          # file moved out of the chart counts. .gitattributes anywhere can change how the chart's
+          # files are checked out.
+          git diff --no-renames --name-only HEAD^1 HEAD
+          rc=0
+          git diff --no-renames --quiet HEAD^1 HEAD -- charts ci/chart-gate .github/workflows/chart-gate.yml \
+            ':(glob)**/.gitattributes' || rc=$?
+          case $rc in
+            0) chart=false ;;
+            1) chart=true ;;
+            *) exit "$rc" ;;
+          esac
+          # A symlink in the chart or the gate can point at a file outside the paths above.
+          if [ -n "$(git ls-files -s charts ci/chart-gate | awk '$1 == "120000"')" ]; then
+            chart=true
+          fi
+          echo "chart=$chart" >> "$GITHUB_OUTPUT"
+
+  render:
+    name: Render checks
+    needs: changes
+    if: needs.changes.outputs.chart == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.changes.outputs.ref }}
+
+      # The gate's code: SedaiEngineering/sedai-tests is private, so it is read with GHPAT.
+      - name: GHPAT available
+        env:
+          GHPAT: ${{ secrets.GHPAT }}
+        run: |
+          if [ -z "$GHPAT" ]; then
+            echo "::error::secrets.GHPAT is not available, so the gate cannot be read from SedaiEngineering/sedai-tests (PRs from forks get no secrets)"
+            exit 1
+          fi
+
+      - name: Check out the gate (sedai-tests)
+        uses: actions/checkout@v5
+        with:
+          repository: SedaiEngineering/sedai-tests
+          ref: main
+          path: .sedai-tests
+          token: ${{ secrets.GHPAT }}
+          persist-credentials: false
+          sparse-checkout: chart-gate
+
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python deps
+        run: python -m pip install pyyaml==6.0.3
+
+      - name: Render, resource list, images
+        run: python .sedai-tests/chart-gate/gate.py static
+
+  install:
+    name: Install (${{ matrix.profile }})
+    needs: changes
+    if: needs.changes.outputs.chart == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [default, full, observability]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.changes.outputs.ref }}
+
+      # The gate's code: SedaiEngineering/sedai-tests is private, so it is read with GHPAT.
+      - name: GHPAT available
+        env:
+          GHPAT: ${{ secrets.GHPAT }}
+        run: |
+          if [ -z "$GHPAT" ]; then
+            echo "::error::secrets.GHPAT is not available, so the gate cannot be read from SedaiEngineering/sedai-tests (PRs from forks get no secrets)"
+            exit 1
+          fi
+
+      - name: Check out the gate (sedai-tests)
+        uses: actions/checkout@v5
+        with:
+          repository: SedaiEngineering/sedai-tests
+          ref: main
+          path: .sedai-tests
+          token: ${{ secrets.GHPAT }}
+          persist-credentials: false
+          sparse-checkout: chart-gate
+
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Install k3d
+        run: |
+          curl -fsSL -o /tmp/k3d "https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64"
+          sudo install -m 0755 /tmp/k3d /usr/local/bin/k3d
+          k3d version
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python deps
+        run: python -m pip install pyyaml==6.0.3
+
+      # The kernel modules k3s loads while it brings up pod networking. On a fresh runner they
+      # otherwise load while the gate's first pods start, and creating a pod's network namespace can
+      # then stall for minutes (the pod stays ContainerCreating). Loading them first keeps module
+      # loading out of the cluster's startup.
+      - name: Load the kernel modules k3s uses
+        run: >-
+          sudo modprobe -a br_netfilter veth nf_conntrack_netlink nf_reject_ipv4 ipt_REJECT
+          nfnetlink_acct nfnetlink_log nft_limit nft_log xt_comment xt_limit xt_mark xt_multiport
+          xt_nat xt_nfacct xt_NFLOG xt_physdev
+
+      - name: Install and verify
+        run: python .sedai-tests/chart-gate/gate.py install --profile ${{ matrix.profile }} --artifacts chart-gate-artifacts
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chart-gate-${{ matrix.profile }}
+          path: |
+            chart-gate-artifacts
+            !chart-gate-artifacts/**/kubeconfig
+          retention-days: 7
+          if-no-files-found: warn
+
+  # The required check. always(): it must report even when a job above fails or is cancelled, since
+  # a skipped job counts as passing for a required check.
+  gate:
+    name: Chart Gate
+    needs: [changes, render, install]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Result
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          CHART: ${{ needs.changes.outputs.chart }}
+          RENDER: ${{ needs.render.result }}
+          INSTALL: ${{ needs.install.result }}
+        run: |
+          echo "changes=$CHANGES chart=$CHART render=$RENDER install=$INSTALL"
+          if [ "$CHANGES" != success ]; then
+            echo "::error::could not tell whether the chart changed ($CHANGES)"
+            exit 1
+          fi
+          if [ "$CHART" = true ]; then
+            if [ "$RENDER" = success ] && [ "$INSTALL" = success ]; then
+              exit 0
+            fi
+            echo "::error::render: $RENDER, install: $INSTALL"
+            exit 1
+          fi
+          if [ "$RENDER" = skipped ] && [ "$INSTALL" = skipped ]; then
+            echo "No chart or gate files changed; render and install skipped."
+            exit 0
+          fi
+          echo "::error::render: $RENDER, install: $INSTALL with no chart change"
+          exit 1

@@ -3,3 +3,6 @@ tests/
 pack/
 .idea/
 charts/sedai-smart-agent/custom-values-spark.yaml
+
+# chart gate local runs
+chart-gate-artifacts/

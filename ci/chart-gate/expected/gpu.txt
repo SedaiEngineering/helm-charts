@@ -1,0 +1,32 @@
+# Resources that charts/sedai-smart-agent renders for ci/chart-gate/profiles/gpu.yaml (k8s 1.36).
+# Regenerate after an intended chart change: python3 <sedai-tests>/chart-gate/gate.py golden
+ClusterRole/sedai-smart-agent-cluster-role
+ClusterRole/sedai-smart-agent-enroll-job-duplicate-check-role  [hook: pre-install,pre-upgrade]
+ClusterRoleBinding/sedai-smart-agent-cluster-role-binding
+ClusterRoleBinding/sedai-smart-agent-enroll-job-duplicate-check-binding  [hook: pre-install,pre-upgrade]
+ConfigMap/sedai-dcgm-exporter-metrics-config-map
+DaemonSet/sedai-dcgm-exporter
+Deployment/sedai-smart-agent
+Job/sedai-smart-agent-enroll-job  [hook: pre-install]
+Job/sedai-smart-agent-enroll-job-cleanup  [hook: post-delete]
+Job/sedai-smart-agent-enroll-job-duplicate-check  [hook: pre-install,pre-upgrade]
+Job/sedai-smart-agent-enroll-job-post-upgrade  [hook: post-upgrade]
+ResourceQuota/sedai-dcgm-allow-critical-priority
+ResourceQuota/sedai-smart-agent-allow-critical-priority
+Role/sedai-dcgm-exporter-read-cm
+Role/sedai-smart-agent-enroll-job-cleanup-role  [hook: post-delete]
+Role/sedai-smart-agent-enroll-job-post-upgrade-role  [hook: post-upgrade]
+Role/sedai-smart-agent-enroll-job-role  [hook: pre-install]
+RoleBinding/sedai-dcgm-exporter-role-binding
+RoleBinding/sedai-smart-agent-enroll-job-cleanup-binding  [hook: post-delete]
+RoleBinding/sedai-smart-agent-enroll-job-post-upgrade-role-binding  [hook: post-upgrade]
+RoleBinding/sedai-smart-agent-enroll-job-role-binding  [hook: pre-install]
+Secret/sedai-smart-agent-enroll-job-duplicate-check-secret  [hook: pre-install,pre-upgrade]
+Secret/sedai-smart-agent-enroll-job-secret  [hook: pre-install,post-upgrade]
+Service/sedai-dcgm-exporter
+ServiceAccount/sedai-dcgm-exporter-sa
+ServiceAccount/sedai-smart-agent-enroll-job-cleanup-sa  [hook: post-delete]
+ServiceAccount/sedai-smart-agent-enroll-job-duplicate-check-sa  [hook: pre-install,pre-upgrade]
+ServiceAccount/sedai-smart-agent-enroll-job-post-upgrade-sa  [hook: post-upgrade]
+ServiceAccount/sedai-smart-agent-enroll-job-sa  [hook: pre-install]
+ServiceAccount/sedai-smart-agent-sa

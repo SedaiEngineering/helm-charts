@@ -1,0 +1,87 @@
+# Resources that charts/sedai-smart-agent renders for ci/chart-gate/profiles/full.yaml (k8s 1.36).
+# Regenerate after an intended chart change: python3 <sedai-tests>/chart-gate/gate.py golden
+ClusterRole/sedai-kube-spec-controller-role-sedai
+ClusterRole/sedai-kube-state-metrics-cluster-role
+ClusterRole/sedai-prometheus-server-cluster-role
+ClusterRole/sedai-smart-agent-cluster-role
+ClusterRole/sedai-smart-agent-enroll-job-duplicate-check-role  [hook: pre-install,pre-upgrade]
+ClusterRole/sedai-smart-agent-karpenter-installer-deployer
+ClusterRole/sedai-smart-scheduler-compactor-eviction
+ClusterRole/sedai-smart-scheduler-dra
+ClusterRole/sedai-victoria-metrics-server-cr
+ClusterRoleBinding/sedai-kube-spec-controller-role-binding-sedai
+ClusterRoleBinding/sedai-kube-state-metrics-cluster-role-binding
+ClusterRoleBinding/sedai-prometheus-server-cluster-role-binding
+ClusterRoleBinding/sedai-smart-agent-cluster-role-binding
+ClusterRoleBinding/sedai-smart-agent-enroll-job-duplicate-check-binding  [hook: pre-install,pre-upgrade]
+ClusterRoleBinding/sedai-smart-agent-karpenter-installer-deployer
+ClusterRoleBinding/sedai-smart-scheduler-as-kube-scheduler
+ClusterRoleBinding/sedai-smart-scheduler-as-volume-scheduler
+ClusterRoleBinding/sedai-smart-scheduler-compactor-eviction
+ClusterRoleBinding/sedai-smart-scheduler-dra
+ClusterRoleBinding/sedai-victoria-metrics-server-crb
+ConfigMap/sedai-kube-spec-controller-config
+ConfigMap/sedai-prometheus-server-configmap
+ConfigMap/sedai-smart-compactor-config
+ConfigMap/sedai-smart-scheduler-config
+ConfigMap/sedai-victoria-metrics-server-configmap
+ConfigMap/sedai-vmalert-rules
+DaemonSet/sedai-prometheus-node-exporter
+Deployment/sedai-kube-spec-controller
+Deployment/sedai-kube-state-metrics
+Deployment/sedai-prometheus-server
+Deployment/sedai-smart-agent
+Deployment/sedai-smart-compactor
+Deployment/sedai-smart-scheduler
+Deployment/sedai-vmalert
+Job/sedai-smart-agent-enroll-job  [hook: pre-install]
+Job/sedai-smart-agent-enroll-job-correct-cluster-name  [hook: pre-install,pre-upgrade]
+Job/sedai-smart-agent-enroll-job-deregister  [hook: post-delete]
+Job/sedai-smart-agent-enroll-job-duplicate-check  [hook: pre-install,pre-upgrade]
+Job/sedai-smart-agent-enroll-job-post-upgrade  [hook: post-upgrade]
+MutatingWebhookConfiguration/sedai-kube-spec-controller-mutation-webhook-sedai
+MutatingWebhookConfiguration/sedai-kube-spec-controller-spark-mutation-webhook-sedai
+PersistentVolumeClaim/sedai-kube-spec-controller-db-pvc
+PersistentVolumeClaim/sedai-prometheus-server-pvc
+PersistentVolumeClaim/server-volume
+PodDisruptionBudget/sedai-smart-scheduler
+ResourceQuota/sedai-pod-interceptor-allow-critical-priority
+ResourceQuota/sedai-smart-agent-allow-critical-priority
+ResourceQuota/sedai-smart-scheduler-allow-critical-priority
+Role/sedai-smart-agent-enroll-job-deregister-role  [hook: post-delete]
+Role/sedai-smart-agent-enroll-job-post-upgrade-role  [hook: post-upgrade]
+Role/sedai-smart-agent-enroll-job-role  [hook: pre-install]
+Role/sedai-smart-scheduler-leases
+Role/sedai-smart-scheduler-log-reader
+RoleBinding/sedai-smart-agent-enroll-job-deregister-binding  [hook: post-delete]
+RoleBinding/sedai-smart-agent-enroll-job-post-upgrade-role-binding  [hook: post-upgrade]
+RoleBinding/sedai-smart-agent-enroll-job-role-binding  [hook: pre-install]
+RoleBinding/sedai-smart-scheduler-extension-apiserver-authn
+RoleBinding/sedai-smart-scheduler-leases
+RoleBinding/sedai-smart-scheduler-log-reader
+Secret/sedai-kube-spec-controller-db
+Secret/sedai-kube-spec-controller-tls
+Secret/sedai-smart-agent-enroll-job-correct-cluster-name-secret  [hook: pre-install,pre-upgrade]
+Secret/sedai-smart-agent-enroll-job-deregister-secret  [hook: post-delete]
+Secret/sedai-smart-agent-enroll-job-duplicate-check-secret  [hook: pre-install,pre-upgrade]
+Secret/sedai-smart-agent-enroll-job-secret  [hook: pre-install,post-upgrade]
+Service/sedai-kube-spec-controller-db
+Service/sedai-kube-spec-controller-svc
+Service/sedai-kube-state-metrics-service
+Service/sedai-prometheus-node-exporter
+Service/sedai-prometheus-server-service
+Service/sedai-victoria-metrics-server
+Service/sedai-vmalert
+ServiceAccount/sedai-kube-spec-controller-sa
+ServiceAccount/sedai-kube-state-metrics-sa
+ServiceAccount/sedai-prometheus-node-exporter
+ServiceAccount/sedai-prometheus-server-sa
+ServiceAccount/sedai-smart-agent-enroll-job-correct-cluster-name-sa  [hook: pre-install,pre-upgrade]
+ServiceAccount/sedai-smart-agent-enroll-job-deregister-sa  [hook: post-delete]
+ServiceAccount/sedai-smart-agent-enroll-job-duplicate-check-sa  [hook: pre-install,pre-upgrade]
+ServiceAccount/sedai-smart-agent-enroll-job-post-upgrade-sa  [hook: post-upgrade]
+ServiceAccount/sedai-smart-agent-enroll-job-sa  [hook: pre-install]
+ServiceAccount/sedai-smart-agent-sa
+ServiceAccount/sedai-victoria-metrics-server
+StatefulSet/sedai-kube-spec-controller-db
+StatefulSet/sedai-victoria-metrics-server

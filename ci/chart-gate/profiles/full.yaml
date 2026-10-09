@@ -1,0 +1,37 @@
+# Every component that runs on a single CPU-only node, except the eBPF instrumenters (Beyla, Alloy),
+# which have their own profile (observability.yaml). DCGM needs a GPU and is covered by the
+# render-only gpu profile. Only resource *requests* are lowered, so everything schedules on a
+# 4 vCPU / 16 GB runner; limits stay at the chart defaults.
+sedaiIntegrationSettings:
+  enableDeRegisterJob: true
+  correctClusterName:
+    enabled: true
+sedaiPrometheus:
+  enabled: true
+sedaiKSM:
+  enabled: true
+sedaiPodInterceptor:
+  enabled: true
+sedaiNodeExporter:
+  enabled: true
+sedaiSmartScheduler:
+  enabled: true
+  compactor:
+    enabled: true
+sedaiVictoriaMetrics:
+  enabled: true
+kubeflowSparkOptimization:
+  enabled: true
+sedaiKarpenter:
+  enabled: true
+
+resources:
+  smartAgent: {cpu: {requests: 250m}, memory: {requests: 512Mi}}
+  prometheus: {cpu: {requests: 100m}, memory: {requests: 256Mi}, storage: 1Gi}
+  ksm: {cpu: {requests: 50m}, memory: {requests: 64Mi}}
+  sedaiPodInterceptor: {cpu: {requests: 50m}, memory: {requests: 64Mi}}
+  sedaiPodInterceptorDB: {cpu: {requests: 50m}, memory: {requests: 128Mi}, storage: 1Gi}
+  victoriaMetrics: {cpu: {requests: 100m}, memory: {requests: 256Mi}, storage: 1Gi}
+  vmalert: {cpu: {requests: 50m}, memory: {requests: 64Mi}}
+  scheduler: {requests: {cpu: 50m, memory: 128Mi}}
+  compactor: {requests: {cpu: 50m, memory: 128Mi}}

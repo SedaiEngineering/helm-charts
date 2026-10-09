@@ -1,0 +1,4 @@
+# Render-only (no GPU node to install on): the DCGM exporter goes through lint, every k8s minor,
+# the expected resource and RBAC lists and image resolution.
+sedaiDcgmExporter:
+  enabled: true

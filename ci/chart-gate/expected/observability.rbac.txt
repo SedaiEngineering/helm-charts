@@ -1,5 +1,5 @@
 # Permissions per ServiceAccount (account | scope | apiGroups resources | verbs) that charts/sedai-smart-agent renders for ci/chart-gate/profiles/observability.yaml (k8s 1.36).
-# Regenerate after an intended chart change: python3 ci/chart-gate/gate.py golden
+# Regenerate after an intended chart change: python3 <sedai-tests>/chart-gate/gate.py golden
 sedai/sedai-beyla-ds | cluster | apps replicasets | list,watch
 sedai/sedai-beyla-ds | cluster | core nodes,pods,services | get,list,watch
 sedai/sedai-grafana-alloy | cluster | apps replicasets | get,list,watch

@@ -4,7 +4,9 @@ name: Chart Gate
 # it comes up: enroll hooks run against an in-cluster mock of the Sedai API, every workload is
 # Ready, the agent is healthy on the chart's image version, and it completes a discovery round.
 # The render job checks every supported k8s minor, the expected resource list and that every
-# image resolves. No secrets: everything runs inside the job, so fork PRs get the same gate.
+# image resolves. The gate's code lives in SedaiEngineering/sedai-tests (chart-gate/) and is checked
+# out from its main with secrets.GHPAT, as the exporters integration tests are; the chart's own gate
+# data (profiles, expected lists) is ci/chart-gate/ here. PRs from forks get no secrets and fail.
 # Runs on the main and edge channels; the same file is cherry-picked to both branches.
 # `Chart Gate` is the one check to require: it reports on every PR, passing when the PR touches
 # neither the chart nor the gate (render and install are then skipped).
@@ -133,6 +135,26 @@ jobs:
         with:
           ref: ${{ needs.changes.outputs.ref }}
 
+      # The gate's code: SedaiEngineering/sedai-tests is private, so it is read with GHPAT.
+      - name: GHPAT available
+        env:
+          GHPAT: ${{ secrets.GHPAT }}
+        run: |
+          if [ -z "$GHPAT" ]; then
+            echo "::error::secrets.GHPAT is not available, so the gate cannot be read from SedaiEngineering/sedai-tests (PRs from forks get no secrets)"
+            exit 1
+          fi
+
+      - name: Check out the gate (sedai-tests)
+        uses: actions/checkout@v5
+        with:
+          repository: SedaiEngineering/sedai-tests
+          ref: main
+          path: .sedai-tests
+          token: ${{ secrets.GHPAT }}
+          persist-credentials: false
+          sparse-checkout: chart-gate
+
       - uses: azure/setup-helm@v4.3.0
         with:
           version: ${{ env.HELM_VERSION }}
@@ -145,7 +167,7 @@ jobs:
         run: python -m pip install pyyaml==6.0.3
 
       - name: Render, resource list, images
-        run: python ci/chart-gate/gate.py static
+        run: python .sedai-tests/chart-gate/gate.py static
 
   install:
     name: Install (${{ matrix.profile }})
@@ -161,6 +183,26 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.changes.outputs.ref }}
+
+      # The gate's code: SedaiEngineering/sedai-tests is private, so it is read with GHPAT.
+      - name: GHPAT available
+        env:
+          GHPAT: ${{ secrets.GHPAT }}
+        run: |
+          if [ -z "$GHPAT" ]; then
+            echo "::error::secrets.GHPAT is not available, so the gate cannot be read from SedaiEngineering/sedai-tests (PRs from forks get no secrets)"
+            exit 1
+          fi
+
+      - name: Check out the gate (sedai-tests)
+        uses: actions/checkout@v5
+        with:
+          repository: SedaiEngineering/sedai-tests
+          ref: main
+          path: .sedai-tests
+          token: ${{ secrets.GHPAT }}
+          persist-credentials: false
+          sparse-checkout: chart-gate
 
       - uses: azure/setup-helm@v4.3.0
         with:
@@ -190,7 +232,7 @@ jobs:
           xt_nat xt_nfacct xt_NFLOG xt_physdev
 
       - name: Install and verify
-        run: python ci/chart-gate/gate.py install --profile ${{ matrix.profile }} --artifacts chart-gate-artifacts
+        run: python .sedai-tests/chart-gate/gate.py install --profile ${{ matrix.profile }} --artifacts chart-gate-artifacts
 
       - name: Upload artifacts
         if: always()

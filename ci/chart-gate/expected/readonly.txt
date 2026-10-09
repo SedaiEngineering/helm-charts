@@ -1,5 +1,5 @@
 # Resources that charts/sedai-smart-agent renders for ci/chart-gate/profiles/readonly.yaml (k8s 1.36).
-# Regenerate after an intended chart change: python3 ci/chart-gate/gate.py golden
+# Regenerate after an intended chart change: python3 <sedai-tests>/chart-gate/gate.py golden
 ClusterRole/sedai-smart-agent-cluster-role
 ClusterRole/sedai-smart-agent-enroll-job-duplicate-check-role  [hook: pre-install,pre-upgrade]
 ClusterRoleBinding/sedai-smart-agent-cluster-role-binding

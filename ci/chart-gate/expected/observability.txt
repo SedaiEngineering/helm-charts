@@ -1,5 +1,5 @@
 # Resources that charts/sedai-smart-agent renders for ci/chart-gate/profiles/observability.yaml (k8s 1.36).
-# Regenerate after an intended chart change: python3 ci/chart-gate/gate.py golden
+# Regenerate after an intended chart change: python3 <sedai-tests>/chart-gate/gate.py golden
 ClusterRole/sedai-beyla-ds
 ClusterRole/sedai-grafana-alloy
 ClusterRole/sedai-kube-state-metrics-cluster-role

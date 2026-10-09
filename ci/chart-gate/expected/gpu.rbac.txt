@@ -1,5 +1,5 @@
 # Permissions per ServiceAccount (account | scope | apiGroups resources | verbs) that charts/sedai-smart-agent renders for ci/chart-gate/profiles/gpu.yaml (k8s 1.36).
-# Regenerate after an intended chart change: python3 ci/chart-gate/gate.py golden
+# Regenerate after an intended chart change: python3 <sedai-tests>/chart-gate/gate.py golden
 sedai/sedai-dcgm-exporter-sa | namespace sedai | core configmaps names=sedai-dcgm-exporter-metrics-config-map | get
 sedai/sedai-smart-agent-enroll-job-cleanup-sa | namespace sedai | core secrets names=sedai-smart-agent | delete,get
 sedai/sedai-smart-agent-enroll-job-duplicate-check-sa | cluster | admissionregistration.k8s.io mutatingwebhookconfigurations | delete,get,list

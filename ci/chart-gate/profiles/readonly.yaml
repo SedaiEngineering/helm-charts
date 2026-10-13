@@ -1,3 +1,0 @@
-# Render-only: rbacReadOnly swaps the agent's read-write ClusterRole for the read-only one.
-sedaiIntegrationSettings:
-  rbacReadOnly: true

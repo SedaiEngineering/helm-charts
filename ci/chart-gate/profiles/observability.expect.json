@@ -1,9 +1,0 @@
-{
-  "monitoring_providers": [
-    {
-      "monitoringProvider": "VICTORIAMETRICS",
-      "endpoint": "http://sedai-victoria-metrics-server:8428"
-    }
-  ],
-  "deregister": false
-}

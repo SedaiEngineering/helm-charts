@@ -3,10 +3,12 @@ name: Chart Gate
 # Installs the sedai-smart-agent chart from this checkout into a throwaway k3d cluster and proves
 # it comes up: enroll hooks run against an in-cluster mock of the Sedai API, every workload is
 # Ready, the agent is healthy on the chart's image version, and it completes a discovery round.
-# The render job checks every supported k8s minor and that every image resolves, and reports the
-# resources and permissions the PR adds or removes. The whole gate (code, profiles, values) lives in
-# SedaiEngineering/sedai-tests (chart-gate/) and is checked out from its main with secrets.GHPAT, as
-# the exporters integration tests are. PRs from forks get no secrets and fail.
+# The render job checks every supported k8s minor, that the chart deploys exactly the resources and
+# permissions the expected lists say, and that every image resolves. The whole gate (code, profiles,
+# expected lists) lives in SedaiEngineering/sedai-tests (chart-gate/) and is checked out from its main
+# with secrets.GHPAT, as the exporters integration tests are. PRs from forks get no secrets and fail.
+# A chart change that adds or removes a resource or permission needs a matching sedai-tests PR that
+# updates the expected lists: see CONTRIBUTING.md.
 # Runs on the main and edge channels; the same file is cherry-picked to both branches.
 # `Chart Gate` is the one check to require: it reports on every PR, passing when the PR touches
 # neither the chart nor the gate (render and install are then skipped).
@@ -133,7 +135,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.changes.outputs.ref }}
-          fetch-depth: 2
 
       # The gate's code: SedaiEngineering/sedai-tests is private, so it is read with GHPAT.
       - name: GHPAT available
@@ -166,15 +167,12 @@ jobs:
       - name: Python deps
         run: python -m pip install pyyaml==6.0.3
 
-      # HEAD is the PR's merge commit (or the pushed commit); its first parent is the base the
-      # gate reports the PR's resource and permission changes against.
-      - name: Base branch's chart
-        run: git worktree add --detach "$RUNNER_TEMP/base" HEAD^1
-
-      - name: Render, images, changes against the base
-        run: >-
-          python .sedai-tests/chart-gate/gate.py static
-          --base-chart "$RUNNER_TEMP/base/charts/sedai-smart-agent"
+      # Each release channel has its own expected lists in sedai-tests: edge's for PRs into (and
+      # pushes to) edge, main's for everything else.
+      - name: Render, expected resources and permissions, images
+        env:
+          CHANNEL: ${{ (github.base_ref || github.ref_name) == 'edge' && 'edge' || 'main' }}
+        run: python .sedai-tests/chart-gate/gate.py static --channel "$CHANNEL"
 
   install:
     name: Install (${{ matrix.profile }})

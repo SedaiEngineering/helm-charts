@@ -209,9 +209,16 @@ A workload-aware bin-packing scheduler that improves node utilization:
 ```yaml
 sedaiSmartScheduler:
   enabled: true
-  replicaCount: 2
+  replicaCount: 3
   disruptionProtection: true  # Adds karpenter.sh/do-not-disrupt; see Karpenter Disruption Protection below
 ```
+
+The replicas use leader election: one schedules, the others are warm standbys that take over in about 2 seconds when the leader shuts down cleanly, and about 15-20 seconds when its node dies. To keep a single node or zone failure from taking out more than one replica, the chart adds by default:
+
+- a soft spread across zones and nodes (`topologySpreadConstraints`, `whenUnsatisfiable: ScheduleAnyway`, so it never blocks scheduling). It uses the standard `topology.kubernetes.io/zone` node label; set `topologySpreadConstraints` to supply your own. It is applied when a replica is placed and not re-applied later, so after heavy node churn replicas can share a zone until the next rollout.
+- a surge-first rollout (`maxSurge: 1`, `maxUnavailable: 0`), so a replica that cannot start stalls the rollout while the existing replicas keep serving.
+- `nodeLostTolerationSeconds: 30`, which replaces a replica on a not-ready or unreachable node after 30s instead of the Kubernetes default of 300s. Set it to 0 to keep the default.
+- readiness on `/readyz` for kube-scheduler 1.31+, which only passes once the replica's caches are synced.
 
 Optionally enable the compactor, which evicts pods from underutilized nodes so cluster-autoscaler can drain them (off by default; the Smart Agent enables it when policy permits):
 
@@ -223,7 +230,7 @@ sedaiSmartScheduler:
     disruptionProtection: true  # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
 ```
 
-A PodDisruptionBudget (`maxUnavailable: 1`) is created automatically for the scheduler and, separately, the compactor whenever their respective `replicaCount`/`replicas` is above 1 — no value controls this directly; scale up if you want PDB coverage on top of `disruptionProtection`.
+A PodDisruptionBudget (`maxUnavailable: 1`) is created automatically for the scheduler and, separately, the compactor whenever their respective `replicaCount`/`replicas` is above 1 — no value controls this directly; scale up if you want PDB coverage on top of `disruptionProtection`. On Kubernetes 1.27+ the scheduler's PDB sets `unhealthyPodEvictionPolicy: AlwaysAllow`, so a crash-looping replica never blocks a node drain or upgrade.
 
 ### Karpenter Integration
 

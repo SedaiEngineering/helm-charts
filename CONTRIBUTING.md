@@ -65,6 +65,28 @@ straight merge/fast-forward across them doesn't work. Instead:
 This is slower than a single PR, but keeps each branch's history honest about what it actually
 contains, and lets `edge`/`dev`-specific content stay where it belongs without leaking into `main`.
 
+## The chart gate (`Chart Gate` check)
+
+Every PR to `main` or `edge` that touches `charts/` runs `Chart Gate`
+(`.github/workflows/chart-gate.yml`). It renders the chart on every supported Kubernetes version,
+checks that it deploys exactly what the expected lists say, installs it into a throwaway cluster,
+and checks every component comes up and discovery finds it. The gate's code and its expected
+lists live in SedaiEngineering/sedai-tests, `chart-gate/`; this repo only has the workflow.
+
+**A change that adds or removes a resource or a permission** (a new Deployment, Service, hook Job,
+RBAC rule, ...) fails the gate until the expected lists in sedai-tests match. To make that change:
+
+1. Open the chart PR as usual. `Chart Gate` fails and names what is missing or unexpected.
+2. From your chart branch's checkout, with sedai-tests cloned next to this repo, run
+   `python3 ../sedai-tests/chart-gate/gate.py golden --channel <main|edge>`. It rewrites
+   `chart-gate/expected/<channel>/` in sedai-tests. Open a sedai-tests PR with that diff.
+3. Merge the sedai-tests PR, re-run `Chart Gate` on the chart PR, and merge the chart PR right
+   after. Between the two merges, other open chart PRs on that channel fail the gate.
+4. When the change is cherry-picked to the other channel, do the same for that channel's lists.
+
+Changes that do not change what is deployed (version bumps, image tags, values defaults) need
+nothing in sedai-tests. Details: `chart-gate/README.md` in sedai-tests.
+
 ## Docs that live alongside the chart
 
 - [`README.md`](charts/sedai-smart-agent/README.md) — chart reference: every component, its

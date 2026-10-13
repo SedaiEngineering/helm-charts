@@ -230,7 +230,7 @@ sedaiSmartScheduler:
     disruptionProtection: true  # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
 ```
 
-A PodDisruptionBudget (`maxUnavailable: 1`) is created automatically for the scheduler and, separately, the compactor whenever their respective `replicaCount`/`replicas` is above 1 — no value controls this directly; scale up if you want PDB coverage on top of `disruptionProtection`. On Kubernetes 1.27+ the scheduler's PDB sets `unhealthyPodEvictionPolicy: AlwaysAllow`, so a crash-looping replica never blocks a node drain or upgrade.
+A PodDisruptionBudget (`maxUnavailable: 1`) is created automatically for the scheduler and, separately, the compactor whenever their respective `replicaCount`/`replicas` is above 1 — no value controls this directly; scale up if you want PDB coverage on top of `disruptionProtection`.
 
 ### Karpenter Integration
 

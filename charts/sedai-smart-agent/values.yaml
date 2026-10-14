@@ -192,7 +192,7 @@ sedaiSmartScheduler:
   nameOverride: ""
   fullnameOverride: ""
 
-  replicaCount: 2
+  replicaCount: 3                   # One leads, the rest are warm standbys; 3 survives a second failure during a drain or rollout
 
   scheduler:
     verbosity: 2                    # klog verbosity: 0=silent, 2=normal, 4=debug
@@ -205,6 +205,11 @@ sedaiSmartScheduler:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  # Empty renders a soft (ScheduleAnyway) zone + hostname spread when replicaCount > 1; it needs the standard
+  # topology.kubernetes.io/zone node label, which EKS, GKE and AKS set. Supply your own list to replace it.
+  topologySpreadConstraints: []
+  # Replace a replica on a not-ready/unreachable node after this many seconds (Kubernetes default 300). 0 disables.
+  nodeLostTolerationSeconds: 30
 
   # When true, adds the karpenter.sh/do-not-disrupt annotation to the scheduler pod(s), so
   # Karpenter skips proactively consolidating nodes hosting them. Set false to let Karpenter

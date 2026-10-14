@@ -198,6 +198,12 @@ Override, else lookup. May be empty if the cluster's minor is unsupported.
 {{/*
 "true" if scheduler is compatible and (compactor is disabled or also compatible) — skips both if either fails.
 */}}
+{{/* /readyz (cache sync aware) exists from kube-scheduler 1.31; older images only serve /healthz. */}}
+{{- define "smart-scheduler.readyPath" -}}
+{{- $minor := regexFind "^v?1\\.[0-9]+" (include "smart-scheduler.imageTag" .) | regexFind "[0-9]+$" | default "0" | atoi -}}
+{{- if ge $minor 31 }}/readyz{{ else }}/healthz{{ end -}}
+{{- end -}}
+
 {{- define "smart-scheduler.versionCompatible" -}}
 {{- $schedulerOk := ne (include "smart-scheduler.schedulerTagRaw" .) "" -}}
 {{- $compactorOk := or (not .Values.sedaiSmartScheduler.compactor.enabled) (ne (include "smart-scheduler.compactorTagRaw" .) "") -}}

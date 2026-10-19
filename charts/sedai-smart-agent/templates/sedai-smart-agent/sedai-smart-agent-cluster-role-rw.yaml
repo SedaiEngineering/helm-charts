@@ -197,4 +197,21 @@ rules:
   - list
   - delete
   - create
+- apiGroups:
+  - sedai.iac
+  resources:
+  - sedaiiacconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - resource.k8s.io
+  resources:
+  - resourceclaims
+  - resourceslices
+  verbs:
+  - get
+  - list
+  - watch
 {{- end }}

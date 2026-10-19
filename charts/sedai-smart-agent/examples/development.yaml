@@ -32,15 +32,17 @@ sedaiPrometheus:
   enabled: true
   server:
     retention: '6h'  # Short retention for dev
+  priorityClassName: ""  # Use default or "dev-low-priority"
 
 sedaiKSM:
   enabled: true
+  priorityClassName: ""  # Use default or "dev-low-priority"
 
 # Enable optimization for testing
 sedaiPodInterceptor:
   enabled: true
   logLevel: "debug"  # More verbose logging for development
-
+  priorityClassName: ""  # Use default or "dev-low-priority"
 # Minimal resource allocation for cost savings
 resources:
   smartAgent:
@@ -99,11 +101,3 @@ smartAgentEnroll:
   enabled: true
   priorityClassName: ""  # Use default or "dev-low-priority"
 
-sedaiPrometheus:
-  priorityClassName: ""  # Use default or "dev-low-priority"
-
-sedaiKSM:
-  priorityClassName: ""  # Use default or "dev-low-priority"
-
-sedaiPodInterceptor:
-  priorityClassName: ""  # Use default or "dev-low-priority"

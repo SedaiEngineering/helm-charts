@@ -43,10 +43,12 @@ monitoringProvider:
 # Still enable KSM if your Prometheus doesn't have it
 sedaiKSM:
   enabled: true
+  priorityClassName: "sedai-external-monitoring"
 
 # Enable other components as needed
 sedaiPodInterceptor:
   enabled: true
+  priorityClassName: "sedai-external-monitoring"
 
 # Configure priority classes for components
 smartAgentEnroll:
@@ -56,12 +58,6 @@ smartAgentEnroll:
 workload:
   smartAgent:
     priorityClassName: "sedai-external-monitoring"
-
-sedaiKSM:
-  priorityClassName: "sedai-external-monitoring"
-
-sedaiPodInterceptor:
-  priorityClassName: "sedai-external-monitoring"
 
 # Reduced resource allocation since we're not running Prometheus
 resources:

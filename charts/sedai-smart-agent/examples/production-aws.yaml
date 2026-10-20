@@ -45,17 +45,20 @@ sedaiPrometheus:
     operator: "Equal"
     value: "true"
     effect: "NoSchedule"
+  priorityClassName: "sedai-production-medium"  # Medium priority for monitoring
 
 sedaiKSM:
   enabled: true
   nodeSelector:
     node-type: monitoring
+  priorityClassName: "sedai-production-medium"  # Medium priority for metrics
 
 sedaiNodeExporter:
   enabled: true
   # Node Exporter runs on all nodes
   tolerations:
   - operator: "Exists"
+  priorityClassName: "system-node-critical"  # Use built-in system priority
 
 # Enable auto-optimization
 sedaiPodInterceptor:
@@ -63,17 +66,20 @@ sedaiPodInterceptor:
   logLevel: "info"
   nodeSelector:
     node-type: monitoring
+  priorityClassName: "sedai-production-high"  # High priority for optimization
 
 # Enable application performance monitoring
 sedaiBeyla:
   enabled: true
   tolerations:
   - operator: "Exists"
+  priorityClassName: "sedai-production-medium"  # Medium priority for APM
 
 sedaiGrafanaAlloy:
   enabled: true
   tolerations:
   - operator: "Exists"
+  priorityClassName: "sedai-production-medium"  # Medium priority for collection
 
 # Production resource allocation
 resources:
@@ -129,24 +135,6 @@ workload:
 smartAgentEnroll:
   enabled: true
   priorityClassName: "sedai-production-high"  # High priority for enrollment
-
-sedaiPrometheus:
-  priorityClassName: "sedai-production-medium"  # Medium priority for monitoring
-
-sedaiKSM:
-  priorityClassName: "sedai-production-medium"  # Medium priority for metrics
-
-sedaiPodInterceptor:
-  priorityClassName: "sedai-production-high"  # High priority for optimization
-
-sedaiNodeExporter:
-  priorityClassName: "system-node-critical"  # Use built-in system priority
-
-sedaiBeyla:
-  priorityClassName: "sedai-production-medium"  # Medium priority for APM
-
-sedaiGrafanaAlloy:
-  priorityClassName: "sedai-production-medium"  # Medium priority for collection
 
 # Enable debug logging if needed (disable in production)
 enableAgentDebugLogs:

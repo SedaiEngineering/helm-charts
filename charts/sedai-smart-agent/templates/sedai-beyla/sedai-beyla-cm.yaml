@@ -53,6 +53,8 @@ data:
     network:
       enable: true
       type: ebpf
+    javaagent:
+      enabled: {{ .Values.sedaiBeyla.javaAgentEnabled }}
     prometheus_export:
       features:
       - network

@@ -393,7 +393,7 @@ image:
 
   logForwarder:
     repository: sedai_io/sedai-kube-scheduler-log-forwader
-    imageTag: latest
+    imageTag: v1.0.0
     imagePullPolicy: IfNotPresent
 
   beyla:

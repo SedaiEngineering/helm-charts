@@ -8,7 +8,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: prometheus-node-exporter
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

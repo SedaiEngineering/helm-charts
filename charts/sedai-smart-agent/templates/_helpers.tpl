@@ -54,6 +54,20 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+Common labels for bundled components (vmalert, beyla, node-exporter, ...) that set their own
+app.kubernetes.io/name. Same as "sedai-smart-agent.labels" minus the name, so the key is not
+emitted twice — strict YAML parsers such as Flux's post-renderer reject duplicate keys.
+*/}}
+{{- define "sedai-smart-agent.componentLabels" -}}
+helm.sh/chart: {{ include "sedai-smart-agent.chart" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
 Selector labels
 */}}
 {{- define "sedai-smart-agent.selectorLabels" -}}

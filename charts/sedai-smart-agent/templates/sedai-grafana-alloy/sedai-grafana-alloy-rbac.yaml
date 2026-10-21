@@ -8,7 +8,7 @@ metadata:
   name: sedai-grafana-alloy
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -29,7 +29,7 @@ kind: ClusterRole
 metadata:
   name: sedai-grafana-alloy
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -132,7 +132,7 @@ kind: ClusterRoleBinding
 metadata:
   name: sedai-grafana-alloy
   labels:
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

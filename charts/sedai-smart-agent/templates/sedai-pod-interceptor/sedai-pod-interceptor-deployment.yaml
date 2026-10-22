@@ -40,6 +40,11 @@ spec:
     spec:
       serviceAccount: "{{ .Values.workload.kubeSpecController.name }}-sa"
       serviceAccountName: "{{ .Values.workload.kubeSpecController.name }}-sa"
+      securityContext:
+        runAsNonRoot: true
+        {{- with .Values.sedaiPodInterceptor.securityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
 
       {{- if .Values.sedaiPodInterceptor.isHostAddress }}
       hostNetwork: true
@@ -72,6 +77,7 @@ spec:
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.busyBox.repository) }}:{{ .Values.image.busyBox.imageTag }}"
         command: ["sh", "-c", "until nc -z {{ .Values.workload.kubeSpecController.name }}-db 5432; do echo waiting for spec-controller store; sleep 2; done"]
         securityContext:
+          runAsNonRoot: true
           allowPrivilegeEscalation: false
           privileged: false
           capabilities:
@@ -159,6 +165,7 @@ spec:
             mountPath: "/etc/sedai/config"
             readOnly: true
         securityContext:
+          runAsNonRoot: true
           allowPrivilegeEscalation: false
           privileged: false
           capabilities:

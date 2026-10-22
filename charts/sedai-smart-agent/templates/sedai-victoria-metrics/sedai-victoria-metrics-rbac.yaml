@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: sedai-victoria-metrics
     app.kubernetes.io/component: rbac
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -59,7 +59,7 @@ metadata:
   labels:
     app.kubernetes.io/name: sedai-victoria-metrics
     app.kubernetes.io/component: rbac
-    {{- include "sedai-smart-agent.labels" . | nindent 4 }}
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
     {{- with .Values.globalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

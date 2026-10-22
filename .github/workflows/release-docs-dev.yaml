@@ -1,0 +1,52 @@
+name: Release Docs (Dev)
+
+# Regenerates release-docs/components.md (what each `<component>.enabled` toggle installs) and
+# commits it back to dev when it changed. Commits pushed with GITHUB_TOKEN don't trigger
+# workflows, so this can't loop.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'charts/sedai-smart-agent/**'
+      - '.github/scripts/component-matrix.sh'
+      - '.github/workflows/release-docs-dev.yaml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-docs-dev
+  cancel-in-progress: false
+
+jobs:
+  components:
+    name: Generate component matrix
+    runs-on: sedai-arc-helm-charts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: dev
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Generate release-docs/components.md
+        run: .github/scripts/component-matrix.sh charts/sedai-smart-agent release-docs/components.md
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet --exit-code -- release-docs/ && [ -z "$(git ls-files --others --exclude-standard release-docs/)" ]; then
+            echo "release-docs/components.md is up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add release-docs/
+          git commit -m "docs: regenerate release-docs/components.md [skip ci]"
+          git pull --rebase origin dev
+          git push origin HEAD:dev

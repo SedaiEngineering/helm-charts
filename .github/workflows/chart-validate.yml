@@ -1,0 +1,50 @@
+name: Chart Validate
+
+# Fires on a sedai-smart-agent chart change (PR + merge to main) and delegates to the sedai-tests
+# reusable driver, which runs the @ChartValidation suite against hosted Catalyst. No test logic here:
+# the driver + assertions live in sedai-tests (centralized), this repo only supplies the trigger and
+# the chart version under test.
+#
+# Pre-merge caveat: on a PR the chart version is not yet published, so Catalyst can only install a
+# published version. The version passthrough below is meaningful once (a) chart-release-edge publishes
+# the PR chart and (b) CatalystClient forwards -Dchart.version onto the deploy. Until then this is a
+# post-merge gate (validates the just-published chart).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'charts/sedai-smart-agent/**'
+      - '.github/workflows/chart-validate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'charts/sedai-smart-agent/**'
+      - '.github/workflows/chart-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  chart-version:
+    name: Read chart version
+    runs-on: sedai-arc-helm-charts
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: v
+        run: |
+          VERSION=$(grep -E "^version:" charts/sedai-smart-agent/Chart.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Chart version under test: $VERSION"
+
+  validate:
+    name: Agent chart install
+    needs: chart-version
+    uses: SedaiEngineering/sedai-tests/.github/workflows/chart-validate.yml@main
+    with:
+      chart_version: ${{ needs.chart-version.outputs.version }}
+    secrets: inherit

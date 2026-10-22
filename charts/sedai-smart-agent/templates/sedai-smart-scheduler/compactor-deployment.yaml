@@ -27,7 +27,9 @@ spec:
       serviceAccountName: {{ include "smart-scheduler.serviceAccountName" . }}
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
+        {{- with .Values.sedaiSmartScheduler.compactor.podSecurityContext.runAsUser }}
+        runAsUser: {{ int64 . }}
+        {{- end }}
         seccompProfile:
           type: RuntimeDefault
       containers:

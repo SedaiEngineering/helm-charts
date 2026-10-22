@@ -49,9 +49,9 @@ spec:
       restartPolicy: Never
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
+        {{- with .Values.globalSmartAgentSecurityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
 
       {{- with .Values.smartAgentEnroll.nodeSelector }}
       nodeSelector:
@@ -115,8 +115,14 @@ spec:
                 name: "{{ .Values.workload.smartAgentEnroll.name }}-secret"
           securityContext:
             runAsNonRoot: true
-            runAsUser: 1001
-            runAsGroup: 1001
+            {{- with .Values.globalSmartAgentSecurityContext }}
+            {{- if .runAsUser }}
+            runAsUser: {{ int64 .runAsUser }}
+            {{- end }}
+            {{- if .runAsGroup }}
+            runAsGroup: {{ int64 .runAsGroup }}
+            {{- end }}
+            {{- end }}
             allowPrivilegeEscalation: false
             capabilities:
               drop:

@@ -50,9 +50,9 @@ spec:
       restartPolicy: Never
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
+        {{- with .Values.globalSmartAgentSecurityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       containers:
         - name: sedai-deregister
           image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.smartagentEnroll.repository) }}:{{ .Values.image.smartagentEnroll.imageTag }}"

@@ -40,6 +40,11 @@ spec:
     spec:
       serviceAccount: "{{ .Values.workload.kubeSpecController.name }}-sa"
       serviceAccountName: "{{ .Values.workload.kubeSpecController.name }}-sa"
+      {{- with .Values.sedaiPodInterceptor.securityContext }}
+      securityContext:
+        runAsNonRoot: true
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
 
       {{- if .Values.sedaiPodInterceptor.isHostAddress }}
       hostNetwork: true
@@ -72,6 +77,14 @@ spec:
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.busyBox.repository) }}:{{ .Values.image.busyBox.imageTag }}"
         command: ["sh", "-c", "until nc -z {{ .Values.workload.kubeSpecController.name }}-db 5432; do echo waiting for spec-controller store; sleep 2; done"]
         securityContext:
+          {{- with .Values.sedaiPodInterceptor.securityContext }}
+          # busybox defaults to uid 0 (root) with no non-root user configured, and the main
+          # container's image has a non-numeric (named) user the kubelet can't verify as non-root
+          # without an explicit uid - both need the same explicit override to satisfy
+          # runAsNonRoot: true, rather than relying on each image's own unverifiable default.
+          runAsNonRoot: true
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           allowPrivilegeEscalation: false
           privileged: false
           capabilities:
@@ -159,6 +172,12 @@ spec:
             mountPath: "/etc/sedai/config"
             readOnly: true
         securityContext:
+          {{- with .Values.sedaiPodInterceptor.securityContext }}
+          # This image's Dockerfile USER is a non-numeric name (e.g. "nonroot"), which the kubelet
+          # can't resolve to verify runAsNonRoot without an explicit uid - see wait-for-db above.
+          runAsNonRoot: true
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           allowPrivilegeEscalation: false
           privileged: false
           capabilities:

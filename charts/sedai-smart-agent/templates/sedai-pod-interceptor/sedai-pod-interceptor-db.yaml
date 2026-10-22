@@ -119,12 +119,19 @@ spec:
       {{- end }}
       securityContext:
         # Run as the postgres uid/gid and make the PVC group-writable so the entrypoint can
-        # initialise PGDATA without root. uid/gid 999 matches the Debian-based postgres image
-        # pinned in values (postgres:14.6); if the image variant changes, this must change with it.
+        # initialise PGDATA without root. Default uid/gid (999/999/999, see values.yaml
+        # sedaiPodInterceptor.db.securityContext) matches the postgres user baked into the pinned
+        # Debian-based image (postgres:14.6); if the image variant changes, this must change with
+        # it. Override via values to test/emulate a different platform's uid assignment (e.g. an
+        # OpenShift SCC-assigned uid) - set to null (not {}, which merges as a no-op) to omit
+        # these fields entirely and let the platform assign its own. Verified directly against the
+        # pinned image running as an arbitrary uid with no /etc/passwd entry: both a fresh initdb
+        # and a restart against an already-initialized PGDATA succeed cleanly - this image doesn't
+        # require passwd resolution the way some other postgres builds do.
         runAsNonRoot: true
-        runAsUser: 999
-        runAsGroup: 999
-        fsGroup: 999
+        {{- with .Values.sedaiPodInterceptor.db.securityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       containers:
       - name: postgres
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiPodInterceptorDB.repository) }}:{{ .Values.image.sedaiPodInterceptorDB.imageTag }}"

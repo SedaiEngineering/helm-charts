@@ -51,15 +51,21 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-      {{- if or .Values.globalTolerations .Values.workload.smartAgent.tolerations }}
+      # node.sedai.io/drain is always applied, regardless of what globalTolerations/
+      # workload.smartAgent.tolerations override - without it, a customer values file that sets its
+      # own tolerations list (replacing, not merging, since Helm doesn't deep-merge lists) would
+      # silently drop it and the agent could get evicted during a drain.
       tolerations:
+        - key: node.sedai.io/drain
+          operator: Equal
+          value: "true"
+          effect: NoExecute
         {{- with .Values.globalTolerations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- with .Values.workload.smartAgent.tolerations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- end }}
 
       {{- with .Values.workload.smartAgent.priorityClassName }}
       priorityClassName: {{ . }}

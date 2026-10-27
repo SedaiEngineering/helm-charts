@@ -195,7 +195,7 @@ sedaiNodeExporter:
 sedaiBeyla:
   enabled: false
   port: 8999                        # Port for Beyla metrics endpoint
-  javaAgentEnabled: true             # Dynamically injects a Java agent into JVM processes for deeper instrumentation; set false to disable
+  javaAgentEnabled: false             # Dynamically injects a Java agent into JVM processes for deeper instrumentation; set false to disable
   nodeSelector: {}                  # Node selector for Beyla daemonset
   tolerations: []                   # Tolerations for Beyla daemonset
   priorityClassName: ""             # Priority class name for Beyla daemonset
@@ -332,7 +332,11 @@ workload:
     revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
     nodeSelector: {}                        # Node selector for Smart Agent deployment
-    tolerations: []                         # Tolerations for Smart Agent deployment
+    tolerations:                            # Tolerations for Smart Agent deployment
+      - key: node.sedai.io/drain
+        operator: Equal
+        value: "true"
+        effect: NoExecute
     priorityClassName: "system-cluster-critical"  # Priority class for the Smart Agent deployment
     # When true, adds the karpenter.sh/do-not-disrupt annotation to the Smart Agent pod, so
     # Karpenter skips proactively consolidating nodes hosting it. Set false to let Karpenter
@@ -389,7 +393,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.30
+    imageTag: v3.1.31
     imagePullPolicy: Always
 
   ksm:

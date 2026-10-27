@@ -332,11 +332,7 @@ workload:
     revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
     nodeSelector: {}                        # Node selector for Smart Agent deployment
-    tolerations:                            # Tolerations for Smart Agent deployment
-      - key: node.sedai.io/drain
-        operator: Equal
-        value: "true"
-        effect: NoExecute
+    tolerations: []                         # Tolerations for Smart Agent deployment
     priorityClassName: "system-cluster-critical"  # Priority class for the Smart Agent deployment
     # When true, adds the karpenter.sh/do-not-disrupt annotation to the Smart Agent pod, so
     # Karpenter skips proactively consolidating nodes hosting it. Set false to let Karpenter

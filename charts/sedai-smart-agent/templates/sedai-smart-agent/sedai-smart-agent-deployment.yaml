@@ -51,15 +51,17 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-      {{- if or .Values.globalTolerations .Values.workload.smartAgent.tolerations }}
       tolerations:
+        - key: node.sedai.io/drain
+          operator: Equal
+          value: "true"
+          effect: NoExecute
         {{- with .Values.globalTolerations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- with .Values.workload.smartAgent.tolerations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- end }}
 
       {{- with .Values.workload.smartAgent.priorityClassName }}
       priorityClassName: {{ . }}

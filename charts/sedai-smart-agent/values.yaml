@@ -204,7 +204,7 @@ sedaiNodeExporter:
 sedaiBeyla:
   enabled: false
   port: 8999                        # Port for Beyla metrics endpoint
-  javaAgentEnabled: true             # Dynamically injects a Java agent into JVM processes for deeper instrumentation; set false to disable
+  javaAgentEnabled: false             # Dynamically injects a Java agent into JVM processes for deeper instrumentation; set false to disable
   nodeSelector: {}                  # Node selector for Beyla daemonset
   tolerations: []                   # Tolerations for Beyla daemonset
   priorityClassName: ""             # Priority class name for Beyla daemonset
@@ -403,7 +403,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.30
+    imageTag: v3.1.31
     imagePullPolicy: Always
 
   ksm:

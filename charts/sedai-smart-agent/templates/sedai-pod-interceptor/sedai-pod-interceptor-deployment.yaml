@@ -28,7 +28,6 @@ spec:
         {{- with .Values.globalLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- if or .Values.globalAnnotations .Values.sedaiPodInterceptor.disruptionProtection }}
       annotations:
         {{- with .Values.globalAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -36,7 +35,9 @@ spec:
         {{- if .Values.sedaiPodInterceptor.disruptionProtection }}
         karpenter.sh/do-not-disrupt: "true"
         {{- end }}
-      {{- end }}
+        # Roll the controller when the store image changes: a new major wipes the store, and the
+        # controller only runs migrations and re-reports WAITING_FOR_CONFIGS on startup.
+        sedai.io/db-image-tag: {{ .Values.image.sedaiPodInterceptorDB.imageTag | quote }}
     spec:
       serviceAccount: "{{ .Values.workload.kubeSpecController.name }}-sa"
       serviceAccountName: "{{ .Values.workload.kubeSpecController.name }}-sa"
@@ -71,14 +72,42 @@ spec:
       {{- end }}
 
       initContainers:
-      # Gate startup on the store being reachable — the controller runs DB migrations on boot and
-      # exits fatally if it cannot connect, so waiting here avoids a CrashLoopBackOff during rollout.
+      # Gate startup on the store accepting queries at the major version this release ships — the
+      # controller runs DB migrations on boot and exits fatally if it cannot connect, and during a
+      # major upgrade the old store pod may still be terminating when this pod starts.
       - name: wait-for-db
-        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.busyBox.repository) }}:{{ .Values.image.busyBox.imageTag }}"
-        command: ["sh", "-c", "until nc -z {{ .Values.workload.kubeSpecController.name }}-db 5432; do echo waiting for spec-controller store; sleep 2; done"]
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiPodInterceptorDB.repository) }}:{{ .Values.image.sedaiPodInterceptorDB.imageTag }}"
+        imagePullPolicy: {{ .Values.image.sedaiPodInterceptorDB.imagePullPolicy }}
+        command: ["sh", "-c"]
+        args:
+        - |
+          want=$(psql -V | sed -E 's/^[^0-9]*([0-9]+).*/\1/')
+          until got=$(psql -tAc 'SHOW server_version_num' 2>/dev/null) && [ "${got%????}" = "$want" ]; do
+            echo "waiting for spec-controller store at PostgreSQL $want (got: ${got:-unreachable})"; sleep 2
+          done
+        env:
+        - name: PGHOST
+          value: "{{ .Values.workload.kubeSpecController.name }}-db"
+        - name: PGCONNECT_TIMEOUT
+          value: "3"
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: username
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: password
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.workload.kubeSpecController.name }}-db"
+              key: dbname
         securityContext:
           {{- with .Values.sedaiPodInterceptor.securityContext }}
-          # busybox defaults to uid 0 (root) with no non-root user configured, and the main
+          # The postgres image defaults to uid 0 (root), and the main
           # container's image has a non-numeric (named) user the kubelet can't verify as non-root
           # without an explicit uid - both need the same explicit override to satisfy
           # runAsNonRoot: true, rather than relying on each image's own unverifiable default.

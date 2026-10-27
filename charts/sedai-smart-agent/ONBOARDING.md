@@ -295,7 +295,7 @@ If you are running an **air-gapped cluster**, images should be pulled from your 
 | 4 | reload | `public.ecr.aws/sedai_io/prometheus/prometheus-config-reloader` |
 | 5 | prometheus | `public.ecr.aws/sedai_io/prometheus/prometheus` |
 | 6 | sedaiPodInterceptor | `public.ecr.aws/sedai_io/sedai-kube-spec-controller` |
-| 7 | busybox | `public.ecr.aws/sedai_io/busybox` |
+| 7 | sedaiPodInterceptorDB | `public.ecr.aws/sedai_io/postgres` |
 | 8 | nodeExporter | `public.ecr.aws/sedai_io/prometheus/node-exporter` |
 | 9 | grafanabeyla | `public.ecr.aws/sedai_io/grafana/beyla` |
 | 10 | grafanaAlloy | `public.ecr.aws/sedai_io/grafana/alloy` |

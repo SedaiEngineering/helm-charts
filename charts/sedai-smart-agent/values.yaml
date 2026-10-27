@@ -176,7 +176,7 @@ sedaiPodInterceptor:
       #           - {key: topology.ebs.csi.aws.com/zone, operator: In, values: [us-east-1a]}
       nodeAffinity: {}
     # Pod-level securityContext uid/gid for the Postgres StatefulSet. Default (999/999/999) matches
-    # the postgres user baked into the pinned Debian-based image (postgres:14.6). Override directly
+    # the postgres user baked into the pinned Debian-based image (postgres:18.6). Override directly
     # to test/emulate a different platform's uid assignment (e.g. an OpenShift SCC-assigned uid) -
     # set to null (not {}, which merges as a no-op) to omit these fields entirely and let the
     # platform assign its own.
@@ -414,16 +414,13 @@ image:
 
   # Postgres store for the spec controller. runAsUser 999 in the StatefulSet is tied to this
   # Debian-based postgres variant; if the tag changes to an alpine variant, update the uid/gid.
+  # Changing the major version wipes the store on upgrade (core re-pushes WISBs), and the
+  # controller's wait-for-db uses this same image, so it must stay a full postgres image.
   sedaiPodInterceptorDB:
     repository: sedai_io/postgres
-    imageTag: "14.6"
+    imageTag: "18.6"
     imagePullPolicy: IfNotPresent
 
-  busyBox:
-    repository: sedai_io/busybox
-    imageTag: 1.37.0
-    imagePullPolicy: IfNotPresent
-  
   nodeExporter:
     repository: sedai_io/prometheus/node-exporter
     imageTag: v1.10.2

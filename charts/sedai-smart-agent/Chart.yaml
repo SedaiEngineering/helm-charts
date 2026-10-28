@@ -3,5 +3,5 @@ name: sedai-smart-agent
 description: Helm Chart for deploying Sedai Smart Agent
 type: application
 version: 2.2.2-edge.0
-appVersion: "2.2.2-beta"
+appVersion: "2.2.2-edge.0"
 

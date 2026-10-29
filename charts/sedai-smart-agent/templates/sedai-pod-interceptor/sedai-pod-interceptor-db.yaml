@@ -121,7 +121,7 @@ spec:
         # Run as the postgres uid/gid and make the PVC group-writable so the entrypoint can
         # initialise PGDATA without root. Default uid/gid (999/999/999, see values.yaml
         # sedaiPodInterceptor.db.securityContext) matches the postgres user baked into the pinned
-        # Debian-based image (postgres:14.6); if the image variant changes, this must change with
+        # Debian-based image (postgres:18.6); if the image variant changes, this must change with
         # it. Override via values to test/emulate a different platform's uid assignment (e.g. an
         # OpenShift SCC-assigned uid) - set to null (not {}, which merges as a no-op) to omit
         # these fields entirely and let the platform assign its own. Verified directly against the
@@ -132,6 +132,38 @@ spec:
         {{- with .Values.sedaiPodInterceptor.db.securityContext }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+      initContainers:
+      # A new major version can't open an older data directory, and the store is rebuildable
+      # (core re-pushes WISBs to a controller reporting WAITING_FOR_CONFIGS), so an older-major
+      # PGDATA is wiped for a fresh initdb instead of pg_upgrade'd. Newer or unrecognised data is
+      # left alone: a downgrade fails loudly rather than deleting anything.
+      - name: reset-older-major
+        image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiPodInterceptorDB.repository) }}:{{ .Values.image.sedaiPodInterceptorDB.imageTag }}"
+        imagePullPolicy: {{ .Values.image.sedaiPodInterceptorDB.imagePullPolicy }}
+        command: ["sh", "-c"]
+        args:
+        - |
+          [ -f "$PGDATA/PG_VERSION" ] || exit 0
+          have=$(cat "$PGDATA/PG_VERSION")
+          want=$(postgres -V | sed -E 's/^[^0-9]*([0-9]+).*/\1/')
+          case "$have" in ''|*[!0-9]*) echo "unrecognised PG_VERSION '$have'; leaving store as is"; exit 0;; esac
+          if [ "$have" -lt "$want" ]; then
+            echo "store is PostgreSQL $have, image is $want: wiping $PGDATA for a fresh init"
+            rm -rf "$PGDATA"
+          fi
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql/data
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
       containers:
       - name: postgres
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.sedaiPodInterceptorDB.repository) }}:{{ .Values.image.sedaiPodInterceptorDB.imageTag }}"

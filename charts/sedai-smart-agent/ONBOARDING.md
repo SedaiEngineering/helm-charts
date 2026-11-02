@@ -255,7 +255,7 @@ helm upgrade --install sedai-smart-agent -n sedai-smart-agent --create-namespace
 
 ### Supported CI/CD and deployment tools
 
-The Sedai Smart Agent Helm chart supports deployment through the Helm CLI directly, as well as through GitOps tools such as Argo CD and Flux, which handle Helm charts in a way that preserves the lifecycle behavior the chart needs. CI/CD pipelines (for example Jenkins, GitHub Actions, GitLab CI, or Spinnaker) are also supported as long as they install the chart by running Helm itself (`helm install` / `helm upgrade`). Tools that only render the chart into static manifests and apply them outside of Helm, such as Carvel's kapp and kapp-controller, are not supported, because they skip the Helm lifecycle that the enroll and cleanup jobs depend on.
+The Sedai Smart Agent Helm chart supports deployment through the Helm CLI directly, as well as through GitOps tools such as Argo CD and Flux, which handle Helm charts in a way that preserves the lifecycle behavior the chart needs. CI/CD pipelines (for example Jenkins, GitHub Actions, or GitLab CI) are also supported as long as they install the chart by running Helm itself (`helm install` / `helm upgrade`). Tools that only render the chart into static manifests and apply them outside of Helm, such as Carvel's kapp and kapp-controller, are not supported, because they skip the Helm lifecycle that the enroll and cleanup jobs depend on.
 
 ## Sedai Smart Agent - Helm Chart
 

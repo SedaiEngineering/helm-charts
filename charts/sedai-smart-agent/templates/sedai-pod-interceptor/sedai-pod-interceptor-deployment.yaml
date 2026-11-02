@@ -135,6 +135,8 @@ spec:
             memory: "{{ .Values.resources.sedaiPodInterceptor.memory.limits }}"
         ports:
           - containerPort: {{ .Values.sedaiPodInterceptor.port }}
+          - name: metrics
+            containerPort: {{ .Values.sedaiPodInterceptor.metricsPort }}
         env:
         - name: CONFIG_PATH
           value: "/etc/sedai/config"
@@ -150,6 +152,8 @@ spec:
           value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/tls.key"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_PORT
           value: "{{ .Values.sedaiPodInterceptor.port }}"
+        - name: SEDAI_KUBE_SPEC_CONTROLLER_HTTP_PORT
+          value: "{{ .Values.sedaiPodInterceptor.metricsPort }}"
         # Postgres store (pgx backend). "pgx" is the exact driver name the controller maps to a
         # Postgres DSN; any other value falls back to SQLite.
         - name: SEDAI_KUBE_SPEC_CONTROLLER_DB_DRIVER_NAME

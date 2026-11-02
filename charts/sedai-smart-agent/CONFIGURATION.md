@@ -163,6 +163,7 @@ Enables autonomous optimization:
 sedaiPodInterceptor:
   enabled: true
   logLevel: "error"  # trace, debug, info, warn, error
+  metricsPort: "8080"  # plain-HTTP /metrics, scraped by the bundled VictoriaMetrics/Prometheus
   nodeSelector: {}
   tolerations: []
 ```

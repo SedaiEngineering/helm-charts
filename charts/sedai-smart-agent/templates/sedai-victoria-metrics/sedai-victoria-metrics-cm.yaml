@@ -320,4 +320,37 @@ data:
           - action: keep
             regex: envoy_cluster_upstream_rq_time.*|envoy_cluster_upstream_rq_completed|istio_requests_total|istio_request_duration_milliseconds_count|istio_request_duration_milliseconds_sum|istio_request_duration_milliseconds_bucket
             source_labels: [__name__]
+{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+      # Kube Spec Controller - per-pod scrape of its plain-HTTP /metrics port (cache and admission state is per replica)
+      - job_name: sedai-kube-spec-controller
+        scrape_interval: 1m
+        honor_labels: true
+        metrics_path: /metrics
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - {{ .Release.Namespace }}
+        relabel_configs:
+          - action: keep
+            source_labels:
+              - __meta_kubernetes_pod_label_app
+            regex: {{ .Values.workload.kubeSpecController.name }}
+          - action: keep
+            source_labels:
+              - __meta_kubernetes_pod_container_port_name
+            regex: metrics
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_namespace
+            target_label: namespace
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_pod_name
+            target_label: pod
+        metric_relabel_configs:
+          - action: keep
+            regex: sedai_pi_.*|go_goroutines|go_memstats_heap_inuse_bytes|process_resident_memory_bytes|process_cpu_seconds_total
+            source_labels: [__name__]
+{{- end }}
 {{- end }}

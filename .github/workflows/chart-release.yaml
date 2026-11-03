@@ -48,6 +48,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      # The sedai-arc-helm-charts image ships without the AWS CLI and jq; install whichever is
+      # missing into the job's temp dir (no root needed).
+      - name: Install AWS CLI and jq
+        run: |
+          set -euo pipefail
+          bin="$RUNNER_TEMP/bin"
+          mkdir -p "$bin"
+          echo "$bin" >> "$GITHUB_PATH"
+          case "$(uname -m)" in
+            x86_64) aws_arch=x86_64; jq_arch=amd64 ;;
+            aarch64|arm64) aws_arch=aarch64; jq_arch=arm64 ;;
+            *) echo "::error::unsupported architecture $(uname -m)"; exit 1 ;;
+          esac
+          if ! command -v aws > /dev/null; then
+            work=$(mktemp -d "$RUNNER_TEMP/awscli.XXXXXX")
+            curl -fsSL -o "$work/awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip"
+            if command -v unzip > /dev/null; then
+              unzip -q "$work/awscliv2.zip" -d "$work"
+            else
+              # python's zipfile drops the executable bits, so restore them.
+              python3 -m zipfile -e "$work/awscliv2.zip" "$work"
+              chmod -R u+x "$work/aws"
+            fi
+            "$work/aws/install" --install-dir "$RUNNER_TEMP/aws-cli" --bin-dir "$bin"
+          fi
+          if ! command -v jq > /dev/null; then
+            curl -fsSL -o "$bin/jq" "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-${jq_arch}"
+            chmod +x "$bin/jq"
+          fi
+          PATH="$bin:$PATH" aws --version
+          PATH="$bin:$PATH" jq --version
+
       - name: Configure AWS Credentials for the production account
         uses: aws-actions/configure-aws-credentials@v5.0.0
         with:

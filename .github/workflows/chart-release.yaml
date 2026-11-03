@@ -29,8 +29,8 @@ jobs:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
   # Records the released chart version in the production account's version secret (a different AWS
-  # account from the runners). Only the sedai_agent_helm_release_prod key is changed; every other key
-  # is carried over as-is. Assumes secrets.PRODUCTION_AWS_ROLE_ARN in that account over OIDC.
+  # account from the runners). Only the keys in SECRET_KEYS are changed; every other key is carried
+  # over as-is. Assumes secrets.PRODUCTION_AWS_ROLE_ARN in that account over OIDC.
   update-version-secret:
     name: Update chart version in Secrets Manager
     needs: build
@@ -43,7 +43,7 @@ jobs:
       cancel-in-progress: false
     env:
       SECRET_ID: arn:aws:secretsmanager:us-east-1:504216784688:secret:sedai-smart-agent-version-integration-7Y2lO6
-      SECRET_KEY: sedai_agent_helm_release_prod
+      SECRET_KEYS: sedai_agent_helm_release_prod sedai_agent_helm_release_default
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -86,7 +86,7 @@ jobs:
           role-to-assume: ${{ secrets.PRODUCTION_AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Set ${{ env.SECRET_KEY }} to the chart version
+      - name: Set ${{ env.SECRET_KEYS }} to the chart version
         run: |
           set -euo pipefail
           VERSION=$(grep -E "^version:" charts/sedai-smart-agent/Chart.yaml | awk '{print $2}')
@@ -102,17 +102,19 @@ jobs:
             exit 1
           fi
 
-          old=$(jq -r --arg k "$SECRET_KEY" '.[$k] // ""' "$tmp/current.json")
-          if [ "$old" = "$VERSION" ]; then
-            echo "$SECRET_KEY is already $VERSION"
+          keys=$(jq -cn --arg ks "$SECRET_KEYS" '$ks | split(" ") | map(select(. != ""))')
+          jq -c --argjson ks "$keys" --arg v "$VERSION" 'reduce $ks[] as $k (.; .[$k] = $v)' \
+            "$tmp/current.json" > "$tmp/updated.json"
+          if jq -e -n --slurpfile a "$tmp/current.json" --slurpfile b "$tmp/updated.json" '$a[0] == $b[0]' > /dev/null; then
+            echo "$SECRET_KEYS already $VERSION"
             exit 0
           fi
-
-          jq -c --arg k "$SECRET_KEY" --arg v "$VERSION" '.[$k] = $v' "$tmp/current.json" > "$tmp/updated.json"
           # Every other key must be unchanged.
-          jq -e -n --arg k "$SECRET_KEY" --slurpfile a "$tmp/current.json" --slurpfile b "$tmp/updated.json" \
-            '($a[0] | del(.[$k])) == ($b[0] | del(.[$k]))' > /dev/null
+          jq -e -n --argjson ks "$keys" --slurpfile a "$tmp/current.json" --slurpfile b "$tmp/updated.json" \
+            '($a[0] | delpaths($ks | map([.]))) == ($b[0] | delpaths($ks | map([.])))' > /dev/null
 
           aws secretsmanager put-secret-value --secret-id "$SECRET_ID" \
             --secret-string "file://$tmp/updated.json" > /dev/null
-          echo "$SECRET_KEY: '${old}' -> '$VERSION'"
+          for k in $SECRET_KEYS; do
+            echo "$k: '$(jq -r --arg k "$k" '.[$k] // ""' "$tmp/current.json")' -> '$VERSION'"
+          done

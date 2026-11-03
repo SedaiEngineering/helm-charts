@@ -122,7 +122,7 @@ sedaiPodInterceptor:
   priorityClassName: "system-cluster-critical"  # Priority class for both Sedai Sync and DB deployments
   encodeLogsAsJson: "true"        # Whether to encode logs as JSON (true/false)
   port: "8443"
-  metricsPort: "8080"               # Plain-HTTP Prometheus /metrics port, scraped by the bundled VictoriaMetrics/Prometheus
+  metricsPort: "18080"              # Plain-HTTP /metrics port. Non-standard to avoid hostPort conflicts when isHostAddress (hostNetwork) is on
   isHostAddress: false
   # Extra namespaces to exclude from webhook interception (release/Sedai/system namespaces are always excluded).
   excludedNamespaces: []

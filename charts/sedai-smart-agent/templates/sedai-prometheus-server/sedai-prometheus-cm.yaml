@@ -340,6 +340,10 @@ data:
             source_labels:
               - __meta_kubernetes_pod_container_port_name
             regex: metrics
+          - action: keep
+            source_labels:
+              - __meta_kubernetes_pod_phase
+            regex: Running
           - action: replace
             source_labels:
               - __meta_kubernetes_namespace

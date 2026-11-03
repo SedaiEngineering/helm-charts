@@ -1,4 +1,4 @@
-{{- if and .Values.sedaiVictoriaMetrics.enabled .Values.sedaiVictoriaMetrics.persistentVolume.enabled }}
+{{- if and (or .Values.sedaiVictoriaMetrics.enabled .Values.kubeflowSparkOptimization.enabled) .Values.sedaiVictoriaMetrics.persistentVolume.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolume

@@ -42,12 +42,20 @@
         "clusterProvider": {
           "type": "string",
           "enum": [
+            "SELF_MANAGED",
             "AWS",
             "AZURE",
             "GCP",
-            "SELF_MANAGED"
+            "OPEN_SHIFT",
+            "ORACLE",
+            "PLATFORM_9",
+            "VMWARE_TANZU",
+            "RANCHER",
+            "IBM",
+            "DIGITAL_OCEAN",
+            "ALIBABA"
           ],
-          "description": "Cloud provider",
+          "description": "Cloud provider / Kubernetes distribution, matching core's KubernetesClusterProvider enum",
           "default": "AWS"
         },
         "connectionType": {

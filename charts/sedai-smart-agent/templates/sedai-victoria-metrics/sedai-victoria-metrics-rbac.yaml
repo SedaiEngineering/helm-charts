@@ -1,4 +1,4 @@
-{{- if .Values.sedaiVictoriaMetrics.enabled }}
+{{- if or .Values.sedaiVictoriaMetrics.enabled .Values.kubeflowSparkOptimization.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

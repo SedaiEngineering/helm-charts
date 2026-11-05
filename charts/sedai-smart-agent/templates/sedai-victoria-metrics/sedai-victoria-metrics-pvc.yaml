@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled .Values.kubeflowSparkOptimization.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

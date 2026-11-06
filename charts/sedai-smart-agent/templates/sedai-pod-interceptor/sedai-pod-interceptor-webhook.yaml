@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}
 {{- $existingSecret := lookup "v1" "Secret" .Release.Namespace (printf "%s-tls" .Values.workload.kubeSpecController.name) }}
 {{- $caCrt := "" }}
 {{- $tlsCrt := "" }}
@@ -34,7 +34,7 @@ data:
   tls.key: {{ $tlsKey }}
 type: kubernetes.io/tls
 
-{{- if .Values.sedaiPodInterceptor.enabled }}
+{{- if eq (include "pod-interceptor.enabled" .) "true" }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration

@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}
 # ── Spec-controller store: in-namespace Postgres ─────────────────────────────────────────────
 # Chart-managed credentials. The password is generated once and preserved across upgrades via
 # lookup (same pattern as the TLS secret), unless an explicit password is set in values.

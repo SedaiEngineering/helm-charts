@@ -230,3 +230,10 @@ Single flag every sedai-smart-scheduler/* template gates on: enabled AND version
 {{- define "smart-scheduler.installOk" -}}
 {{- if and .Values.sedaiSmartScheduler.enabled (eq (include "smart-scheduler.versionCompatible" .) "true") -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+The smart scheduler needs the pod interceptor, so installing it forces the interceptor on (SED-24384).
+*/}}
+{{- define "pod-interceptor.enabled" -}}
+{{- if or .Values.sedaiPodInterceptor.enabled (eq (include "smart-scheduler.installOk" .) "true") -}}true{{- end -}}
+{{- end -}}

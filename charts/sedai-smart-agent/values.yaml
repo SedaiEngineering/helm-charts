@@ -217,7 +217,7 @@ sedaiGrafanaAlloy:
   priorityClassName: ""             # Priority class name for Grafana Alloy daemonset
 
 sedaiSmartScheduler:
-  enabled: false                     # Enables the Sedai smart scheduler (workload-aware bin-packing scheduler)
+  enabled: false                     # Enables the Sedai smart scheduler (workload-aware bin-packing scheduler). Also enables sedaiPodInterceptor, which it requires
 
   nameOverride: ""
   fullnameOverride: ""

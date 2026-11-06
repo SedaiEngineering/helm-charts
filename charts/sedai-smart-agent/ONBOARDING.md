@@ -39,6 +39,8 @@ The Sedai Smart Scheduler helps scheduling and compacting the clusters based on 
 
 This is enabled by toggling `sedaiSmartScheduler.enabled` and `sedaiSmartScheduler.compactor.enabled` to `true`. We strongly recommend that this feature be enabled.
 
+The Smart Scheduler requires the Pod Interceptor. When the Smart Scheduler is enabled, the chart also deploys the Pod Interceptor, even if `sedaiPodInterceptor.enabled` is `false`.
+
 ### SmartAgentEnroll job
 
 The SmartAgentEnroll job automates the onboarding process and establishes the initial secure connection with the Sedai API Server. It performs the following actions:

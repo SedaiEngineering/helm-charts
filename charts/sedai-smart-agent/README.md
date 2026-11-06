@@ -204,7 +204,7 @@ sedaiGrafanaAlloy:
 
 #### Sedai Smart Scheduler
 
-A workload-aware bin-packing scheduler that improves node utilization:
+A workload-aware bin-packing scheduler that improves node utilization. It requires the Pod Interceptor, so enabling it also deploys the Pod Interceptor, even if `sedaiPodInterceptor.enabled` is `false`:
 
 ```yaml
 sedaiSmartScheduler:

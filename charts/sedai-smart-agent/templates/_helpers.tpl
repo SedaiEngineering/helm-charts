@@ -232,8 +232,7 @@ Single flag every sedai-smart-scheduler/* template gates on: enabled AND version
 {{- end -}}
 
 {{/*
-"true" when the pod interceptor must be deployed. The smart scheduler depends on it, so an
-installed scheduler turns the interceptor on even if sedaiPodInterceptor.enabled is false.
+The smart scheduler needs the pod interceptor, so installing it forces the interceptor on (SED-24384).
 */}}
 {{- define "pod-interceptor.enabled" -}}
 {{- if or .Values.sedaiPodInterceptor.enabled (eq (include "smart-scheduler.installOk" .) "true") -}}true{{- end -}}

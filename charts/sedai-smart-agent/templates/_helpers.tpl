@@ -237,3 +237,14 @@ The smart scheduler needs the pod interceptor, so installing it forces the inter
 {{- define "pod-interceptor.enabled" -}}
 {{- if or .Values.sedaiPodInterceptor.enabled (eq (include "smart-scheduler.installOk" .) "true") -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+Sedai-managed VictoriaMetrics scrapes node exporter and KSM, so enabling it forces both on.
+*/}}
+{{- define "node-exporter.enabled" -}}
+{{- if or .Values.sedaiNodeExporter.enabled .Values.sedaiVictoriaMetrics.enabled -}}true{{- end -}}
+{{- end -}}
+
+{{- define "ksm.enabled" -}}
+{{- if or .Values.sedaiKSM.enabled .Values.sedaiVictoriaMetrics.enabled -}}true{{- end -}}
+{{- end -}}

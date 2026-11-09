@@ -143,7 +143,7 @@ sedaiNodeExporter:
 
 #### Victoria Metrics
 
-Alternative to Prometheus with better performance:
+Alternative to Prometheus with better performance. Enabling it also deploys Node Exporter and Kube State Metrics, which it scrapes:
 
 ```yaml
 sedaiVictoriaMetrics:

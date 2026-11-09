@@ -210,6 +210,8 @@ sedaiBeyla:
 
 > Sedai recommends VictoriaMetrics — lower memory footprint and better stability under load.
 
+> **Note:** Sedai-managed VictoriaMetrics scrapes Node Exporter and Kube State Metrics. When `sedaiVictoriaMetrics.enabled` is `true`, the chart also deploys both, even if `sedaiNodeExporter.enabled` or `sedaiKSM.enabled` is `false`.
+
 > **Note:** `sedaiPrometheus` and `sedaiVictoriaMetrics` keys are used for monitoring tools that are fully managed and deployed by Sedai. If you prefer to connect your own self-hosted monitoring setup, use the options under `monitoringProvider` instead. Ex: `monitoringProvider.prometheus`
 
 ### 4. Additional settings to avoid disruption

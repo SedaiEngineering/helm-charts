@@ -323,7 +323,7 @@ sedaiVictoriaMetrics:
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
-  enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default)
+  enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default). Also enables sedaiNodeExporter and sedaiKSM, which it scrapes
 
 kubeflowSparkOptimization:
   enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment)

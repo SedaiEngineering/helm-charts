@@ -1,4 +1,4 @@
-{{- if .Values.sedaiNodeExporter.enabled }}
+{{- if eq (include "node-exporter.enabled" .) "true" }}
 ---
 # Source: prometheus-node-exporter/templates/serviceaccount.yaml
 apiVersion: v1

@@ -326,7 +326,7 @@ sedaiVictoriaMetrics:
   enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default). Also enables sedaiNodeExporter and sedaiKSM, which it scrapes
 
 kubeflowSparkOptimization:
-  enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment)
+  enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment). Also enables sedaiVictoriaMetrics, which vmalert reads and writes
   evaluationInterval: "30s"         # Recording rule evaluation interval
   nodeSelector: {}                  # Node selector for vmalert deployment
   tolerations: []                   # Tolerations for vmalert deployment

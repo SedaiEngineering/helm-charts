@@ -178,7 +178,7 @@ The controller and its DB are both single-replica by design (no leader election,
 
 #### Kubeflow Spark Optimization
 
-Deploys `vmalert` to evaluate recording rules that enrich Spark job metrics for optimization:
+Deploys `vmalert` to evaluate recording rules that enrich Spark job metrics for optimization. `vmalert` reads from and writes to Sedai-managed Victoria Metrics, so enabling this also deploys Victoria Metrics, and with it Node Exporter and Kube State Metrics:
 
 ```yaml
 kubeflowSparkOptimization:

@@ -102,6 +102,15 @@ spec:
             - name: metrics
               containerPort: {{ .Values.sedaiNodeExporter.port }}
               protocol: TCP
+          {{- with .Values.resources.sedaiNodeExporter }}
+          resources:
+            requests:
+              cpu: "{{ .cpu.requests }}"
+              memory: "{{ .memory.requests }}"
+            limits:
+              cpu: "{{ .cpu.limits }}"
+              memory: "{{ .memory.limits }}"
+          {{- end }}
           livenessProbe:
             failureThreshold: 3
             httpGet:

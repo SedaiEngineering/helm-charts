@@ -609,6 +609,15 @@ resources:
       requests: "2048Mi"
       limits: "2048Mi"
 
+  sedaiNodeExporter: {}
+    # Unset by default -- node-exporter runs unbounded unless you set cpu/memory requests/limits here, e.g.:
+    # cpu:
+    #   requests: "100m"
+    #   limits: "200m"
+    # memory:
+    #   requests: "128Mi"
+    #   limits: "256Mi"
+
   victoriaMetrics:
     cpu:
       requests: "1000m"

@@ -271,6 +271,7 @@ sedaiSmartScheduler:
   # Off by default; smart-agent enables when policy permits.
   compactor:
     enabled: false
+    kind: Deployment                # Deployment (long-running) | Window (suspended CronJob template; smart-agent runs one-off window Jobs from it)
     replicas: 1
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
@@ -285,6 +286,23 @@ sedaiSmartScheduler:
     # entirely and let the platform assign its own (keeping runAsNonRoot: true, always set).
     podSecurityContext:
       runAsUser: 1000
+    # Used only when kind: Window.
+    window:
+      ttlSecondsAfterFinished: 60
+      terminationGracePeriodSeconds: 10
+      activeDeadlineSeconds: 3600   # Placeholder; smart-agent overwrites it per window
+      priorityClass:
+        create: true
+        name: sedai-compactor-window
+        value: 1000
+        preemptionPolicy: Never     # Waits for free capacity instead of preempting other pods
+      resources:                    # Compactor container only; empty falls back to resources.compactor
+        requests:
+          cpu: 20m
+          memory: 64Mi
+        limits:
+          cpu: "1"
+          memory: 1Gi
 
 sedaiDcgmExporter:
   enabled: false

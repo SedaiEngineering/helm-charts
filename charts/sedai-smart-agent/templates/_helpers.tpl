@@ -230,3 +230,136 @@ Single flag every sedai-smart-scheduler/* template gates on: enabled AND version
 {{- define "smart-scheduler.installOk" -}}
 {{- if and .Values.sedaiSmartScheduler.enabled (eq (include "smart-scheduler.versionCompatible" .) "true") -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+"true" when compactor.kind is Window (suspended CronJob template for agent-created Jobs); fails on an unknown kind.
+*/}}
+{{- define "smart-scheduler.compactorWindowMode" -}}
+{{- $kind := default "Deployment" .Values.sedaiSmartScheduler.compactor.kind -}}
+{{- if not (has $kind (list "Deployment" "Window")) -}}
+{{- fail (printf "sedaiSmartScheduler.compactor.kind must be Deployment or Window, got %q" $kind) -}}
+{{- end -}}
+{{- if eq $kind "Window" -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Compactor pod spec shared by the Deployment and the window CronJob. Usage: (dict "root" $ "window" bool).
+*/}}
+{{- define "smart-scheduler.compactorPodSpec" -}}
+{{- $root := .root -}}
+{{- $window := .window -}}
+{{- $c := $root.Values.sedaiSmartScheduler.compactor -}}
+serviceAccountName: {{ include "smart-scheduler.serviceAccountName" $root }}
+securityContext:
+  runAsNonRoot: true
+  {{- with $c.podSecurityContext.runAsUser }}
+  runAsUser: {{ int64 . }}
+  {{- end }}
+  seccompProfile:
+    type: RuntimeDefault
+{{- if $window }}
+restartPolicy: Never
+terminationGracePeriodSeconds: {{ int64 $c.window.terminationGracePeriodSeconds }}
+{{- end }}
+containers:
+  - name: compactor
+    image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" $root.Values.globalRegistry "repository" $root.Values.image.compactor.repository) }}:{{ include "smart-scheduler.compactorImageTag" $root }}"
+    imagePullPolicy: {{ $root.Values.image.compactor.imagePullPolicy }}
+    command:
+      - /bin/descheduler
+      - --policy-config-file=/policy-dir/policy.yaml
+      - --descheduling-interval={{ $c.reconcileInterval }}
+      - --leader-elect={{ $c.leaderElection.enabled }}
+      {{- if $c.leaderElection.enabled }}
+      - --leader-elect-resource-name={{ $c.leaderElection.leaseName }}
+      - --leader-elect-resource-namespace={{ $root.Release.Namespace }}
+      {{- end }}
+      - --v={{ $c.verbosity }}
+    ports:
+      - name: https
+        containerPort: 10258
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 10258
+        scheme: HTTPS
+      initialDelaySeconds: 15
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: 10258
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    resources:
+      {{- if $window }}
+      {{- toYaml ($c.window.resources | default $root.Values.resources.compactor) | nindent 6 }}
+      {{- else }}
+      {{- toYaml $root.Values.resources.compactor | nindent 6 }}
+      {{- end }}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      readOnlyRootFilesystem: true
+    volumeMounts:
+      - name: policy
+        mountPath: /policy-dir
+        readOnly: true
+  - name: log-forwarder
+    image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" $root.Values.globalRegistry "repository" $root.Values.image.logForwarder.repository) }}:{{ $root.Values.image.logForwarder.imageTag }}"
+    imagePullPolicy: {{ $root.Values.image.logForwarder.imagePullPolicy }}
+    env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      - name: CONTAINER_NAME
+        value: compactor
+      - name: CONTAINER_LABEL
+        value: sedai-smart-compactor
+      - name: AGENT_TENANT
+        valueFrom:
+          secretKeyRef:
+            name: {{ $root.Values.workload.smartAgent.secret }}
+            key: AGENT_TENANT
+            optional: true
+      - name: AGENT_ACCOUNTID
+        valueFrom:
+          secretKeyRef:
+            name: {{ $root.Values.workload.smartAgent.secret }}
+            key: AGENT_ACCOUNTID
+            optional: true
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      readOnlyRootFilesystem: true
+    volumeMounts:
+      - name: sidecar-tmp
+        mountPath: /tmp
+{{- if $window }}
+{{- with $c.window.priorityClass.name }}
+priorityClassName: {{ . }}
+{{- end }}
+{{- else }}
+{{- with $c.priorityClassName }}
+priorityClassName: {{ . }}
+{{- end }}
+{{- end }}
+volumes:
+  - name: policy
+    configMap:
+      name: {{ $root.Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}-config
+  - name: sidecar-tmp
+    emptyDir: {}
+{{- end -}}

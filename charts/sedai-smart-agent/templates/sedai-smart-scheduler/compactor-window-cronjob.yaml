@@ -1,0 +1,37 @@
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.compactor.enabled (eq (include "smart-scheduler.compactorWindowMode" .) "true") }}
+# Window mode: never runs on its own (suspended); smart-agent creates one-off window Jobs from it and sets only their deadline.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+    app: sedai-smart-compactor
+spec:
+  suspend: true
+  schedule: "0 0 1 1 *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      labels:
+        app: sedai-smart-compactor
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: {{ int64 .Values.sedaiSmartScheduler.compactor.window.ttlSecondsAfterFinished }}
+      activeDeadlineSeconds: {{ int64 .Values.sedaiSmartScheduler.compactor.window.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            app: sedai-smart-compactor
+            app.kubernetes.io/instance: {{ .Release.Name }}
+          {{- if .Values.sedaiSmartScheduler.compactor.disruptionProtection }}
+          annotations:
+            karpenter.sh/do-not-disrupt: "true"
+          {{- end }}
+        spec:
+          {{- include "smart-scheduler.compactorPodSpec" (dict "root" . "window" true) | nindent 10 }}
+{{- end }}

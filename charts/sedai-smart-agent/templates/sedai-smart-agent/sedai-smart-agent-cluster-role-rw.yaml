@@ -23,17 +23,27 @@ rules:
   - pods
   - nodes
   - pods/resize
-  - configmaps
   - namespaces
   - persistentvolumes
   - persistentvolumeclaims
   - endpoints
   verbs:
-  - get 
+  - get
   - list
   - patch
   - update
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+  - create
 - apiGroups:
   - apps
   resources:

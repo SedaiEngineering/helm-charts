@@ -16,10 +16,10 @@ Each toggle below is rendered with `helm template` on its own, with every other 
 | [`sedaiNodeExporter.enabled`](#sedainodeexporter) | `false` | 3 |  |
 | [`sedaiBeyla.enabled`](#sedaibeyla) | `false` | 6 |  |
 | [`sedaiGrafanaAlloy.enabled`](#sedaigrafanaalloy) | `false` | 15 |  |
-| [`sedaiSmartScheduler.enabled`](#sedaismartscheduler) | `false` | 13 | Enables the Sedai smart scheduler (workload-aware bin-packing scheduler) |
+| [`sedaiSmartScheduler.enabled`](#sedaismartscheduler) | `false` | 26 | Enables the Sedai smart scheduler (workload-aware bin-packing scheduler). Also enables sedaiPodInterceptor, which it requires |
 | [`sedaiDcgmExporter.enabled`](#sedaidcgmexporter) | `false` | 7 |  |
-| [`sedaiVictoriaMetrics.enabled`](#sedaivictoriametrics) | `false` | 7 | Use Sedai-managed Victoria Metrics (preferred default) |
-| [`kubeflowSparkOptimization.enabled`](#kubeflowsparkoptimization) | `false` | 16 | Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment) |
+| [`sedaiVictoriaMetrics.enabled`](#sedaivictoriametrics) | `false` | 15 | Use Sedai-managed Victoria Metrics (preferred default). Also enables sedaiNodeExporter and sedaiKSM, which it scrapes |
+| [`kubeflowSparkOptimization.enabled`](#kubeflowsparkoptimization) | `false` | 31 | Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment). Also enables sedaiVictoriaMetrics, which vmalert reads and writes |
 | [`sedaiKarpenter.enabled`](#sedaikarpenter) | `false` | 2 | Opt in to Sedai-managed Karpenter installation/integration |
 | [`enableAgentDebugLogs.enabled`](#enableagentdebuglogs) | `false` | 0 | Enables DEBUG logging on the agent |
 | [`imagePullSecret.enabled`](#imagepullsecret) | `false` | 0 |  |
@@ -200,25 +200,38 @@ Setting it to `true` adds:
 
 ### sedaiSmartScheduler
 
-`sedaiSmartScheduler.enabled`, default `false`. Enables the Sedai smart scheduler (workload-aware bin-packing scheduler)
+`sedaiSmartScheduler.enabled`, default `false`. Enables the Sedai smart scheduler (workload-aware bin-packing scheduler). Also enables sedaiPodInterceptor, which it requires
 
 Setting it to `true` adds:
 
 | Kind | Name | Template |
 |---|---|---|
+| ClusterRoleBinding | `sedai-kube-spec-controller-role-binding-sedai` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-cluster-role-binding.yaml` |
 | ClusterRoleBinding | `sedai-smart-scheduler-as-kube-scheduler` | `templates/sedai-smart-scheduler/rbac.yaml` |
 | ClusterRoleBinding | `sedai-smart-scheduler-as-volume-scheduler` | `templates/sedai-smart-scheduler/rbac.yaml` |
 | ClusterRoleBinding | `sedai-smart-scheduler-dra` | `templates/sedai-smart-scheduler/rbac.yaml` |
+| ClusterRole | `sedai-kube-spec-controller-role-sedai` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-cluster-role.yaml` |
 | ClusterRole | `sedai-smart-scheduler-dra` | `templates/sedai-smart-scheduler/rbac.yaml` |
+| ConfigMap | `sedai-kube-spec-controller-config` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-cm.yaml` |
 | ConfigMap | `sedai-smart-scheduler-config` | `templates/sedai-smart-scheduler/configmap.yaml` |
+| Deployment | `sedai-kube-spec-controller` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-deployment.yaml` |
 | Deployment | `sedai-smart-scheduler` | `templates/sedai-smart-scheduler/deployment.yaml` |
+| MutatingWebhookConfiguration | `sedai-kube-spec-controller-mutation-webhook-sedai` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-webhook.yaml` |
+| PersistentVolumeClaim | `sedai-kube-spec-controller-db-pvc` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db-pvc.yaml` |
 | PodDisruptionBudget | `sedai-smart-scheduler` | `templates/sedai-smart-scheduler/pdb.yaml` |
+| ResourceQuota | `sedai-pod-interceptor-allow-critical-priority` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-resourcequota.yaml` |
 | ResourceQuota | `sedai-smart-scheduler-allow-critical-priority` | `templates/sedai-smart-scheduler/resourcequota.yaml` |
 | RoleBinding | `sedai-smart-scheduler-extension-apiserver-authn` | `templates/sedai-smart-scheduler/rbac.yaml` |
 | RoleBinding | `sedai-smart-scheduler-leases` | `templates/sedai-smart-scheduler/lease-rbac.yaml` |
 | RoleBinding | `sedai-smart-scheduler-log-reader` | `templates/sedai-smart-scheduler/rbac.yaml` |
 | Role | `sedai-smart-scheduler-leases` | `templates/sedai-smart-scheduler/lease-rbac.yaml` |
 | Role | `sedai-smart-scheduler-log-reader` | `templates/sedai-smart-scheduler/rbac.yaml` |
+| Secret | `sedai-kube-spec-controller-db` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db.yaml` |
+| Secret | `sedai-kube-spec-controller-tls` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-webhook.yaml` |
+| ServiceAccount | `sedai-kube-spec-controller-sa` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-sa.yaml` |
+| Service | `sedai-kube-spec-controller-db` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db.yaml` |
+| Service | `sedai-kube-spec-controller-svc` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-service.yaml` |
+| StatefulSet | `sedai-kube-spec-controller-db` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db.yaml` |
 
 ### sedaiDcgmExporter
 
@@ -238,44 +251,67 @@ Setting it to `true` adds:
 
 ### sedaiVictoriaMetrics
 
-`sedaiVictoriaMetrics.enabled`, default `false`. Use Sedai-managed Victoria Metrics (preferred default)
+`sedaiVictoriaMetrics.enabled`, default `false`. Use Sedai-managed Victoria Metrics (preferred default). Also enables sedaiNodeExporter and sedaiKSM, which it scrapes
 
 Setting it to `true` adds:
 
 | Kind | Name | Template |
 |---|---|---|
+| ClusterRoleBinding | `sedai-kube-state-metrics-cluster-role-binding` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-role-binding.yaml` |
 | ClusterRoleBinding | `sedai-victoria-metrics-server-crb` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-rbac.yaml` |
+| ClusterRole | `sedai-kube-state-metrics-cluster-role` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-role.yaml` |
 | ClusterRole | `sedai-victoria-metrics-server-cr` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-rbac.yaml` |
 | ConfigMap | `sedai-victoria-metrics-server-configmap` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-cm.yaml` |
+| DaemonSet | `sedai-prometheus-node-exporter` | `templates/daemonset.yaml` |
+| Deployment | `sedai-kube-state-metrics` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-deployment.yaml` |
 | PersistentVolumeClaim | `server-volume` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-pvc.yaml` |
+| ServiceAccount | `sedai-kube-state-metrics-sa` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-sa.yaml` |
+| ServiceAccount | `sedai-prometheus-node-exporter` | `templates/serviceaccount.yaml` |
 | ServiceAccount | `sedai-victoria-metrics-server` | `templates/serviceaccount.yaml` |
+| Service | `sedai-kube-state-metrics-service` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-service.yaml` |
+| Service | `sedai-prometheus-node-exporter` | `templates/service.yaml` |
 | Service | `sedai-victoria-metrics-server` | `templates/service.yaml` |
 | StatefulSet | `sedai-victoria-metrics-server` | `templates/server.yaml` |
 
 ### kubeflowSparkOptimization
 
-`kubeflowSparkOptimization.enabled`, default `false`. Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment)
+`kubeflowSparkOptimization.enabled`, default `false`. Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment). Also enables sedaiVictoriaMetrics, which vmalert reads and writes
 
 Setting it to `true` adds:
 
 | Kind | Name | Template |
 |---|---|---|
 | ClusterRoleBinding | `sedai-kube-spec-controller-role-binding-sedai` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-cluster-role-binding.yaml` |
+| ClusterRoleBinding | `sedai-kube-state-metrics-cluster-role-binding` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-role-binding.yaml` |
+| ClusterRoleBinding | `sedai-victoria-metrics-server-crb` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-rbac.yaml` |
 | ClusterRole | `sedai-kube-spec-controller-role-sedai` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-cluster-role.yaml` |
+| ClusterRole | `sedai-kube-state-metrics-cluster-role` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-role.yaml` |
+| ClusterRole | `sedai-victoria-metrics-server-cr` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-rbac.yaml` |
 | ConfigMap | `sedai-kube-spec-controller-config` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-cm.yaml` |
+| ConfigMap | `sedai-victoria-metrics-server-configmap` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-cm.yaml` |
 | ConfigMap | `sedai-vmalert-rules` | `templates/configmap.yaml` |
+| DaemonSet | `sedai-prometheus-node-exporter` | `templates/daemonset.yaml` |
 | Deployment | `sedai-kube-spec-controller` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-deployment.yaml` |
+| Deployment | `sedai-kube-state-metrics` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-deployment.yaml` |
 | Deployment | `sedai-vmalert` | `templates/deployment.yaml` |
 | MutatingWebhookConfiguration | `sedai-kube-spec-controller-spark-mutation-webhook-sedai` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-webhook.yaml` |
 | PersistentVolumeClaim | `sedai-kube-spec-controller-db-pvc` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db-pvc.yaml` |
+| PersistentVolumeClaim | `server-volume` | `templates/sedai-victoria-metrics/sedai-victoria-metrics-pvc.yaml` |
 | ResourceQuota | `sedai-pod-interceptor-allow-critical-priority` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-resourcequota.yaml` |
 | Secret | `sedai-kube-spec-controller-db` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db.yaml` |
 | Secret | `sedai-kube-spec-controller-tls` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-webhook.yaml` |
 | ServiceAccount | `sedai-kube-spec-controller-sa` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-sa.yaml` |
+| ServiceAccount | `sedai-kube-state-metrics-sa` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-sa.yaml` |
+| ServiceAccount | `sedai-prometheus-node-exporter` | `templates/serviceaccount.yaml` |
+| ServiceAccount | `sedai-victoria-metrics-server` | `templates/serviceaccount.yaml` |
 | Service | `sedai-kube-spec-controller-db` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db.yaml` |
 | Service | `sedai-kube-spec-controller-svc` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-service.yaml` |
+| Service | `sedai-kube-state-metrics-service` | `templates/sedai-prometheus-ksm/sedai-kube-state-metrics-cluster-service.yaml` |
+| Service | `sedai-prometheus-node-exporter` | `templates/service.yaml` |
+| Service | `sedai-victoria-metrics-server` | `templates/service.yaml` |
 | Service | `sedai-vmalert` | `templates/service.yaml` |
 | StatefulSet | `sedai-kube-spec-controller-db` | `templates/sedai-pod-interceptor/sedai-pod-interceptor-db.yaml` |
+| StatefulSet | `sedai-victoria-metrics-server` | `templates/server.yaml` |
 
 ### sedaiKarpenter
 

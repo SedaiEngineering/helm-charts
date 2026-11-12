@@ -134,6 +134,8 @@ sedaiNodeExporter:
 
 #### Victoria Metrics (Alternative to Prometheus)
 
+Enabling it also deploys Node Exporter and Kube State Metrics, which it scrapes:
+
 ```yaml
 sedaiVictoriaMetrics:
   enabled: true
@@ -176,7 +178,7 @@ The controller and its DB are both single-replica by design (no leader election,
 
 #### Kubeflow Spark Optimization
 
-Deploys `vmalert` to evaluate recording rules that enrich Spark job metrics for optimization:
+Deploys `vmalert` to evaluate recording rules that enrich Spark job metrics for optimization. `vmalert` reads from and writes to Sedai-managed Victoria Metrics, so enabling this also deploys Victoria Metrics, and with it Node Exporter and Kube State Metrics:
 
 ```yaml
 kubeflowSparkOptimization:
@@ -204,7 +206,7 @@ sedaiGrafanaAlloy:
 
 #### Sedai Smart Scheduler
 
-A workload-aware bin-packing scheduler that improves node utilization:
+A workload-aware bin-packing scheduler that improves node utilization. It requires the Pod Interceptor, so enabling it also deploys the Pod Interceptor, even if `sedaiPodInterceptor.enabled` is `false`:
 
 ```yaml
 sedaiSmartScheduler:

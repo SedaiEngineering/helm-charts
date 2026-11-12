@@ -158,7 +158,7 @@ Each node-exporter pod requests 10m CPU and 32Mi memory, with limits of 200m and
 
 #### Victoria Metrics
 
-Alternative to Prometheus with better performance:
+Alternative to Prometheus with better performance. Enabling it also deploys Node Exporter and Kube State Metrics, which it scrapes:
 
 ```yaml
 sedaiVictoriaMetrics:

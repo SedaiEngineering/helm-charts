@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}
 # Standalone PVC for the spec-controller Postgres store, NOT a StatefulSet volumeClaimTemplate.
 # volumeClaimTemplates are immutable, so growing the store would mean recreating the STS with
 # --cascade=orphan; a standalone PVC can be expanded in place (edit spec.resources.requests.storage,

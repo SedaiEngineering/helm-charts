@@ -1,4 +1,4 @@
-{{- if and (or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled) .Values.sedaiPodInterceptor.priorityClassName }}
+{{- if and (or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled) .Values.sedaiPodInterceptor.priorityClassName }}
 apiVersion: v1
 kind: ResourceQuota
 metadata:

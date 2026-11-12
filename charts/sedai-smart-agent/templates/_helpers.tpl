@@ -230,3 +230,28 @@ Single flag every sedai-smart-scheduler/* template gates on: enabled AND version
 {{- define "smart-scheduler.installOk" -}}
 {{- if and .Values.sedaiSmartScheduler.enabled (eq (include "smart-scheduler.versionCompatible" .) "true") -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+The smart scheduler needs the pod interceptor, so installing it forces the interceptor on (SED-24384).
+*/}}
+{{- define "pod-interceptor.enabled" -}}
+{{- if or .Values.sedaiPodInterceptor.enabled (eq (include "smart-scheduler.installOk" .) "true") -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Spark optimization's vmalert reads from and writes to Sedai-managed VictoriaMetrics, so Spark forces it on.
+*/}}
+{{- define "victoria-metrics.enabled" -}}
+{{- if or .Values.sedaiVictoriaMetrics.enabled .Values.kubeflowSparkOptimization.enabled -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Sedai-managed VictoriaMetrics scrapes node exporter and KSM, so enabling it forces both on.
+*/}}
+{{- define "node-exporter.enabled" -}}
+{{- if or .Values.sedaiNodeExporter.enabled (eq (include "victoria-metrics.enabled" .) "true") -}}true{{- end -}}
+{{- end -}}
+
+{{- define "ksm.enabled" -}}
+{{- if or .Values.sedaiKSM.enabled (eq (include "victoria-metrics.enabled" .) "true") -}}true{{- end -}}
+{{- end -}}

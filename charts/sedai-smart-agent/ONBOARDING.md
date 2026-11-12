@@ -39,6 +39,8 @@ The Sedai Smart Scheduler helps scheduling and compacting the clusters based on 
 
 This is enabled by toggling `sedaiSmartScheduler.enabled` and `sedaiSmartScheduler.compactor.enabled` to `true`. We strongly recommend that this feature be enabled.
 
+The Smart Scheduler requires the Pod Interceptor. When the Smart Scheduler is enabled, the chart also deploys the Pod Interceptor, even if `sedaiPodInterceptor.enabled` is `false`.
+
 ### SmartAgentEnroll job
 
 The SmartAgentEnroll job automates the onboarding process and establishes the initial secure connection with the Sedai API Server. It performs the following actions:
@@ -207,6 +209,8 @@ sedaiBeyla:
 ```
 
 > Sedai recommends VictoriaMetrics — lower memory footprint and better stability under load.
+
+> **Note:** Sedai-managed VictoriaMetrics scrapes Node Exporter and Kube State Metrics. When `sedaiVictoriaMetrics.enabled` is `true`, the chart also deploys both, even if `sedaiNodeExporter.enabled` or `sedaiKSM.enabled` is `false`.
 
 > **Note:** `sedaiPrometheus` and `sedaiVictoriaMetrics` keys are used for monitoring tools that are fully managed and deployed by Sedai. If you prefer to connect your own self-hosted monitoring setup, use the options under `monitoringProvider` instead. Ex: `monitoringProvider.prometheus`
 

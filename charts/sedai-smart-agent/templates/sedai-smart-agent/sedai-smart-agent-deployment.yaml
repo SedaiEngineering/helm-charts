@@ -119,11 +119,11 @@ spec:
           value: {{ .Values.enableAgentDebugLogs.loggingConfig }}   
         {{- end }}
 
-        {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+        {{- if or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}
         - name: KUBESPECCONTROLLER_BASEURL
           value: "https://{{ .Values.workload.kubeSpecController.name }}-svc.{{ .Release.Namespace }}.svc{{ include "sedai-smart-agent.svcDomainSuffix" . }}:{{ .Values.sedaiPodInterceptor.port }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_ENABLED
-          value: "{{ or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}"
+          value: "{{ or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}"
         - name: SEDAI_KUBE_SPEC_CONTROLLER_SSL_CA_PATH
           value: "{{ .Values.sedaiPodInterceptor.tlsPath }}/ca.crt"
         - name: SEDAI_SPARK_KUBEFLOW_ENABLED
@@ -144,7 +144,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
 
-        {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+        {{- if or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}
         volumeMounts:
           - name: certs
             mountPath: "{{ .Values.sedaiPodInterceptor.tlsPath }}"
@@ -185,7 +185,7 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
-      {{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+      {{- if or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}
       volumes:
         - name: certs
           secret:

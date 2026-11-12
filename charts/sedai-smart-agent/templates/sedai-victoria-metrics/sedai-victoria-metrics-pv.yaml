@@ -1,4 +1,4 @@
-{{- if and .Values.sedaiVictoriaMetrics.enabled .Values.sedaiVictoriaMetrics.persistentVolume.enabled }}
+{{- if and (eq (include "victoria-metrics.enabled" .) "true") .Values.sedaiVictoriaMetrics.persistentVolume.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolume

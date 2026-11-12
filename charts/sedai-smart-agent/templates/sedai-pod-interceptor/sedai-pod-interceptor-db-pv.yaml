@@ -1,4 +1,4 @@
-{{- if and (or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled) .Values.sedaiPodInterceptor.db.persistentVolume.enabled }}
+{{- if and (or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled) .Values.sedaiPodInterceptor.db.persistentVolume.enabled }}
 {{- $dbName := printf "%s-db" .Values.workload.kubeSpecController.name }}
 ---
 apiVersion: v1

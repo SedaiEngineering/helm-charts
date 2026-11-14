@@ -13,6 +13,9 @@ metadata:
     {{- include "smart-scheduler.labels" . | nindent 4 }}
   annotations:
     sedai.io/managed-by: smart-agent
+    # The smart-agent rewrites data at runtime. Keep Flux drift detection from resetting it to the
+    # bootstrap stored in the Helm release (lookup above only carries it over on upgrade).
+    helm.toolkit.fluxcd.io/driftDetection: disabled
 data:
   {{- if $existing }}
   {{- toYaml $existing.data | nindent 2 }}

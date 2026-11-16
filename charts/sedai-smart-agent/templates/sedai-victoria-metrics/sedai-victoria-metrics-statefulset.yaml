@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled (eq (include "victoria-metrics.enabled" .) "true") }}
 ---
 # Source: victoria-metrics-single/templates/server.yaml
 apiVersion: apps/v1
@@ -90,7 +90,7 @@ spec:
             - --storageDataPath=/storage
             - --maxLabelsPerTimeseries=100
             - --promscrape.maxScrapeSize=128MB
-            {{- if .Values.sedaiVictoriaMetrics.enabled }}
+            {{- if eq (include "victoria-metrics.enabled" .) "true" }}
             - --promscrape.config=/data/prometheus.yml
             {{- end }}
           ports:
@@ -122,7 +122,7 @@ spec:
           volumeMounts:
             - name: server-volume
               mountPath: /storage
-            {{- if .Values.sedaiVictoriaMetrics.enabled }}
+            {{- if eq (include "victoria-metrics.enabled" .) "true" }}
             - name: scrape-config
               mountPath: /data
               readOnly: true
@@ -132,7 +132,7 @@ spec:
         - name: server-volume
           persistentVolumeClaim:
             claimName: server-volume
-        {{- if .Values.sedaiVictoriaMetrics.enabled }}
+        {{- if eq (include "victoria-metrics.enabled" .) "true" }}
         - name: scrape-config
           configMap:
             name: {{ .Values.workload.victoriaMetrics.name }}-configmap

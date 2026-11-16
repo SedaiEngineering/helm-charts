@@ -58,4 +58,17 @@ rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["roles", "rolebindings"]
     verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  # escalate/bind for the installer's own roles only. Kubernetes rejects creating
+  # a role, or a binding to it, that grants permissions the agent doesn't hold;
+  # the installer roles grant several (CRD writes, events, pod eviction, leases,
+  # secrets in karpenter). Scoped by name so the agent can't grant itself anything
+  # else. Names must match the roles in the installer's install.yaml.
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles", "roles"]
+    verbs: ["escalate", "bind"]
+    resourceNames:
+      - "sedai-karpenter-installer-role"
+      - "sedai-karpenter-installer-karpenter-role"
+      - "sedai-karpenter-installer-kubesystem-role"
 {{- end }}

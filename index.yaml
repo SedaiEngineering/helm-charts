@@ -3,6 +3,16 @@ entries:
   sedai-smart-agent:
   - apiVersion: v2
     appVersion: 2.2.4-beta.0
+    created: "2026-11-16T14:46:07.63691969Z"
+    description: Helm Chart for deploying Sedai Smart Agent
+    digest: 5e368f7e2f238de77177e10e68890b04bd9d618d536e1e3bed50040bd96e53b9
+    name: sedai-smart-agent
+    type: application
+    urls:
+    - https://github.com/SedaiEngineering/helm-charts/releases/download/sedai-smart-agent-2.2.4-beta.7/sedai-smart-agent-2.2.4-beta.7.tgz
+    version: 2.2.4-beta.7
+  - apiVersion: v2
+    appVersion: 2.2.4-beta.0
     created: "2026-11-12T16:32:58.181573299Z"
     description: Helm Chart for deploying Sedai Smart Agent
     digest: c3c8ee1122994ce58f41e342cd49b899cb8a943b02f471623ae9dd10bf8b0f67
@@ -2541,4 +2551,4 @@ entries:
     urls:
     - https://github.com/SedaiEngineering/helm-charts/releases/download/sedai-smart-agent-1.3.2/sedai-smart-agent-1.3.2.tgz
     version: 1.3.2
-generated: "2026-11-13T07:24:16.603321456Z"
+generated: "2026-11-16T14:46:07.638435147Z"

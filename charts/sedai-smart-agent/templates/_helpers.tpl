@@ -224,3 +224,39 @@ Single flag every sedai-smart-scheduler/* template gates on: enabled AND version
 {{- define "smart-scheduler.installOk" -}}
 {{- if and .Values.sedaiSmartScheduler.enabled (eq (include "smart-scheduler.versionCompatible" .) "true") -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+VerticalPodAutoscaler for the VictoriaMetrics StatefulSet: rendered when the StatefulSet is
+(VM or Grafana Alloy enabled), sedaiVictoriaMetrics.vpa.enabled is true, and the VPA CRD is
+installed. Without a cluster (`helm template`), pass
+--api-versions autoscaling.k8s.io/v1/VerticalPodAutoscaler to render it.
+*/}}
+{{- define "victoria-metrics.vpaEnabled" -}}
+{{- $vmDeployed := or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled -}}
+{{- $vpaEnabled := dig "vpa" "enabled" false (.Values.sedaiVictoriaMetrics | default dict) -}}
+{{- if and $vmDeployed $vpaEnabled (.Capabilities.APIVersions.Has "autoscaling.k8s.io/v1/VerticalPodAutoscaler") -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+VPA updateMode for VictoriaMetrics. An explicit sedaiVictoriaMetrics.vpa.updateMode wins.
+Otherwise InPlaceOrRecreate when Kubernetes >= 1.33 (in-place pod resize on by default) and the
+installed VPA CRD accepts that mode (VPA >= 1.4), else Recreate. lookup returns nothing under
+`helm template` and ArgoCD, so those get Recreate.
+*/}}
+{{- define "victoria-metrics.vpaUpdateMode" -}}
+{{- $mode := dig "vpa" "updateMode" "" (.Values.sedaiVictoriaMetrics | default dict) -}}
+{{- if not $mode -}}
+{{- $mode = "Recreate" -}}
+{{- if semverCompare ">=1.33-0" .Capabilities.KubeVersion.Version -}}
+{{- $crd := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "" "verticalpodautoscalers.autoscaling.k8s.io" -}}
+{{- range (dig "spec" "versions" (list) $crd) -}}
+{{- if eq (dig "name" "" .) "v1" -}}
+{{- if has "InPlaceOrRecreate" (dig "schema" "openAPIV3Schema" "properties" "spec" "properties" "updatePolicy" "properties" "updateMode" "enum" (list) .) -}}
+{{- $mode = "InPlaceOrRecreate" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $mode -}}
+{{- end -}}

@@ -119,6 +119,14 @@ spec:
             limits:
               cpu: "{{ .Values.resources.victoriaMetrics.cpu.limits }}"
               memory: "{{ .Values.resources.victoriaMetrics.memory.limits }}"
+          {{- if and (eq (include "victoria-metrics.vpaEnabled" .) "true") (eq (include "victoria-metrics.vpaUpdateMode" .) "InPlaceOrRecreate") (semverCompare ">=1.33-0" .Capabilities.KubeVersion.Version) }}
+          # VM sizes caches and GOMAXPROCS from its limits only at startup, so an in-place VPA resize restarts the container to apply them
+          resizePolicy:
+            - resourceName: cpu
+              restartPolicy: RestartContainer
+            - resourceName: memory
+              restartPolicy: RestartContainer
+          {{- end }}
           volumeMounts:
             - name: server-volume
               mountPath: /storage

@@ -1,0 +1,43 @@
+{{- if eq (include "victoria-metrics.vpaEnabled" .) "true" }}
+{{- $vpa := .Values.sedaiVictoriaMetrics.vpa }}
+{{- $updateMode := include "victoria-metrics.vpaUpdateMode" . }}
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ .Values.workload.victoriaMetrics.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
+    app.kubernetes.io/name: sedai-victoria-metrics
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: {{ .Values.workload.victoriaMetrics.name }}
+  updatePolicy:
+    updateMode: {{ $updateMode }}
+    {{- if has $updateMode (list "Auto" "Recreate" "InPlaceOrRecreate") }}
+    # Single replica: the VPA updater skips workloads with fewer than --min-replicas (default 2) pods unless overridden here
+    minReplicas: 1
+    {{- end }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: vmsingle
+        # Requests and limits move together. VM sizes its caches (60% of the memory limit) and
+        # GOMAXPROCS (CPU limit) from its limits, so the limits must track the recommendation.
+        controlledValues: RequestsAndLimits
+        minAllowed:
+          cpu: {{ $vpa.minAllowed.cpu | quote }}
+          memory: {{ $vpa.minAllowed.memory | quote }}
+        maxAllowed:
+          cpu: {{ $vpa.maxAllowed.cpu | quote }}
+          memory: {{ $vpa.maxAllowed.memory | quote }}
+{{- end }}

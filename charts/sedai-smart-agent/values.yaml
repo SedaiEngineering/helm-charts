@@ -324,6 +324,22 @@ sedaiVictoriaMetrics:
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
   enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default). Also enables sedaiNodeExporter and sedaiKSM, which it scrapes
+  # VerticalPodAutoscaler for Victoria Metrics. Created only when the VPA CRD (autoscaling.k8s.io/v1) is
+  # installed in the cluster, otherwise skipped. For `helm template`, pass
+  # --api-versions autoscaling.k8s.io/v1/VerticalPodAutoscaler to render it.
+  # VPA scales requests and limits together, starting from resources.victoriaMetrics, within these bounds.
+  vpa:
+    enabled: true
+    # "" = InPlaceOrRecreate when Kubernetes >= 1.33 and the installed VPA supports it (>= 1.4), else Recreate.
+    # Either way VM restarts on a resize: VM reads its limits only at startup, so in-place resizes restart the container.
+    # Override with Auto | Recreate | InPlaceOrRecreate | Initial | Off (VPA 1.4.x needs its InPlaceOrRecreate feature gate on for in-place).
+    updateMode: ""
+    minAllowed:
+      cpu: "200m"
+      memory: "1Gi"
+    maxAllowed:
+      cpu: "2"
+      memory: "8Gi"
 
 kubeflowSparkOptimization:
   enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment). Also enables sedaiVictoriaMetrics, which vmalert reads and writes

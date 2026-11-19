@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiKSM.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled (eq (include "ksm.enabled" .) "true") }}
 
 ---
 apiVersion: v1

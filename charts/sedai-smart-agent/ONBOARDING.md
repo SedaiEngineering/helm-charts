@@ -634,7 +634,7 @@ metadata:
   namespace: sedai-smart-agent
 spec:
   interval: 10m
-  timeout: 10m                     # Flux waits for every workload to become ready; 5m (the default) can be tight on a fresh cluster
+  timeout: 10m                     # Flux waits for all workloads; the 5m default can be tight
   chart:
     spec:
       chart: sedai-smart-agent
@@ -666,7 +666,7 @@ spec:
       sedaiApiTokenSecret: "sedai-api-token"
       sedaiApiTokenSecretKey: "api-token"
 
-  # Required when drift detection is on: the Smart Agent rewrites these ConfigMaps at runtime.
+  # Required with drift detection: the Smart Agent rewrites these at runtime
   driftDetection:
     mode: enabled
     ignore:

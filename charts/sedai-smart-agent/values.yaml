@@ -506,12 +506,17 @@ imagePullSecret:
 # -------------------------------------------------------------------
 resources:
   smartAgent:
+    # CPU limit above the request: the JVM counts processors from the CPU limit, and the agent's
+    # Shenandoah GC runs alongside the app, so a 2-core limit stops GC and app sharing one core
+    # without reserving more node capacity.
     cpu:
       requests: "1000m"
-      limits: "1000m"
+      limits: "2000m"
+    # Keep memory requests equal to limits: the JVM sizes its heap from the limit
+    # (MaxRAMPercentage=47, about 1.4Gi of heap at 3Gi).
     memory:
-      requests: "2Gi"
-      limits: "2Gi"
+      requests: "3Gi"
+      limits: "3Gi"
 
   prometheus:
     cpu:

@@ -527,7 +527,7 @@ sedaiBeyla:
     <div class="step-card">
       <p class="num">Step 4</p>
       <h3>Additional settings to avoid disruption</h3>
-      <p>Before deploying, review these three settings and add whichever apply to your environment — each addresses an issue that otherwise only shows up <em>after</em> the cluster is already onboarded.</p>
+      <p>Before deploying, review these settings and add whichever apply to your environment — each addresses an issue that otherwise only shows up <em>after</em> the cluster is already onboarded.</p>
 
       <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">DNS resolution — <code class="inline">clusterDomain</code></p>
       <p>If a cluster's kubelet/CoreDNS domain configuration is non-standard, the Smart Agent can fail to reach the Pod Interceptor with a <code class="inline">Name does not resolve</code> error. Set this up front if you know your cluster is affected (see <a href="#faq-14">FAQ #14</a> for the full symptom):</p>
@@ -535,6 +535,9 @@ sedaiBeyla:
 
       <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Deploying via ArgoCD — <code class="inline">ignoreDifferences</code></p>
       <p>If you're deploying via ArgoCD, you <strong>must</strong> include <code class="inline">ignoreDifferences</code> <strong>and</strong> <code class="inline">syncOptions: [RespectIgnoreDifferences=true]</code> in your Application manifest — without both, dynamically generated secrets, mutated webhook configuration, and the Smart Scheduler and descheduler (compactor) ConfigMaps that the Smart Agent rewrites at runtime will cause sync loops (or, with <code class="inline">selfHeal</code> on, get reset back to a fresh value on every sync). This is not optional; see <a href="#faq-13">FAQ #13</a> for the complete block to copy into your Application manifest.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Deploying via Flux — <code class="inline">driftDetection.ignore</code></p>
+      <p>If you're deploying via Flux with drift detection turned on (<code class="inline">spec.driftDetection.mode: enabled</code> in the HelmRelease), you <strong>must</strong> add <code class="inline">ignore</code> rules for the Smart Scheduler and descheduler (compactor) ConfigMaps. Without them, Flux treats the config the Smart Agent writes into those ConfigMaps at runtime as drift and resets it to the copy stored at the last install or upgrade. See <a href="#faq-16">FAQ #16</a> for the complete HelmRelease and step-by-step setup.</p>
 
       <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Karpenter clusters — <code class="inline">disruptionProtection</code></p>
       <p>If your cluster runs Karpenter, its node consolidation/expiration can evict the Smart Agent, Pod Interceptor (+ its DB), Smart Scheduler, or compactor as it churns nodes — which shows up as their health flapping. This is on by default, but confirm it's set for each component you've enabled (see <a href="#faq-15">FAQ #15</a> for what it does):</p>
@@ -563,7 +566,7 @@ helm upgrade --install sedai-smart-agent -n sedai-smart-agent \
     <div class="step-card" id="supported-tools">
       <p class="num">Deployment tools</p>
       <h3>Supported CI/CD and deployment tools</h3>
-      <p>The Sedai Smart Agent Helm chart supports deployment through the Helm CLI directly, as well as through GitOps tools such as Argo CD and Flux, which handle Helm charts in a way that preserves the lifecycle behavior the chart needs. CI/CD pipelines (for example Jenkins, GitHub Actions, or GitLab CI) are also supported as long as they install the chart by running Helm itself (<code class="inline">helm install</code> / <code class="inline">helm upgrade</code>). Tools that only render the chart into static manifests and apply them outside of Helm, such as Carvel&rsquo;s kapp and kapp-controller, are not supported, because they skip the Helm lifecycle that the enroll and cleanup jobs depend on.</p>
+      <p>The Sedai Smart Agent Helm chart supports deployment through the Helm CLI directly, as well as through GitOps tools such as Argo CD and Flux, which handle Helm charts in a way that preserves the lifecycle behavior the chart needs. CI/CD pipelines (for example Jenkins, GitHub Actions, or GitLab CI) are also supported as long as they install the chart by running Helm itself (<code class="inline">helm install</code> / <code class="inline">helm upgrade</code>). Tools that only render the chart into static manifests and apply them outside of Helm, such as Carvel&rsquo;s kapp and kapp-controller, are not supported, because they skip the Helm lifecycle that the enroll and cleanup jobs depend on. For GitOps manifests, see <a href="#faq-13">FAQ #13</a> (Argo CD) and <a href="#faq-16">FAQ #16</a> (Flux).</p>
     </div>
   </section>
 
@@ -828,6 +831,113 @@ sedaiSmartScheduler:
   compactor:
     disruptionProtection: true</pre>
       <p>Set any of these to <code class="inline">false</code> to let Karpenter churn that component's nodes freely.</p>
+    </div>
+
+    <div class="qa" id="faq-16">
+      <p class="num">16</p>
+      <h3>Can I deploy via Flux?</h3>
+      <p>Yes. Flux's helm-controller installs and upgrades the chart with Helm itself, so the enroll (<code class="inline">pre-install</code>) and de-register (<code class="inline">post-delete</code>) hook jobs run the same way they do with the Helm CLI. Requires Flux v2.3 or later (<code class="inline">helm.toolkit.fluxcd.io/v2</code> and <code class="inline">source.toolkit.fluxcd.io/v1</code>).</p>
+      <blockquote><strong>Critical:</strong> if you turn on Flux drift detection (<code class="inline">spec.driftDetection.mode: enabled</code>), include the <code class="inline">ignore</code> rules for the Smart Scheduler and descheduler (compactor) ConfigMaps shown below. Drift detection compares the cluster against the manifest Helm stored at the last install or upgrade. The Smart Agent rewrites these two ConfigMaps at runtime, so without the rules Flux sees the agent's changes as drift and resets them to the stored copy (the bootstrap config, after a fresh install), undoing the scheduler profiles and compactor policy that Sedai pushed. Drift detection is off by default in Flux; if you leave it off, you can drop the <code class="inline">driftDetection</code> block.</blockquote>
+      <p>Unlike ArgoCD, Flux does not need ignore rules for the Pod Interceptor secrets or the webhook <code class="inline">caBundle</code>. helm-controller renders the chart against the live cluster, so the generated TLS certificate and DB password are read back and kept the same on every upgrade.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Step 1 — Create the namespace and the API key Secret</p>
+      <p>Keep the Sedai API key out of Git. Create the Secret directly, or through your secrets tooling (SOPS, Sealed Secrets, External Secrets Operator) under the same name and key:</p>
+      <pre>kubectl create namespace sedai-smart-agent
+kubectl create secret generic sedai-api-token \
+  --from-literal=api-token='&lt;SEDAI_API_KEY&gt;' \
+  -n sedai-smart-agent</pre>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Step 2 — Add the Sedai Helm repository</p>
+      <p>Commit the following to the Git path that your Flux <code class="inline">Kustomization</code> reconciles for this cluster (for example <code class="inline">clusters/&lt;cluster-name&gt;/sedai-smart-agent/</code>):</p>
+      <pre>apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: sedai
+  namespace: sedai-smart-agent
+spec:
+  interval: 1h
+  url: https://sedaiengineering.github.io/helm-charts</pre>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Step 3 — Add the HelmRelease</p>
+      <p>Add the HelmRelease in the same path. Keep the name <code class="inline">sedai-smart-agent</code>, keep it in the <code class="inline">sedai-smart-agent</code> namespace, and do not set <code class="inline">spec.targetNamespace</code> or <code class="inline">spec.releaseName</code>. That gives the Helm release the same name and namespace as a Helm CLI install (see Step 5).</p>
+      <pre>apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sedai-smart-agent          # Also the Helm release name
+  namespace: sedai-smart-agent
+spec:
+  interval: 10m
+  timeout: 10m                     # Flux waits for all workloads; the 5m default can be tight
+  chart:
+    spec:
+      chart: sedai-smart-agent
+      version: "2.0.36"            # Update Latest Helm Chart Version here
+      sourceRef:
+        kind: HelmRepository
+        name: sedai
+      interval: 1h
+  values:
+    sedaiVictoriaMetrics:
+      enabled: true
+    sedaiKSM:
+      enabled: true
+    sedaiNodeExporter:
+      enabled: true
+    sedaiBeyla:
+      enabled: true
+    sedaiPodInterceptor:
+      enabled: true
+    sedaiSmartScheduler:
+      enabled: true
+      compactor:
+        enabled: true
+    sedaiIntegrationSettings:
+      nickName: "your-k8s-cluster-nickname"
+      clusterName: "your-k8s-cluster"
+      clusterProvider: "AWS"
+      sedaiBaseUrl: "https://tenant.sedai.app"
+      sedaiApiTokenSecret: "sedai-api-token"
+      sedaiApiTokenSecretKey: "api-token"
+
+  # Required with drift detection: the Smart Agent rewrites these at runtime
+  driftDetection:
+    mode: enabled
+    ignore:
+      - paths: ["/data"]
+        target:
+          kind: ConfigMap
+          name: sedai-smart-scheduler-config
+          namespace: sedai-smart-agent
+      - paths: ["/data"]
+        target:
+          kind: ConfigMap
+          name: sedai-smart-compactor-config
+          namespace: sedai-smart-agent</pre>
+      <p>The ConfigMap names above are the chart defaults. If you override <code class="inline">workload.smartScheduler.name</code> or <code class="inline">workload.smartCompactor.name</code>, use <code class="inline">&lt;name&gt;-config</code> instead. To only report drift without correcting it, set <code class="inline">mode: warn</code>. To turn drift detection off, set <code class="inline">mode: disabled</code> or remove the block.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Step 4 — Commit and verify</p>
+      <p>Commit and push, then let Flux reconcile (or trigger it yourself):</p>
+      <pre>flux reconcile kustomization &lt;your-kustomization&gt; --with-source
+flux get helmreleases -n sedai-smart-agent
+kubectl get pods -n sedai-smart-agent</pre>
+      <p>The HelmRelease should show <code class="inline">Ready</code> <code class="inline">True</code>, and the cluster appears in the Sedai UI once the enroll job has finished. After Sedai has pushed scheduler and compactor config to the cluster, you can confirm that drift detection leaves it alone:</p>
+      <pre>flux reconcile helmrelease sedai-smart-agent -n sedai-smart-agent
+kubectl get configmap sedai-smart-scheduler-config sedai-smart-compactor-config -n sedai-smart-agent -o yaml
+flux events --for HelmRelease/sedai-smart-agent -n sedai-smart-agent</pre>
+      <p>The ConfigMaps should still hold the config Sedai pushed (not the <code class="inline">sedai-scheduler-bootstrap</code> profile), and the events should show no drift correction on them.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Step 5 — Migrating an existing Helm CLI install (optional)</p>
+      <p>If the Smart Agent was already installed with <code class="inline">helm upgrade --install sedai-smart-agent -n sedai-smart-agent</code>, Steps 1 to 4 take it over in place. Because the HelmRelease uses the same release name and namespace, helm-controller finds the existing release in Helm storage and upgrades it instead of attempting a fresh install. Skip <code class="inline">kubectl create namespace</code> in Step 1, and create the API key Secret only if the install doesn't already reference one.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Upgrading</p>
+      <p>Change <code class="inline">version</code> in the HelmRelease and commit; Flux runs <code class="inline">helm upgrade</code> for you. You can also set a semver range (for example <code class="inline">version: "2.0.x"</code>) so Flux picks up new patch versions automatically.</p>
+
+      <p style="color:var(--ink); font-weight:600; margin:18px 0 4px;">Things to avoid</p>
+      <ul>
+        <li><strong>Uninstall-based remediation.</strong> Leave <code class="inline">spec.install.remediation.retries</code> at its default (<code class="inline">0</code>), and never set <code class="inline">spec.upgrade.remediation.strategy: uninstall</code>. Both make Flux uninstall the release after a failure. With <code class="inline">sedaiIntegrationSettings.enableDeRegisterJob: true</code>, an uninstall runs the de-register hook, which deletes the cluster's integration and all of its data in Sedai (see FAQ #12).</li>
+        <li><strong>Rollback remediation.</strong> With <code class="inline">spec.upgrade.remediation.retries</code> above <code class="inline">0</code>, a failed upgrade is rolled back by reapplying the previous release's stored manifest. That also resets the Smart Scheduler and compactor ConfigMaps to the copy saved at that release. Keeping remediation at the defaults avoids this.</li>
+        <li><strong>Deleting the HelmRelease to pause Flux.</strong> Deleting the HelmRelease, or removing it from Git with <code class="inline">prune: true</code>, uninstalls the chart; with <code class="inline">enableDeRegisterJob: true</code> that also removes the integration from Sedai, just like <code class="inline">helm uninstall</code>. To pause Flux without uninstalling, set <code class="inline">spec.suspend: true</code> instead.</li>
+      </ul>
     </div>
   </section>
 

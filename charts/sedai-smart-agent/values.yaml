@@ -613,7 +613,7 @@ resources:
       requests: "10m"
       limits: "200m"
     memory:
-      requests: "64Mi"
+      requests: "32Mi"
       limits: "128Mi"
 
   victoriaMetrics:

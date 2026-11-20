@@ -154,7 +154,7 @@ sedaiNodeExporter:
   tolerations: []
 ```
 
-Each node-exporter pod requests 10m CPU and 64Mi memory, with limits of 200m and 128Mi (`resources.sedaiNodeExporter`). node-exporter is single-threaded and typically uses 10-15Mi of process memory (40Mi at most). The memory limit also stops reclaimable kernel cache charged to the pod from inflating its memory usage over time. Set `resources.sedaiNodeExporter: null` to run it without requests and limits.
+Each node-exporter pod requests 10m CPU and 32Mi memory, with limits of 200m and 128Mi (`resources.sedaiNodeExporter`). node-exporter is single-threaded and typically uses 10-15Mi of process memory (40Mi at most). The memory limit also stops reclaimable kernel cache charged to the pod from inflating its memory usage over time. Set `resources.sedaiNodeExporter: null` to run it without requests and limits.
 
 #### Victoria Metrics
 

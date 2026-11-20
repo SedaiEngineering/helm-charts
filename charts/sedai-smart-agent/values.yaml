@@ -112,6 +112,20 @@ sedaiKSM:
   nodeSelector: {}                  # Node selector for KSM deployment
   tolerations: []                   # Tolerations for KSM deployment
   priorityClassName: ""             # Priority class name for KSM deployment
+  # VerticalPodAutoscaler for KSM. Created only when the VPA CRD (autoscaling.k8s.io/v1) is installed in the
+  # cluster, otherwise skipped. For `helm template`, pass --api-versions autoscaling.k8s.io/v1/VerticalPodAutoscaler.
+  # KSM memory grows with the number of objects in the cluster, so VPA sets its requests from observed usage.
+  # It manages requests only: the resources.ksm limits stay fixed, and requests never go above them.
+  vpa:
+    enabled: true
+    # "" = InPlaceOrRecreate when Kubernetes >= 1.33 and the installed VPA supports it (>= 1.4), else Recreate.
+    # KSM does not size itself from its resources, so in-place resizes apply without restarting it.
+    # Override with Auto | Recreate | InPlaceOrRecreate | Initial | Off (VPA 1.4.x needs its InPlaceOrRecreate feature gate on for in-place).
+    updateMode: ""
+    minAllowed:
+      cpu: "25m"
+      memory: "128Mi"
+    maxAllowed: {}                  # Empty = the resources.ksm limits
 
 sedaiPodInterceptor:
   enabled: false                    # Enables Sedai sync controller for workload auto-optimization
@@ -569,13 +583,16 @@ resources:
       limits: "4096Mi"
     storage: "60Gi"                        # Persistent volume storage for Prometheus
 
+  # KSM memory grows with the number of objects it watches: about 60Mi at 600 pods, and about 300Mi on average
+  # (770Mi peak) at 2.8k pods and 16k ReplicaSets. Requests fit a mid-sized cluster; the limits are ceilings for
+  # large ones. When the VPA CRD is installed, sedaiKSM.vpa adjusts the requests and keeps these limits.
   ksm:
     cpu:
-      requests: "500m"
+      requests: "50m"
       limits: "500m"
     memory:
-      requests: "1024Mi"
-      limits: "1024Mi"
+      requests: "256Mi"
+      limits: "2Gi"
 
   sedaiPodInterceptor:
     cpu:
@@ -630,14 +647,17 @@ resources:
       requests: "2048Mi"
       limits: "2048Mi"
 
-  sedaiNodeExporter: {}
-    # Unset by default -- node-exporter runs unbounded unless you set cpu/memory requests/limits here, e.g.:
-    # cpu:
-    #   requests: "100m"
-    #   limits: "200m"
-    # memory:
-    #   requests: "128Mi"
-    #   limits: "256Mi"
+  # node-exporter is single-threaded (GOMAXPROCS=1) and light: about 1m CPU on average and 10-15Mi of process
+  # memory (RSS) per node, 40Mi at most. Its working set also counts reclaimable kernel slab (dentries/inodes)
+  # that grows with pod churn while it runs; the memory limit makes the kernel reclaim that instead of letting
+  # the working set grow to hundreds of Mi. Set to null to run node-exporter without requests and limits.
+  sedaiNodeExporter:
+    cpu:
+      requests: "10m"
+      limits: "200m"
+    memory:
+      requests: "64Mi"
+      limits: "128Mi"
 
   victoriaMetrics:
     cpu:

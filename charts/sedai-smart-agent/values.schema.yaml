@@ -7,19 +7,19 @@ properties:
     type: string
     description: "Namespace where all Sedai components will be deployed"
     default: "sedai-smart-agent"
-  
+
   globalLabels:
     type: object
     description: "Labels that will be added to all resources created by this chart"
     additionalProperties:
       type: string
-  
+
   globalAnnotations:
     type: object
     description: "Annotations that will be added to all resources created by this chart"
     additionalProperties:
       type: string
-  
+
   sedaiIntegrationSettings:
     type: object
     required: ["clusterName"]
@@ -36,15 +36,15 @@ properties:
         default: "https://app.sedai.io"
       clusterProvider:
         type: string
-        enum: ["AWS", "AZURE", "GCP", "SELF_MANAGED"]
-        description: "Cloud provider"
+        enum: ["SELF_MANAGED", "AWS", "AZURE", "GCP", "OPEN_SHIFT", "ORACLE", "PLATFORM_9", "VMWARE_TANZU", "RANCHER", "IBM", "DIGITAL_OCEAN", "ALIBABA"]
+        description: "Cloud provider / Kubernetes distribution, matching core's KubernetesClusterProvider enum"
         default: "AWS"
       connectionType:
         type: string
         enum: ["", "WS", "REST"]
         description: "Agent-to-server connection type. Empty uses the agent's own default (WS)."
         default: ""
-  
+
   sedaiPrometheus:
     type: object
     properties:
@@ -52,7 +52,7 @@ properties:
         type: boolean
         description: "Enables Sedai-managed Prometheus for metric collection"
         default: false
-  
+
   sedaiKSM:
     type: object
     properties:
@@ -60,7 +60,7 @@ properties:
         type: boolean
         description: "Enables deployment of Kube State Metrics"
         default: false
-  
+
   sedaiPodInterceptor:
     type: object
     properties:

@@ -1,4 +1,4 @@
-{{- if or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiVictoriaMetrics.enabled }}
+{{- if or .Values.sedaiGrafanaAlloy.enabled (eq (include "victoria-metrics.enabled" .) "true") }}
 ---
 # Source: victoria-metrics-single/templates/serviceaccount.yaml 
 apiVersion: v1

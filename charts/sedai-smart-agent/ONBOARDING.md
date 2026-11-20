@@ -39,6 +39,8 @@ The Sedai Smart Scheduler helps scheduling and compacting the clusters based on 
 
 This is enabled by toggling `sedaiSmartScheduler.enabled` and `sedaiSmartScheduler.compactor.enabled` to `true`. We strongly recommend that this feature be enabled.
 
+The Smart Scheduler requires the Pod Interceptor. When the Smart Scheduler is enabled, the chart also deploys the Pod Interceptor, even if `sedaiPodInterceptor.enabled` is `false`.
+
 ### SmartAgentEnroll job
 
 The SmartAgentEnroll job automates the onboarding process and establishes the initial secure connection with the Sedai API Server. It performs the following actions:
@@ -208,6 +210,8 @@ sedaiBeyla:
 
 > Sedai recommends VictoriaMetrics — lower memory footprint and better stability under load.
 
+> **Note:** Sedai-managed VictoriaMetrics scrapes Node Exporter and Kube State Metrics. When `sedaiVictoriaMetrics.enabled` is `true`, the chart also deploys both, even if `sedaiNodeExporter.enabled` or `sedaiKSM.enabled` is `false`.
+
 > **Note:** `sedaiPrometheus` and `sedaiVictoriaMetrics` keys are used for monitoring tools that are fully managed and deployed by Sedai. If you prefer to connect your own self-hosted monitoring setup, use the options under `monitoringProvider` instead. Ex: `monitoringProvider.prometheus`
 
 ### 4. Additional settings to avoid disruption
@@ -224,7 +228,7 @@ clusterDomain: "cluster.local"
 
 **Deploying via ArgoCD — `ignoreDifferences`**
 
-If you're deploying via ArgoCD, you **must** include `ignoreDifferences` **and** `syncOptions: [RespectIgnoreDifferences=true]` in your Application manifest — without both, dynamically generated secrets and mutated webhook configuration created at runtime will cause sync loops (or, with `selfHeal` on, get reset back to a fresh value on every sync). This is not optional; see FAQ #13 for the complete block to copy into your Application manifest.
+If you're deploying via ArgoCD, you **must** include `ignoreDifferences` **and** `syncOptions: [RespectIgnoreDifferences=true]` in your Application manifest — without both, dynamically generated secrets, mutated webhook configuration, and the Smart Scheduler and descheduler (compactor) ConfigMaps that the Smart Agent rewrites at runtime will cause sync loops (or, with `selfHeal` on, get reset back to a fresh value on every sync). This is not optional; see FAQ #13 for the complete block to copy into your Application manifest.
 
 **Karpenter clusters — `disruptionProtection`**
 
@@ -464,7 +468,7 @@ If you re-add the same cluster in the future, Sedai will treat it as a new Kuber
 
 Yes. You can deploy the Sedai Smart Agent using ArgoCD or any other GitOps provider. Below is a sample ArgoCD Application manifest for deploying the Smart Agent via Helm:
 
-> **Note:** It is critical to include `ignoreDifferences` in your ArgoCD Application manifest. This prevents sync loops caused by dynamically generated secrets and mutated webhook configurations created during runtime. `ignoreDifferences` alone only suppresses the diff/OutOfSync status, though — it does **not** stop an actual sync from overwriting those fields. Pair it with `syncOptions: [RespectIgnoreDifferences=true]` (included below) so a sync never resets them back to a fresh value.
+> **Note:** It is critical to include `ignoreDifferences` in your ArgoCD Application manifest. This prevents sync loops caused by dynamically generated secrets, mutated webhook configurations, and the Smart Scheduler and descheduler (compactor) ConfigMaps that the Smart Agent rewrites during runtime. `ignoreDifferences` alone only suppresses the diff/OutOfSync status, though — it does **not** stop an actual sync from overwriting those fields. Pair it with `syncOptions: [RespectIgnoreDifferences=true]` (included below) so a sync never resets them back to a fresh value.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -534,6 +538,18 @@ spec:
       name: sedai-kube-spec-controller-mutation-webhook-sedai-smart-agent
       jqPathExpressions:
         - '.webhooks[].clientConfig.caBundle'
+    - group: ""
+      kind: ConfigMap
+      name: sedai-smart-scheduler-config
+      namespace: sedai-smart-agent
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: ConfigMap
+      name: sedai-smart-compactor-config
+      namespace: sedai-smart-agent
+      jsonPointers:
+        - /data
 ```
 
 ### 14. My cluster's DNS resolution is misconfigured — the Pod Interceptor can't reach its Service

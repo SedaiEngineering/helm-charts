@@ -143,7 +143,7 @@ sedaiNodeExporter:
 
 #### Victoria Metrics
 
-Alternative to Prometheus with better performance:
+Alternative to Prometheus with better performance. Enabling it also deploys Node Exporter and Kube State Metrics, which it scrapes:
 
 ```yaml
 sedaiVictoriaMetrics:
@@ -151,7 +151,23 @@ sedaiVictoriaMetrics:
   retentionPeriod: "1d"
   nodeSelector: {}
   tolerations: []
+  vpa:
+    enabled: true
+    updateMode: ""        # "" = auto-select, see below
+    minAllowed:
+      cpu: "200m"
+      memory: "1Gi"
+    maxAllowed:
+      cpu: "2"
+      memory: "8Gi"
 ```
+
+**Vertical Pod Autoscaler.** When the cluster has the VPA CRD (`autoscaling.k8s.io/v1`), the chart creates a VerticalPodAutoscaler for Victoria Metrics. It right-sizes CPU and memory (requests and limits together) between `minAllowed` and `maxAllowed`, starting from `resources.victoriaMetrics`. Clusters without VPA are unaffected. With `helm template`, add `--api-versions autoscaling.k8s.io/v1/VerticalPodAutoscaler` to render it.
+
+- `updateMode: ""` picks `InPlaceOrRecreate` on Kubernetes 1.33+ when the installed VPA supports it (1.4+), else `Recreate`. Under ArgoCD and `helm template` the chart cannot inspect the CRD, so it uses `Recreate`. Set `InPlaceOrRecreate` there explicitly if the cluster supports it.
+- Every resize restarts Victoria Metrics. Victoria Metrics sizes its caches and GOMAXPROCS from its limits at startup, so in-place resizes restart the container (`resizePolicy: RestartContainer`) and `Recreate` evicts the pod. Expect a short gap in scraped metrics on each resize.
+- VPA 1.4.x needs its `InPlaceOrRecreate` feature gate enabled. Otherwise set `updateMode: Recreate`.
+- Set `vpa.enabled: false` to opt out, or `updateMode: Initial` to apply recommendations only when the pod restarts for other reasons.
 
 ### Optimization Components
 

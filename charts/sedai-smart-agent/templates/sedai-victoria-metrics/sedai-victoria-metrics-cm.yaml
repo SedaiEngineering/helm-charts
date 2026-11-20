@@ -1,4 +1,4 @@
-{{-  if .Values.sedaiVictoriaMetrics.enabled }}
+{{-  if eq (include "victoria-metrics.enabled" .) "true" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -231,6 +231,10 @@ data:
           - action: keep
             regex: beyla_network_flow_bytes_total|http_client_request_duration_seconds_count|http_server_request_duration_seconds_count|http_client_request_duration_seconds_bucket|http_server_request_duration_seconds_bucket|http_client_request_duration_seconds_sum|http_server_request_duration_seconds_sum
             source_labels: [__name__]
+          - action: replace
+            source_labels: [k8s_namespace_name]
+            regex: (.+)
+            target_label: namespace
       # Service endpoints for service mesh and ingress controllers
       - job_name: kubernetes-service-endpoints
         scrape_interval: 1m
@@ -320,7 +324,7 @@ data:
           - action: keep
             regex: envoy_cluster_upstream_rq_time.*|envoy_cluster_upstream_rq_completed|istio_requests_total|istio_request_duration_milliseconds_count|istio_request_duration_milliseconds_sum|istio_request_duration_milliseconds_bucket
             source_labels: [__name__]
-{{- if or .Values.sedaiPodInterceptor.enabled .Values.kubeflowSparkOptimization.enabled }}
+{{- if or (eq (include "pod-interceptor.enabled" .) "true") .Values.kubeflowSparkOptimization.enabled }}
       # Kube Spec Controller - per-pod scrape of its plain-HTTP /metrics port (cache and admission state is per replica)
       - job_name: sedai-kube-spec-controller
         scrape_interval: 1m

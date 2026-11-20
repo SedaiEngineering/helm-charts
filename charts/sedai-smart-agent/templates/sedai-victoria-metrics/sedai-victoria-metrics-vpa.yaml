@@ -23,7 +23,8 @@ spec:
     kind: StatefulSet
     name: {{ .Values.workload.victoriaMetrics.name }}
   updatePolicy:
-    updateMode: {{ $updateMode }}
+    # Quoted: an unquoted Off parses as YAML boolean false and the API server rejects the VPA
+    updateMode: {{ $updateMode | quote }}
     {{- if has $updateMode (list "Auto" "Recreate" "InPlaceOrRecreate") }}
     # Single replica: the VPA updater skips workloads with fewer than --min-replicas (default 2) pods unless overridden here
     minReplicas: 1

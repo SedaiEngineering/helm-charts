@@ -1,0 +1,45 @@
+{{- if eq (include "ksm.vpaEnabled" .) "true" }}
+{{- $vpa := .Values.sedaiKSM.vpa }}
+{{- $updateMode := include "ksm.vpaUpdateMode" . }}
+{{- $maxAllowed := $vpa.maxAllowed | default dict }}
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ .Values.workload.ksm.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sedai-smart-agent.componentLabels" . | nindent 4 }}
+    app.kubernetes.io/name: sedai-kube-state-metrics
+    {{- with .Values.globalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.globalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.workload.ksm.name }}
+  updatePolicy:
+    # Quoted: an unquoted Off parses as YAML boolean false and the API server rejects the VPA
+    updateMode: {{ $updateMode | quote }}
+    {{- if has $updateMode (list "Auto" "Recreate" "InPlaceOrRecreate") }}
+    # Single replica: the VPA updater skips workloads with fewer than --min-replicas (default 2) pods unless overridden here
+    minReplicas: 1
+    {{- end }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: sedai-ksm
+        # Requests only: KSM reads nothing from its limits, so the resources.ksm limits stay as fixed
+        # ceilings and VPA keeps requests at or below them. In-place resizes apply without a restart.
+        controlledValues: RequestsOnly
+        minAllowed:
+          cpu: {{ $vpa.minAllowed.cpu | quote }}
+          memory: {{ $vpa.minAllowed.memory | quote }}
+        maxAllowed:
+          cpu: {{ $maxAllowed.cpu | default .Values.resources.ksm.cpu.limits | quote }}
+          memory: {{ $maxAllowed.memory | default .Values.resources.ksm.memory.limits | quote }}
+{{- end }}

@@ -118,6 +118,14 @@ webhooks:
       # per-workload opt-out annotation (settings.sedai.io/podInterceptor.enabled) before the
       # rollout's pods are created; the controller applies no replica logic to these kinds and
       # always allows them. Deployments and StatefulSets latch through the rule above.
+      #
+      # Performance: these rules add no cost to pod creation (/mutate/pod only does an in-memory
+      # opt-out lookup). They match the main resource only, not the /status or /scale subresources,
+      # so routine status and scaling writes never reach the webhook; only real spec/metadata
+      # changes (deploys, manual edits) do. Without the annotation the handler answers from its
+      # in-memory cache (no DB or API call); with it, one small Postgres upsert. The patch is
+      # always empty, and timeoutSeconds: 1 plus failurePolicy: Ignore mean a slow or unavailable
+      # controller can delay an update by at most 1s and never blocks it.
       - apiGroups: ["apps"]
         apiVersions: ["v1"]
         operations: ["UPDATE"]

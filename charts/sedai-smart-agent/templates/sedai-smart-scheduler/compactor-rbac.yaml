@@ -27,3 +27,34 @@ subjects:
     name: {{ include "smart-scheduler.serviceAccountName" . }}
     namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
 {{- end }}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create .Values.sedaiSmartScheduler.compactor.enabled (eq (include "smart-scheduler.compactorWindowMode" .) "true") }}
+---
+# Window mode: lets the smart-agent run compactor window Jobs (get/list/watch on cronjobs, jobs, pods come from its ClusterRole).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-compactor-window
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "smart-scheduler.fullname" . }}-compactor-window
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "smart-scheduler.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "smart-scheduler.fullname" . }}-compactor-window
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "smart-scheduler.serviceAccountName" . }}
+    namespace: {{ include "smart-scheduler.serviceAccountNamespace" . }}
+{{- end }}

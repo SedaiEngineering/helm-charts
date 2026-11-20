@@ -238,15 +238,12 @@ installed. Without a cluster (`helm template`), pass
 {{- end -}}
 
 {{/*
-VPA updateMode for VictoriaMetrics. An explicit sedaiVictoriaMetrics.vpa.updateMode wins.
-Otherwise InPlaceOrRecreate when Kubernetes >= 1.33 (in-place pod resize on by default) and the
-installed VPA CRD accepts that mode (VPA >= 1.4), else Recreate. lookup returns nothing under
-`helm template` and ArgoCD, so those get Recreate.
+Default VPA updateMode for a component whose vpa.updateMode is "": InPlaceOrRecreate when Kubernetes >= 1.33
+(in-place pod resize on by default) and the installed VPA CRD accepts that mode (VPA >= 1.4), else Recreate.
+lookup returns nothing under `helm template` and ArgoCD, so those get Recreate.
 */}}
-{{- define "victoria-metrics.vpaUpdateMode" -}}
-{{- $mode := dig "vpa" "updateMode" "" (.Values.sedaiVictoriaMetrics | default dict) -}}
-{{- if not $mode -}}
-{{- $mode = "Recreate" -}}
+{{- define "sedai-smart-agent.vpaDefaultUpdateMode" -}}
+{{- $mode := "Recreate" -}}
 {{- if semverCompare ">=1.33-0" .Capabilities.KubeVersion.Version -}}
 {{- $crd := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "" "verticalpodautoscalers.autoscaling.k8s.io" -}}
 {{- range (dig "spec" "versions" (list) $crd) -}}
@@ -257,6 +254,30 @@ installed VPA CRD accepts that mode (VPA >= 1.4), else Recreate. lookup returns 
 {{- end -}}
 {{- end -}}
 {{- end -}}
-{{- end -}}
 {{- $mode -}}
+{{- end -}}
+
+{{/*
+VPA updateMode for VictoriaMetrics: sedaiVictoriaMetrics.vpa.updateMode if set, else sedai-smart-agent.vpaDefaultUpdateMode.
+*/}}
+{{- define "victoria-metrics.vpaUpdateMode" -}}
+{{- dig "vpa" "updateMode" "" (.Values.sedaiVictoriaMetrics | default dict) | default (include "sedai-smart-agent.vpaDefaultUpdateMode" .) -}}
+{{- end -}}
+
+{{/*
+VerticalPodAutoscaler for the KSM Deployment: rendered when KSM is deployed (KSM or Grafana Alloy enabled),
+sedaiKSM.vpa.enabled is true, and the VPA CRD is installed. Without a cluster (`helm template`), pass
+--api-versions autoscaling.k8s.io/v1/VerticalPodAutoscaler to render it.
+*/}}
+{{- define "ksm.vpaEnabled" -}}
+{{- $ksmDeployed := or .Values.sedaiGrafanaAlloy.enabled .Values.sedaiKSM.enabled -}}
+{{- $vpaEnabled := dig "vpa" "enabled" false (.Values.sedaiKSM | default dict) -}}
+{{- if and $ksmDeployed $vpaEnabled (.Capabilities.APIVersions.Has "autoscaling.k8s.io/v1/VerticalPodAutoscaler") -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+VPA updateMode for KSM: sedaiKSM.vpa.updateMode if set, else sedai-smart-agent.vpaDefaultUpdateMode.
+*/}}
+{{- define "ksm.vpaUpdateMode" -}}
+{{- dig "vpa" "updateMode" "" (.Values.sedaiKSM | default dict) | default (include "sedai-smart-agent.vpaDefaultUpdateMode" .) -}}
 {{- end -}}

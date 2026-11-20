@@ -114,6 +114,20 @@ webhooks:
         operations: ["UPDATE", "DELETE"]
         resources: ["deployments", "statefulsets"]
         scope: "Namespaced"
+      # SED-24354: UPDATE on DaemonSets and Argo Rollouts is routed here only to latch the
+      # per-workload opt-out annotation (settings.sedai.io/podInterceptor.enabled) before the
+      # rollout's pods are created; the controller applies no replica logic to these kinds and
+      # always allows them. Deployments and StatefulSets latch through the rule above.
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["UPDATE"]
+        resources: ["daemonsets"]
+        scope: "Namespaced"
+      - apiGroups: ["argoproj.io"]
+        apiVersions: ["v1alpha1"]
+        operations: ["UPDATE"]
+        resources: ["rollouts"]
+        scope: "Namespaced"
       # The autoscaler bounds are the horizontal surface for HPA-managed
       # workloads, where the replica count itself is the HPA's and not ours. Same
       # route: an HPA's recommendation is stored on the owner-level row of the

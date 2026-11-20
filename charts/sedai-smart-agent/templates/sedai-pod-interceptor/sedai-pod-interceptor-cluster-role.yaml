@@ -30,4 +30,18 @@ rules:
 - apiGroups: ["apps", "kubeflow.org", "argoproj.io"]
   resources: ["*"]
   verbs: ["get"]
+# SED-24354: metadata-only list/watch of the workload kinds the interceptor resolves owners to. It
+# is the backstop for the per-workload opt-out annotation (settings.sedai.io/podInterceptor.enabled):
+# it latches the annotation when the /mutate/workload admission was missed (controller down, timeout)
+# and for Notebooks, which that webhook never sees. Read-only; a missing CRD is skipped.
+# Keep in sync with sedai-smart-agent's kube-spec-controller.yaml.
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets", "daemonsets"]
+  verbs: ["list", "watch"]
+- apiGroups: ["argoproj.io"]
+  resources: ["rollouts"]
+  verbs: ["list", "watch"]
+- apiGroups: ["kubeflow.org"]
+  resources: ["notebooks"]
+  verbs: ["list", "watch"]
 {{- end }}

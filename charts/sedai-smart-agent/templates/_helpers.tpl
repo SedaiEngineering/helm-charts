@@ -258,7 +258,8 @@ securityContext:
   seccompProfile:
     type: RuntimeDefault
 {{- if $window }}
-restartPolicy: Never
+# Crash or failed probe restarts the compactor in the same pod; counts toward the Job's backoffLimit.
+restartPolicy: OnFailure
 terminationGracePeriodSeconds: {{ int64 $c.window.terminationGracePeriodSeconds }}
 {{- end }}
 containers:

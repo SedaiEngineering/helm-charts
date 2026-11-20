@@ -288,6 +288,7 @@ sedaiSmartScheduler:
       runAsUser: 1000
     # Used only when kind: Window.
     window:
+      backoffLimit: 3               # Restarts plus pod replacements per window before it ends as failed
       ttlSecondsAfterFinished: 60
       terminationGracePeriodSeconds: 10
       activeDeadlineSeconds: 3600   # Placeholder; smart-agent overwrites it per window

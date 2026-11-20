@@ -20,7 +20,11 @@ spec:
         app: sedai-smart-compactor
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
-      backoffLimit: 0
+      backoffLimit: {{ int .Values.sedaiSmartScheduler.compactor.window.backoffLimit }}
+      {{- if semverCompare ">=1.29-0" .Capabilities.KubeVersion.Version }}
+      # Replacement pod starts only after the old one has fully stopped (one compactor at a time).
+      podReplacementPolicy: Failed
+      {{- end }}
       ttlSecondsAfterFinished: {{ int64 .Values.sedaiSmartScheduler.compactor.window.ttlSecondsAfterFinished }}
       activeDeadlineSeconds: {{ int64 .Values.sedaiSmartScheduler.compactor.window.activeDeadlineSeconds }}
       template:

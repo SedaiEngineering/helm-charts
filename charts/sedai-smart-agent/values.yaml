@@ -459,7 +459,7 @@ image:
 
   logForwarder:
     repository: sedai_io/sedai-kube-scheduler-log-forwader
-    imageTag: v1.0.0
+    imageTag: v1.0.1
     imagePullPolicy: IfNotPresent
 
   beyla:

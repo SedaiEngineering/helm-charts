@@ -128,7 +128,20 @@ sedaiKSM:
   enabled: true  # Required for Sedai-managed Prometheus
   nodeSelector: {}
   tolerations: []
+  vpa:
+    enabled: true
+    updateMode: ""        # "" = auto-select, as for Victoria Metrics below
+    minAllowed:
+      cpu: "25m"
+      memory: "128Mi"
+    maxAllowed: {}        # empty = the resources.ksm limits
 ```
+
+**Vertical Pod Autoscaler.** When the cluster has the VPA CRD (`autoscaling.k8s.io/v1`), the chart also creates a VerticalPodAutoscaler for KSM. KSM memory grows with the number of objects in the cluster, so VPA sets its CPU and memory requests from observed usage, between `minAllowed` and `maxAllowed`. Clusters without VPA keep the `resources.ksm` defaults.
+
+- It manages requests only (`RequestsOnly`). The `resources.ksm` limits (500m CPU, 2Gi memory) stay fixed and requests never go above them, so raise `resources.ksm.memory.limits` on very large clusters.
+- KSM does not size itself from its resources, so in-place resizes (Kubernetes 1.33+, VPA 1.4+) apply without a restart. With `Recreate` the pod is evicted and KSM metrics pause briefly.
+- `updateMode` works as described for Victoria Metrics below. The VPA recommender also applies its own per-pod floor (25m CPU and 250Mi memory by default).
 
 #### Node Exporter
 
@@ -140,6 +153,8 @@ sedaiNodeExporter:
   nodeSelector: {}
   tolerations: []
 ```
+
+Each node-exporter pod requests 10m CPU and 32Mi memory, with limits of 200m and 128Mi (`resources.sedaiNodeExporter`). node-exporter is single-threaded and typically uses 10-15Mi of process memory (40Mi at most). The memory limit also stops reclaimable kernel cache charged to the pod from inflating its memory usage over time. Set `resources.sedaiNodeExporter: null` to run it without requests and limits.
 
 #### Victoria Metrics
 

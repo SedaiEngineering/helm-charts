@@ -29,7 +29,7 @@ subjects:
 {{- end }}
 {{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create .Values.sedaiSmartScheduler.compactor.enabled (eq (include "smart-scheduler.compactorWindowMode" .) "true") }}
 ---
-# Window mode: lets the smart-agent run compactor window Jobs (get/list/watch on cronjobs, jobs, pods come from its ClusterRole).
+# Window mode: lets the smart-agent start, stop and shorten compactor window Jobs (get/list/watch on cronjobs, jobs, pods come from its ClusterRole).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -40,7 +40,8 @@ metadata:
 rules:
   - apiGroups: ["batch"]
     resources: ["jobs"]
-    verbs: ["create", "delete"]
+    # patch moves a running window's deadline earlier when a freeze is added mid-window.
+    verbs: ["create", "delete", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

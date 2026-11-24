@@ -300,6 +300,10 @@ Sedai-managed VictoriaMetrics scrapes node exporter and KSM, so enabling it forc
 {{- if not (has $kind (list "Deployment" "Window")) -}}
 {{- fail (printf "sedaiSmartScheduler.compactor.kind must be Deployment or Window, got %q" $kind) -}}
 {{- end -}}
+{{- /* Window mode needs Job writes, which a read-only install must not grant. */ -}}
+{{- if and (eq $kind "Window") .Values.sedaiIntegrationSettings.rbacReadOnly -}}
+{{- fail "sedaiSmartScheduler.compactor.kind=Window needs write access and can't be used with sedaiIntegrationSettings.rbacReadOnly=true" -}}
+{{- end -}}
 {{- if eq $kind "Window" -}}true{{- end -}}
 {{- end -}}
 

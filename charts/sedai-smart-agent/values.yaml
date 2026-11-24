@@ -272,6 +272,8 @@ sedaiSmartScheduler:
   compactor:
     enabled: false
     kind: Deployment                # Deployment (long-running) | Window (suspended CronJob template; smart-agent runs one-off window Jobs from it)
+                                    # Window is refused with sedaiIntegrationSettings.rbacReadOnly=true. The agent may delete/patch only
+                                    # the Job "<workload.smartCompactor.name>-window", so don't override the window Job name in Sedai settings.
     replicas: 1
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug

@@ -52,6 +52,7 @@ monitoringProvider:
 # Enable optimization
 sedaiPodInterceptor:
   enabled: true
+  priorityClassName: "sedai-datadog-priority"
   
 # Configure priority classes for components
 smartAgentEnroll:
@@ -61,9 +62,6 @@ smartAgentEnroll:
 workload:
   smartAgent:
     priorityClassName: "sedai-datadog-priority"
-
-sedaiPodInterceptor:
-  priorityClassName: "sedai-datadog-priority"
 
 # Minimal resource allocation since monitoring is external
 resources:

@@ -504,6 +504,7 @@ image:
       "34": "v1.34.11"
       "35": "v1.35.8"
       "36": "v1.36.4"
+      "37": "v1.37.3"
 
   # Exact minor only, no N-1 — descheduler isn't bound by the scheduler's skew policy.
   # Tags per descheduler's own matrix: https://github.com/kubernetes-sigs/descheduler#compatibility-matrix
@@ -523,6 +524,7 @@ image:
       "34": "v0.34.0"
       "35": "v0.35.1"
       "36": "v0.36.0"
+      "37": "v0.37.0"
 
 # -------------------------------------------------------------------
 # Docker Image Pull Secret

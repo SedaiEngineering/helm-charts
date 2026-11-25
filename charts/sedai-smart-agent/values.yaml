@@ -130,7 +130,7 @@ sedaiKSM:
 sedaiPodInterceptor:
   enabled: false                    # Enables Sedai sync controller for workload auto-optimization
   tlsPath: "/tls"                   # Mount path for TLS certificates (if needed)
-  logLevel: "INFO"                 # Logging level: trace, debug, info, warn, error
+  logLevel: "ERROR"                 # Logging level: trace, debug, info, warn, error
   nodeSelector: {}                  # Node selector for both Sedai Sync and DB deployments
   tolerations: []                   # Tolerations for both Sedai Sync and DB deployments
   priorityClassName: "system-cluster-critical"  # Priority class for both Sedai Sync and DB deployments
@@ -227,7 +227,7 @@ sedaiSmartScheduler:
   nameOverride: ""
   fullnameOverride: ""
 
-  replicaCount: 2
+  replicaCount: 3                   # One leads, the rest are warm standbys; 3 survives a second failure during a drain or rollout
 
   scheduler:
     verbosity: 2                    # klog verbosity: 0=silent, 2=normal, 4=debug
@@ -240,6 +240,11 @@ sedaiSmartScheduler:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  # Empty renders a soft (ScheduleAnyway) zone + hostname spread when replicaCount > 1; it needs the standard
+  # topology.kubernetes.io/zone node label, which EKS, GKE and AKS set. Supply your own list to replace it.
+  topologySpreadConstraints: []
+  # Replace a replica on a not-ready/unreachable node after this many seconds (Kubernetes default 300). 0 disables.
+  nodeLostTolerationSeconds: 30
 
   # When true, adds the karpenter.sh/do-not-disrupt annotation to the scheduler pod(s), so
   # Karpenter skips proactively consolidating nodes hosting them. Set false to let Karpenter
@@ -363,7 +368,7 @@ workload:
     revisionHistoryLimit: 1                 # Number of old ReplicaSets to retain
     secret: sedai-smart-agent               # Kubernetes Secret used by the agent
     nodeSelector: {}                        # Node selector for Smart Agent deployment
-    tolerations: []                         # Tolerations for Smart Agent deployment
+    tolerations: []                         # Additional tolerations for Smart Agent deployment - node.sedai.io/drain is always applied regardless (see sedai-smart-agent-deployment.yaml)
     priorityClassName: "system-cluster-critical"  # Priority class for the Smart Agent deployment
     # When true, adds the karpenter.sh/do-not-disrupt annotation to the Smart Agent pod, so
     # Karpenter skips proactively consolidating nodes hosting it. Set false to let Karpenter
@@ -420,7 +425,7 @@ image:
   smartagentEnroll:  
     name: sedai-enroll
     repository: sedai_io/sedai-smart-agent-enroll
-    imageTag: v3.1.31
+    imageTag: v3.1.32
     imagePullPolicy: Always
 
   ksm:
@@ -440,7 +445,7 @@ image:
 
   sedaiPodInterceptor:
     repository: sedai_io/sedai-kube-spec-controller
-    imageTag: v2.2.1
+    imageTag: v2.3.0
     imagePullPolicy: IfNotPresent
 
   # Postgres store for the spec controller. runAsUser 999 in the StatefulSet is tied to this

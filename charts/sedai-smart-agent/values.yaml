@@ -222,7 +222,7 @@ sedaiGrafanaAlloy:
   priorityClassName: ""             # Priority class name for Grafana Alloy daemonset
 
 sedaiSmartScheduler:
-  enabled: false                     # Enables the Sedai smart scheduler (workload-aware bin-packing scheduler)
+  enabled: false                     # Enables the Sedai smart scheduler (workload-aware bin-packing scheduler). Also enables sedaiPodInterceptor, which it requires
 
   nameOverride: ""
   fullnameOverride: ""
@@ -323,7 +323,7 @@ sedaiVictoriaMetrics:
   nodeSelector: {}                  # Node selector for Victoria Metrics StatefulSet
   tolerations: []                   # Tolerations for Victoria Metrics StatefulSet
   priorityClassName: ""             # Priority class name for Victoria Metrics StatefulSet
-  enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default)
+  enabled: false                    # Use Sedai-managed Victoria Metrics (preferred default). Also enables sedaiNodeExporter and sedaiKSM, which it scrapes
   # VerticalPodAutoscaler for Victoria Metrics. Created only when the VPA CRD (autoscaling.k8s.io/v1) is
   # installed in the cluster, otherwise skipped. For `helm template`, pass
   # --api-versions autoscaling.k8s.io/v1/VerticalPodAutoscaler to render it.
@@ -342,7 +342,7 @@ sedaiVictoriaMetrics:
       memory: "8Gi"
 
 kubeflowSparkOptimization:
-  enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment)
+  enabled: false                    # Enables Sedai Kubeflow Spark optimization (deploys vmalert for recording rule evaluation / Spark metrics enrichment). Also enables sedaiVictoriaMetrics, which vmalert reads and writes
   evaluationInterval: "30s"         # Recording rule evaluation interval
   nodeSelector: {}                  # Node selector for vmalert deployment
   tolerations: []                   # Tolerations for vmalert deployment

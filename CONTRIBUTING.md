@@ -87,6 +87,23 @@ RBAC rule, ...) fails the gate until the expected lists in sedai-tests match. To
 Changes that do not change what is deployed (version bumps, image tags, values defaults) need
 nothing in sedai-tests. Details: `chart-gate/README.md` in sedai-tests.
 
+## Smart-scheduler image maps (`k8s-image-sync` bot PRs)
+
+`image.scheduler.tagByK8sMinor` and `image.compactor.tagByK8sMinor` pin one kube-scheduler and one
+descheduler tag per Kubernetes minor. The images in `public.ecr.aws/sedai_io` are unchanged copies of
+`registry.k8s.io`. The compactor lookup is exact-minor only, so on a minor missing from the compactor map
+the chart skips the smart scheduler and the compactor together.
+
+The `K8s image sync (smart-scheduler)` workflow keeps both maps current every Monday. It copies new
+upstream patches and minors into ECR, then opens one PR per channel from `bot/k8s-image-sync-<branch>`.
+Review and merge those like any other PR, and don't push to the bot branches. A new minor goes in only
+once descheduler has released it too; until then an issue labelled `k8s-image-sync` tracks it. Run
+`python3 .github/scripts/k8s_image_sync.py` (needs `crane` and PyYAML) to see what it would change.
+
+To pin a tag by hand, copy it into ECR first, e.g.
+`crane copy registry.k8s.io/kube-scheduler:v1.37.3 public.ecr.aws/sedai_io/sedai-kube-scheduler:v1.37.3`.
+Chart Gate renders every minor in the maps and fails on an image that does not resolve.
+
 ## Docs that live alongside the chart
 
 - [`README.md`](charts/sedai-smart-agent/README.md) — chart reference: every component, its

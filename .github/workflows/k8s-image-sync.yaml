@@ -1,0 +1,99 @@
+name: K8s image sync (smart-scheduler)
+
+# Keeps the smart-scheduler image maps current: image.scheduler.tagByK8sMinor (kube-scheduler) and
+# image.compactor.tagByK8sMinor (descheduler) in charts/sedai-smart-agent/values.yaml, on dev, edge and main.
+# Weekly it bumps every mapped minor to the newest upstream patch, adds a new Kubernetes minor once
+# kube-scheduler v1.N and descheduler v0.N have both shipped, copies any missing image from
+# registry.k8s.io into public.ecr.aws/sedai_io (unchanged, same digest), and opens or refreshes one PR
+# per branch from bot/k8s-image-sync-<branch>. It also keeps an issue (label k8s-image-sync) open for a
+# Kubernetes minor that descheduler hasn't released yet, because the chart skips the smart scheduler on
+# such clusters. It never merges anything; Chart Gate (edge, main) checks the PRs like any other.
+# Logic and details: .github/scripts/k8s_image_sync.py. Run it locally without --apply to see the plan.
+#
+# Scheduled runs only happen from the default branch (main), so this file lives on main.
+
+on:
+  schedule:
+    - cron: '30 3 * * 1'  # Mondays 03:30 UTC (09:00 IST)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Plan only: no image copies, branches, PRs or issues'
+        type: boolean
+        default: true
+  # Self-test: a PR that changes the sync shows its plan in the job summary.
+  pull_request:
+    paths:
+      - '.github/workflows/k8s-image-sync.yaml'
+      - '.github/scripts/k8s_image_sync.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: k8s-image-sync-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'sync' }}
+  cancel-in-progress: false
+
+env:
+  CRANE_VERSION: v0.22.1
+
+jobs:
+  plan:
+    name: Plan
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.dry_run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml==6.0.2
+      - uses: imjasonh/setup-crane@v0.7
+        with:
+          version: ${{ env.CRANE_VERSION }}
+      - name: Plan
+        run: python3 .github/scripts/k8s_image_sync.py
+
+  sync:
+    name: Sync
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write       # push bot/k8s-image-sync-* branches
+      pull-requests: write  # open, edit and close the bot PRs
+      issues: write         # the waiting-for-descheduler issues and their label
+      id-token: write       # AWS OIDC for the public ECR push
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false  # the script sets the push credentials itself (GHPAT or GITHUB_TOKEN)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml==6.0.2
+      - uses: imjasonh/setup-crane@v0.7
+        with:
+          version: ${{ env.CRANE_VERSION }}
+      - name: Configure AWS credentials (public ECR)
+        uses: aws-actions/configure-aws-credentials@v5.0.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Log crane in to public ECR
+        # The ECR Public API only exists in us-east-1, whatever the default region is.
+        run: aws ecr-public get-login-password --region us-east-1 | crane auth login public.ecr.aws -u AWS --password-stdin
+      - name: Sync
+        env:
+          # GHPAT, when it can push, so that the bot PRs start Chart Gate (PRs opened with GITHUB_TOKEN
+          # start no workflows). Without it the script falls back to GITHUB_TOKEN and says so on the PR.
+          GHPAT: ${{ secrets.GHPAT }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/k8s_image_sync.py --apply

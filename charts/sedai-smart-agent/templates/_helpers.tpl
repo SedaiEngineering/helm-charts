@@ -168,13 +168,11 @@ Scheduler version-skew lookup: exact minor, else N-1 (https://kubernetes.io/rele
 {{- end -}}
 
 {{/*
-Compactor lookup: exact minor only, no N-1 (descheduler isn't bound by kube-scheduler's skew policy). "" if unmapped.
+"true" when the tag came from the previous minor: no override and only N-1 is mapped.
 */}}
-{{- define "smart-scheduler.resolveTagExact" -}}
-{{- $exact := toString (atoi .minor) -}}
-{{- if hasKey .tagByK8sMinor $exact -}}
-{{- index .tagByK8sMinor $exact -}}
-{{- end -}}
+{{- define "smart-scheduler.tagFromPreviousMinor" -}}
+{{- $minor := atoi .minor -}}
+{{- if and (not .imageTag) (not (hasKey .tagByK8sMinor (toString $minor))) (hasKey .tagByK8sMinor (toString (sub $minor 1))) -}}true{{- end -}}
 {{- end -}}
 
 {{/*
@@ -188,11 +186,12 @@ Override, else lookup. May be empty if the cluster's minor is unsupported.
 {{- end -}}
 {{- end -}}
 
+{{/* Same N-1 fallback as the scheduler, so a minor the chart doesn't list yet doesn't drop the whole stack. */}}
 {{- define "smart-scheduler.compactorTagRaw" -}}
 {{- if .Values.image.compactor.imageTag -}}
 {{- .Values.image.compactor.imageTag -}}
 {{- else -}}
-{{- include "smart-scheduler.resolveTagExact" (dict "minor" (include "smart-scheduler.k8sMinor" .) "tagByK8sMinor" .Values.image.compactor.tagByK8sMinor) -}}
+{{- include "smart-scheduler.resolveTag" (dict "minor" (include "smart-scheduler.k8sMinor" .) "tagByK8sMinor" .Values.image.compactor.tagByK8sMinor) -}}
 {{- end -}}
 {{- end -}}
 

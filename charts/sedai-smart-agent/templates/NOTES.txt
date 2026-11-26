@@ -1,0 +1,15 @@
+{{- if .Values.sedaiSmartScheduler.enabled }}
+{{- $minor := include "smart-scheduler.k8sMinor" . }}
+{{- if ne (include "smart-scheduler.installOk" .) "true" }}
+WARNING: Kubernetes 1.{{ $minor }} has no smart scheduler or compactor tag in this chart (nor does 1.{{ sub (atoi $minor) 1 }}).
+The scheduler and compactor were NOT installed, and any that an earlier release installed were removed.
+Upgrade to a chart version that lists 1.{{ $minor }}, or set image.scheduler.imageTag and image.compactor.imageTag.
+{{- else }}
+{{- if eq (include "smart-scheduler.tagFromPreviousMinor" (dict "minor" $minor "imageTag" .Values.image.scheduler.imageTag "tagByK8sMinor" .Values.image.scheduler.tagByK8sMinor)) "true" }}
+NOTE: this chart has no smart scheduler tag for Kubernetes 1.{{ $minor }}; it installed the 1.{{ sub (atoi $minor) 1 }} tag ({{ include "smart-scheduler.schedulerTagRaw" . }}).
+{{- end }}
+{{- if and .Values.sedaiSmartScheduler.compactor.enabled (eq (include "smart-scheduler.tagFromPreviousMinor" (dict "minor" $minor "imageTag" .Values.image.compactor.imageTag "tagByK8sMinor" .Values.image.compactor.tagByK8sMinor)) "true") }}
+NOTE: this chart has no compactor tag for Kubernetes 1.{{ $minor }}; it installed the 1.{{ sub (atoi $minor) 1 }} tag ({{ include "smart-scheduler.compactorTagRaw" . }}).
+{{- end }}
+{{- end }}
+{{- end }}

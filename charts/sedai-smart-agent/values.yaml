@@ -512,11 +512,12 @@ image:
     repository: sedai_io/victoriametrics/vmalert
     imageTag: v1.138.0-scratch
     imagePullPolicy: IfNotPresent
-  # Exact minor, else N-1 (kube-scheduler version-skew policy). Unmapped minor -> scheduler AND
+  # Exact minor, else N-1 (kube-scheduler version-skew policy). Neither mapped -> scheduler AND
   # compactor are both skipped, not just this one, rather than failing the whole chart.
+  # Sedai core keeps its own copy of the scheduler list and moves running schedulers to a new minor's tag.
   scheduler:
     repository: sedai_io/sedai-kube-scheduler
-    imageTag: ""                    # Leave empty to auto-select via tagByK8sMinor
+    imageTag: ""                    # Leave empty to auto-select via tagByK8sMinor; a set tag is pinned and Sedai never changes it
     imagePullPolicy: IfNotPresent
     tagByK8sMinor:
       "26": "v1.26.15"
@@ -531,7 +532,7 @@ image:
       "35": "v1.35.8"
       "36": "v1.36.4"
 
-  # Exact minor only, no N-1 — descheduler isn't bound by the scheduler's skew policy.
+  # Exact minor, else N-1 like the scheduler, so a minor this chart doesn't list yet keeps the stack installed.
   # Tags per descheduler's own matrix: https://github.com/kubernetes-sigs/descheduler#compatibility-matrix
   compactor:
     repository: sedai_io/sedai-kube-descheduler

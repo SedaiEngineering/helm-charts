@@ -1,0 +1,19 @@
+name: PR Check - Scheduler Image Tags
+
+on:
+  pull_request:
+    paths:
+      - charts/sedai-smart-agent/values.yaml
+      - scripts/check-scheduler-image-tags.sh
+
+jobs:
+  check-tags:
+    name: Every scheduler/compactor tag exists in public.ecr.aws/sedai_io
+    runs-on: sedai-arc-helm-charts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Keep sedai-core's smartSchedulerImageTags.yaml in step by hand: the script takes it as a second argument locally.
+      - name: Check tags
+        run: scripts/check-scheduler-image-tags.sh charts/sedai-smart-agent/values.yaml

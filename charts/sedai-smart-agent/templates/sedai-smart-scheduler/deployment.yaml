@@ -7,6 +7,9 @@ metadata:
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}
     app: sedai-smart-scheduler
+  annotations:
+    # "true" when image.scheduler.imageTag is set; Sedai's image check never changes a pinned tag.
+    sedai.io/image-pinned: "{{ if .Values.image.scheduler.imageTag }}true{{ else }}false{{ end }}"
 spec:
   replicas: {{ .Values.sedaiSmartScheduler.replicaCount }}
   # Surge first: a replica that cannot start (bad image or config) stalls the rollout while the old ones keep serving.

@@ -5,12 +5,6 @@ sidecar the client forwards metric queries to). Modeled after templates/sedai-sy
 layout. The gateway is never a Service - it binds 127.0.0.1 and is reached only by its sibling container
 over the pod's shared network namespace.
 */}}
-{{- $storeUpstream := .Values.sedaiAgentClient.metricsGateway.storeUpstream }}
-{{- if not $storeUpstream }}
-{{- if .Values.sedaiVictoriaMetrics.enabled }}
-{{- $storeUpstream = printf "http://%s:8428" .Values.workload.victoriaMetrics.name }}
-{{- end }}
-{{- end }}
 {{/*
 The agent-v3 server for this tenant sits behind the same platform gateway as everything else, reached
 at <sedaiBaseUrl>/agent (the gateway proxies AGENT_ENDPOINT there the same way it proxies /pricing to the
@@ -66,6 +60,7 @@ spec:
 
       securityContext:
         runAsNonRoot: true
+        runAsUser: 65532
         seccompProfile:
           type: RuntimeDefault
 
@@ -108,6 +103,8 @@ spec:
           value: "{{ .Values.sedaiAgentClient.agentClient.skipCertCheck }}"
         - name: METRICS_GATEWAY_HEALTH_URL
           value: "http://127.0.0.1:8080/health"
+        - name: METRICS_GATEWAY_URL
+          value: "http://127.0.0.1:8080"
         - name: AGENT_ID
           valueFrom:
             secretKeyRef:
@@ -118,17 +115,20 @@ spec:
           valueFrom:
             secretKeyRef:
               name: "{{ .Values.workload.agentClient.secret }}"
-              key: "AUTH_TOKEN"
+              key: "SERVER_ACCESSKEY"
         {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true 
+          readOnlyRootFilesystem: true
           privileged: false
           capabilities:
             drop:
               - ALL
           seccompProfile:
             type: RuntimeDefault
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
 
       - name: "{{ .Values.image.metricsGateway.name }}"
         image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" .Values.globalRegistry "repository" .Values.image.metricsGateway.repository) }}:{{ .Values.image.metricsGateway.imageTag }}"
@@ -141,10 +141,6 @@ spec:
             cpu: "{{ .Values.resources.metricsGateway.cpu.limits }}"
             memory: "{{ .Values.resources.metricsGateway.memory.limits }}"
         env:
-        - name: METRICS_SIDECAR_STORE_UPSTREAM
-          value: {{ required "sedaiAgentClient.metricsGateway.storeUpstream is required (METRICS_SIDECAR_STORE_UPSTREAM) when sedaiVictoriaMetrics.enabled is false - set it to the in-cluster metric store URL, e.g. http://<service>:<port>" $storeUpstream | quote }}
-        - name: METRICS_SIDECAR_STORE_PROVIDER
-          value: "{{ .Values.sedaiAgentClient.metricsGateway.storeProvider }}"
         - name: METRICS_SIDECAR_VERSION
           value: "{{ .Values.image.metricsGateway.imageTag }}"
         securityContext:
@@ -156,4 +152,8 @@ spec:
               - ALL
           seccompProfile:
             type: RuntimeDefault
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
 {{- end }}

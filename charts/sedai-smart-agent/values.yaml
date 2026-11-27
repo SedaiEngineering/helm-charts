@@ -439,12 +439,12 @@ image:
 
   ksm:
     repository: sedai_io/prometheus/kube-state-metrics
-    imageTag: v2.18.0
+    imageTag: v2.20.0
     imagePullPolicy: IfNotPresent
 
   reload:
     repository: sedai_io/prometheus/prometheus-config-reloader
-    imageTag: v0.90.0
+    imageTag: v0.91.0
     imagePullPolicy: IfNotPresent
 
   prometheus:
@@ -480,7 +480,7 @@ image:
 
   nodeExporter:
     repository: sedai_io/prometheus/node-exporter
-    imageTag: v1.10.2
+    imageTag: v1.12.1
     imagePullPolicy: IfNotPresent
 
   logForwarder:
@@ -490,17 +490,17 @@ image:
 
   beyla:
     repository: sedai_io/grafana/beyla
-    imageTag: 3.6.0
+    imageTag: 3.44.0
     imagePullPolicy: IfNotPresent
   
   dcgmExporter:
     repository: sedai_io/nvidia/dcgm-exporter
-    imageTag: 4.5.2-4.8.1-distroless
+    imageTag: 4.6.1-4.8.4-distroless
     imagePullPolicy: IfNotPresent
 
   grafanaAlloy:
     repository: sedai_io/grafana/alloy
-    imageTag: v1.14.1
+    imageTag: v1.22.0
     imagePullPolicy: IfNotPresent
 
   victoriaMetrics:

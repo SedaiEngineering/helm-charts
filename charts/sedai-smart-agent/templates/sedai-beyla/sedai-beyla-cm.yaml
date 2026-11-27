@@ -18,9 +18,9 @@ metadata:
 data:
   beyla-config.yml: |
     discovery:
-      services:
+      instrument:
         - k8s_namespace: .
-      exclude_services:
+      exclude_instrument:
         - exe_path: ".*alloy.*|.*otelcol.*|.*beyla.*"
     attributes:
       kubernetes:
@@ -55,10 +55,11 @@ data:
       type: ebpf
     javaagent:
       enabled: {{ .Values.sedaiBeyla.javaAgentEnabled }}
-    prometheus_export:
+    metrics:
       features:
       - network
       - application
+    prometheus_export:
       path: /metrics
       port: {{ .Values.sedaiBeyla.port }}
 {{- end }}

@@ -312,3 +312,155 @@ Sedai-managed VictoriaMetrics scrapes node exporter and KSM, so enabling it forc
 {{- define "ksm.enabled" -}}
 {{- if or .Values.sedaiKSM.enabled (eq (include "victoria-metrics.enabled" .) "true") -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+"true" when compactor.kind is Window (suspended CronJob template for agent-created Jobs); fails on an unknown kind.
+*/}}
+{{- define "smart-scheduler.compactorWindowMode" -}}
+{{- $kind := default "Deployment" .Values.sedaiSmartScheduler.compactor.kind -}}
+{{- if not (has $kind (list "Deployment" "Window")) -}}
+{{- fail (printf "sedaiSmartScheduler.compactor.kind must be Deployment or Window, got %q" $kind) -}}
+{{- end -}}
+{{- /* Window mode needs Job writes, which a read-only install must not grant. */ -}}
+{{- if and (eq $kind "Window") .Values.sedaiIntegrationSettings.rbacReadOnly -}}
+{{- fail "sedaiSmartScheduler.compactor.kind=Window needs write access and can't be used with sedaiIntegrationSettings.rbacReadOnly=true" -}}
+{{- end -}}
+{{- if eq $kind "Window" -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Window PriorityClass name: the set name, else one per install and value, since an existing class's value can't change.
+*/}}
+{{- define "smart-scheduler.compactorWindowPriorityClassName" -}}
+{{- $pc := .Values.sedaiSmartScheduler.compactor.window.priorityClass -}}
+{{- if $pc.name -}}
+{{- $pc.name -}}
+{{- else if $pc.create -}}
+{{- printf "%s-%s-compactor-window-%d" .Release.Namespace .Release.Name (int64 $pc.value) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Compactor pod spec shared by the Deployment and the window CronJob. Usage: (dict "root" $ "window" bool).
+*/}}
+{{- define "smart-scheduler.compactorPodSpec" -}}
+{{- $root := .root -}}
+{{- $window := .window -}}
+{{- $c := $root.Values.sedaiSmartScheduler.compactor -}}
+{{- /* Window pods always take the lease, so a new window pod waits for the previous one to stop. */ -}}
+{{- $leader := or $window $c.leaderElection.enabled -}}
+serviceAccountName: {{ include "smart-scheduler.serviceAccountName" $root }}
+securityContext:
+  runAsNonRoot: true
+  {{- with $c.podSecurityContext.runAsUser }}
+  runAsUser: {{ int64 . }}
+  {{- end }}
+  seccompProfile:
+    type: RuntimeDefault
+{{- if $window }}
+# Crash or failed probe restarts the compactor in the same pod; counts toward the Job's backoffLimit.
+restartPolicy: OnFailure
+terminationGracePeriodSeconds: {{ int64 $c.window.terminationGracePeriodSeconds }}
+{{- end }}
+containers:
+  - name: compactor
+    image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" $root.Values.globalRegistry "repository" $root.Values.image.compactor.repository) }}:{{ include "smart-scheduler.compactorImageTag" $root }}"
+    imagePullPolicy: {{ $root.Values.image.compactor.imagePullPolicy }}
+    command:
+      - /bin/descheduler
+      - --policy-config-file=/policy-dir/policy.yaml
+      - --descheduling-interval={{ $c.reconcileInterval }}
+      - --leader-elect={{ $leader }}
+      {{- if $leader }}
+      - --leader-elect-resource-name={{ $c.leaderElection.leaseName }}
+      - --leader-elect-resource-namespace={{ $root.Release.Namespace }}
+      {{- end }}
+      - --v={{ $c.verbosity }}
+    ports:
+      - name: https
+        containerPort: 10258
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 10258
+        scheme: HTTPS
+      initialDelaySeconds: 15
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: 10258
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    resources:
+      {{- if $window }}
+      {{- toYaml ($c.window.resources | default $root.Values.resources.compactor) | nindent 6 }}
+      {{- else }}
+      {{- toYaml $root.Values.resources.compactor | nindent 6 }}
+      {{- end }}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      readOnlyRootFilesystem: true
+    volumeMounts:
+      - name: policy
+        mountPath: /policy-dir
+        readOnly: true
+  - name: log-forwarder
+    image: "{{ include "sedai-smart-agent.imageRepository" (dict "globalRegistry" $root.Values.globalRegistry "repository" $root.Values.image.logForwarder.repository) }}:{{ $root.Values.image.logForwarder.imageTag }}"
+    imagePullPolicy: {{ $root.Values.image.logForwarder.imagePullPolicy }}
+    env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      - name: CONTAINER_NAME
+        value: compactor
+      - name: CONTAINER_LABEL
+        value: sedai-smart-compactor
+      - name: AGENT_TENANT
+        valueFrom:
+          secretKeyRef:
+            name: {{ $root.Values.workload.smartAgent.secret }}
+            key: AGENT_TENANT
+            optional: true
+      - name: AGENT_ACCOUNTID
+        valueFrom:
+          secretKeyRef:
+            name: {{ $root.Values.workload.smartAgent.secret }}
+            key: AGENT_ACCOUNTID
+            optional: true
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      readOnlyRootFilesystem: true
+    volumeMounts:
+      - name: sidecar-tmp
+        mountPath: /tmp
+{{- if $window }}
+{{- with include "smart-scheduler.compactorWindowPriorityClassName" $root }}
+priorityClassName: {{ . }}
+{{- end }}
+{{- else }}
+{{- with $c.priorityClassName }}
+priorityClassName: {{ . }}
+{{- end }}
+{{- end }}
+volumes:
+  - name: policy
+    configMap:
+      name: {{ $root.Values.workload.smartCompactor.name | default "sedai-smart-compactor" }}-config
+  - name: sidecar-tmp
+    emptyDir: {}
+{{- end -}}

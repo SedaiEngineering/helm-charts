@@ -308,12 +308,26 @@ Sedai-managed VictoriaMetrics scrapes node exporter and KSM, so enabling it forc
 {{- end -}}
 
 {{/*
+Window PriorityClass name: the set name, else one per install and value, since an existing class's value can't change.
+*/}}
+{{- define "smart-scheduler.compactorWindowPriorityClassName" -}}
+{{- $pc := .Values.sedaiSmartScheduler.compactor.window.priorityClass -}}
+{{- if $pc.name -}}
+{{- $pc.name -}}
+{{- else if $pc.create -}}
+{{- printf "%s-%s-compactor-window-%d" .Release.Namespace .Release.Name (int64 $pc.value) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Compactor pod spec shared by the Deployment and the window CronJob. Usage: (dict "root" $ "window" bool).
 */}}
 {{- define "smart-scheduler.compactorPodSpec" -}}
 {{- $root := .root -}}
 {{- $window := .window -}}
 {{- $c := $root.Values.sedaiSmartScheduler.compactor -}}
+{{- /* Window pods always take the lease, so a new window pod waits for the previous one to stop. */ -}}
+{{- $leader := or $window $c.leaderElection.enabled -}}
 serviceAccountName: {{ include "smart-scheduler.serviceAccountName" $root }}
 securityContext:
   runAsNonRoot: true
@@ -335,8 +349,8 @@ containers:
       - /bin/descheduler
       - --policy-config-file=/policy-dir/policy.yaml
       - --descheduling-interval={{ $c.reconcileInterval }}
-      - --leader-elect={{ $c.leaderElection.enabled }}
-      {{- if $c.leaderElection.enabled }}
+      - --leader-elect={{ $leader }}
+      {{- if $leader }}
       - --leader-elect-resource-name={{ $c.leaderElection.leaseName }}
       - --leader-elect-resource-namespace={{ $root.Release.Namespace }}
       {{- end }}
@@ -414,7 +428,7 @@ containers:
       - name: sidecar-tmp
         mountPath: /tmp
 {{- if $window }}
-{{- with $c.window.priorityClass.name }}
+{{- with include "smart-scheduler.compactorWindowPriorityClassName" $root }}
 priorityClassName: {{ . }}
 {{- end }}
 {{- else }}

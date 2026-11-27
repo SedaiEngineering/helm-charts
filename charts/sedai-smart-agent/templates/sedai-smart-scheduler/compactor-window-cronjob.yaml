@@ -32,6 +32,8 @@ spec:
           labels:
             app: sedai-smart-compactor
             app.kubernetes.io/instance: {{ .Release.Name }}
+            # The compactor's policy never evicts pods with this label, so it can't evict itself.
+            sedai.io/no-evict: "true"
           {{- if .Values.sedaiSmartScheduler.compactor.disruptionProtection }}
           annotations:
             karpenter.sh/do-not-disrupt: "true"

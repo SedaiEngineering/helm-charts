@@ -3,11 +3,11 @@
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: {{ $w.priorityClass.name }}
+  name: {{ include "smart-scheduler.compactorWindowPriorityClassName" . }}
   labels:
     {{- include "smart-scheduler.labels" . | nindent 4 }}
 value: {{ int64 $w.priorityClass.value }}
-preemptionPolicy: {{ $w.priorityClass.preemptionPolicy }}
+preemptionPolicy: Never
 globalDefault: false
 description: "Sedai compactor window Jobs; never preempts other pods."
 {{- end }}

@@ -1,6 +1,7 @@
 # Leader-election RBAC: grants the smart-agent SA permission to acquire/renew
 # coordination.k8s.io/Lease objects so scheduler/compactor replicas can elect a leader.
-{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create (or .Values.sedaiSmartScheduler.leaderElection.enabled .Values.sedaiSmartScheduler.compactor.leaderElection.enabled) }}
+{{- $windowLease := and .Values.sedaiSmartScheduler.compactor.enabled (eq (include "smart-scheduler.compactorWindowMode" .) "true") }}
+{{- if and (eq (include "smart-scheduler.installOk" .) "true") .Values.sedaiSmartScheduler.rbac.create (or .Values.sedaiSmartScheduler.leaderElection.enabled .Values.sedaiSmartScheduler.compactor.leaderElection.enabled $windowLease) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -18,7 +19,7 @@ rules:
       {{- if .Values.sedaiSmartScheduler.leaderElection.enabled }}
       - {{ .Values.sedaiSmartScheduler.leaderElection.leaseName }}
       {{- end }}
-      {{- if .Values.sedaiSmartScheduler.compactor.leaderElection.enabled }}
+      {{- if or .Values.sedaiSmartScheduler.compactor.leaderElection.enabled $windowLease }}
       - {{ .Values.sedaiSmartScheduler.compactor.leaderElection.leaseName }}
       {{- end }}
     verbs: ["get", "update", "patch"]

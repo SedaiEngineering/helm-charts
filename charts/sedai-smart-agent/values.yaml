@@ -272,15 +272,15 @@ sedaiSmartScheduler:
   compactor:
     enabled: false
     kind: Deployment                # Deployment (long-running) | Window (suspended CronJob template; smart-agent runs one-off window Jobs from it)
-                                    # Window is refused with sedaiIntegrationSettings.rbacReadOnly=true. The agent may delete/patch only
-                                    # the Job "<workload.smartCompactor.name>-window", so don't override the window Job name in Sedai settings.
+                                    # Window is refused with sedaiIntegrationSettings.rbacReadOnly=true. The agent may delete only the Job
+                                    # "<workload.smartCompactor.name>-window", so don't override the window Job name in Sedai settings.
     replicas: 1
     reconcileInterval: 4h           # How often the descheduler runs an eviction cycle
     verbosity: 3                    # klog verbosity: 0=silent, 3=normal, 4=debug
     priorityClassName: "system-cluster-critical"  # Priority class for the compactor pod
     disruptionProtection: true      # Same as sedaiSmartScheduler.disruptionProtection, for the compactor pod(s)
     leaderElection:
-      enabled: false
+      enabled: false                # Deployment mode only; Window mode always takes the lease, so two compactors never run at once
       leaseName: sedai-smart-compactor
     # Pod-level securityContext uid for the compactor Deployment. Default (1000) is what the
     # compactor image is built to run as. Override directly to test/emulate a different platform's
@@ -294,12 +294,11 @@ sedaiSmartScheduler:
       ttlSecondsAfterFinished: 60
       terminationGracePeriodSeconds: 10
       activeDeadlineSeconds: 3600   # Placeholder; smart-agent overwrites it per window
-      priorityClass:
-        create: true
-        name: sedai-compactor-window
-        value: 1000
-        preemptionPolicy: Never     # Waits for free capacity instead of preempting other pods
-      resources:                    # Compactor container only; empty falls back to resources.compactor
+      priorityClass:                # Never preempts other pods; the window pod waits for free capacity
+        create: true                # false: the pod uses the class in name (create it yourself), or none if name is empty
+        name: ""                    # Empty:"<namespace>-<release>-compactor-window-<value>", so each install has its own class
+        value: 1000                 # Can't change on an existing class; with an empty name a new value makes a new class
+      resources:                    # Compactor container only; null uses resources.compactor ({} keeps these defaults)
         requests:
           cpu: 20m
           memory: 64Mi

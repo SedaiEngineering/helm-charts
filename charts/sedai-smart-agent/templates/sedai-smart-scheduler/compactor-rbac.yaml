@@ -42,7 +42,7 @@ rules:
   - apiGroups: ["batch"]
     resources: ["jobs"]
     verbs: ["create"]
-  # Only the window Job; patch moves its deadline earlier when a freeze is added mid-window.
+  # delete is limited to the window Job. patch (shortening for a new freeze) is also in the agent's ClusterRole; listed so Window mode doesn't depend on it.
   - apiGroups: ["batch"]
     resources: ["jobs"]
     resourceNames: [{{ printf "%s-window" (.Values.workload.smartCompactor.name | default "sedai-smart-compactor") | quote }}]

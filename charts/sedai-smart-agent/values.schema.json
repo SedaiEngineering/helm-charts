@@ -99,6 +99,16 @@
           "default": false
         }
       }
+    },
+    "sedaiAgentClient": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enables the Sedai Agent Client + Metrics Gateway two-container deployment (agent-v3 data path)",
+          "default": false
+        }
+      }
     }
   }
 }
